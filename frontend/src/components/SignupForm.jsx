@@ -36,11 +36,22 @@ const SignupForm = () => {
         setLoading(true);
 
         try {
-            await signup(formData);
+            // console.log("Submitting signup data:", formData);
+            const payload = {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            password: formData.password,
+            phone: formData.phone,
+            address: formData.address
+        };
+        console.log("Submitting payload:", payload);
+            await signup(payload);
             setSuccess(true);
+            // Show success message with email verification notice
             setTimeout(() => {
                 navigate("/login");
-            }, 2000);
+            }, 3000);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -50,17 +61,21 @@ const SignupForm = () => {
 
     if (success) {
         return (
-            <div className="signup-container success-container"
-            >
+            <div className="signup-container success-container">
                 <h2 className="success-title">✅ Signup Successful!</h2>
-                <p className="success-message">Redirecting to login...</p>
+                <p className="success-message">
+                    📧 Please check your email to verify your account.
+                </p>
+                <p className="success-message">
+                    Redirecting to login...
+                </p>
             </div>
         );
     }
 
     return (
         <div className="signup-container">
-            <h2 className="signup-title">Sign Up</h2>
+            <h2 className="signup-title">Let's Get Started!</h2>
             <form onSubmit={handleSubmit} className="signup-form">
                 <input
                     type="text"

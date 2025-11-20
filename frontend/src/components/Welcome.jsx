@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import "./CSS/Welcome.css";
-import landingBG from "../assets/images/welcome.png";  // correct path
+import landingBG from "../assets/images/welcomePage.png";  // correct path
 
 const Welcome = () => {
   return (
