@@ -10,7 +10,8 @@ const userSchema = new Schema({
     isVerified: { type: Boolean, default: false },
     verificationCode: { type: String },
     verificationCodeExpires: { type: Date },
-    date: { type: Date, default: Date.now }
+    date: { type: Date, default: Date.now },
+    role: { type: String, enum: ["user", "admin"], default: "user"}
 });
 
 export const User = model("User", userSchema);
