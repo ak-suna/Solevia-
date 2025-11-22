@@ -44,7 +44,7 @@ export const loginUser = async (req, res) => {
             isVerified: loginUser.isVerified
             
         });
-        res.status(200).json({ messge: "Login Successful", token: token,role: loginUser.role, isVerified: loginUser.isVerified});
+        res.status(200).json({ message: "Login Successful", token: token,role: loginUser.role, isVerified: loginUser.isVerified});
     } catch (err) {
         let status = 400;
         console.error("❌ Error on login: ", err);
@@ -58,9 +58,22 @@ export const verifyEmail = async (req, res) => {
         // Find user by code, even if already verified
         const user = await User.findOne({ verificationCode: code });
 
+        // if (!user) {
+        //     return res.status(400).json({ error: "Invalid or expired verification code" });
+        // }
         if (!user) {
-            return res.status(400).json({ error: "Invalid or expired verification code" });
-        }
+    // Check if code was already used (user is verified)
+    const alreadyVerifiedUser = await User.findOne({ isVerified: true });
+    if (alreadyVerifiedUser) {
+        return res.status(200).json({
+            success: true,
+            message: "Email already verified."
+        });
+    }
+
+    return res.status(400).json({ error: "Invalid or expired verification code" });
+}
+
 
         if (user.isVerified) {
             // Already verified → return 200 with proper message

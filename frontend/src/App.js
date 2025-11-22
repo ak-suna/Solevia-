@@ -45,15 +45,83 @@
 //     );
 // }
 
+// // export default App;
+// import React from "react";
+// import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+// import Welcome from "./components/Welcome";
+// import SignupForm from "./components/SignupForm";
+// import LoginForm from "./components/LoginForm";
+// import Dashboard from "./components/Dashboard";
+// import VerifyEmail from "./components/VerifyEmail"; // NEW
+// import { isAuthenticated, isAdmin } from "./services/auth"; // UPDATED
+
+// function App() {
+//     const ProtectedRoute = ({ children }) => {
+//         return isAuthenticated() ? children : <Navigate to="/login" />;
+//     };
+
+//     const AdminRoute = ({ children }) => {
+//         if (!isAuthenticated()) {
+//             return <Navigate to="/login" />;
+//         }
+//         if (!isAdmin()) {
+//             return <Navigate to="/dashboard" />;
+//         }
+//         return children;
+//     };
+
+//     return (
+//         <Router>
+//             <div className="App">
+//                 <Routes>
+//                     <Route 
+//                         path="/" 
+//                         element={
+//                             isAuthenticated() ? <Navigate to="/dashboard" /> : <Welcome />
+//                         } 
+//                     />
+                    
+//                     <Route path="/signup" element={<SignupForm />} />
+//                     <Route path="/login" element={<LoginForm />} />
+                    
+//                     {/* NEW - Email Verification Route */}
+//                     <Route path="/verify-email/:code" element={<VerifyEmail />} />
+                    
+//                     <Route
+//                         path="/dashboard"
+//                         element={
+//                             <ProtectedRoute>
+//                                 <Dashboard />
+//                             </ProtectedRoute>
+//                         }
+//                     />
+
+//                     {/* Example Admin-Only Route */}
+//                     {/* <Route
+//                         path="/admin"
+//                         element={
+//                             <AdminRoute>
+//                                 <AdminPanel />
+//                             </AdminRoute>
+//                         }
+//                     /> */}
+//                 </Routes>
+//             </div>
+//         </Router>
+//     );
+// }
+
 // export default App;
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Welcome from "./components/Welcome";
 import SignupForm from "./components/SignupForm";
 import LoginForm from "./components/LoginForm";
-import Dashboard from "./components/Dashboard";
-import VerifyEmail from "./components/VerifyEmail"; // NEW
-import { isAuthenticated, isAdmin } from "./services/auth"; // UPDATED
+import Dashboard from "./components/Dashboard"; // redirect-only dashboard
+import UserDashboard from "./components/UserDashboard"; // NEW
+import AdminDashboard from "./components/AdminDashboard"; // your admin dashboard
+import VerifyEmail from "./components/VerifyEmail";
+import { isAuthenticated, isAdmin } from "./services/auth";
 
 function App() {
     const ProtectedRoute = ({ children }) => {
@@ -61,12 +129,8 @@ function App() {
     };
 
     const AdminRoute = ({ children }) => {
-        if (!isAuthenticated()) {
-            return <Navigate to="/login" />;
-        }
-        if (!isAdmin()) {
-            return <Navigate to="/dashboard" />;
-        }
+        if (!isAuthenticated()) return <Navigate to="/login" />;
+        if (!isAdmin()) return <Navigate to="/user/dashboard" />;
         return children;
     };
 
@@ -74,37 +138,44 @@ function App() {
         <Router>
             <div className="App">
                 <Routes>
-                    <Route 
-                        path="/" 
-                        element={
-                            isAuthenticated() ? <Navigate to="/dashboard" /> : <Welcome />
-                        } 
-                    />
-                    
+                    {/* Welcome / Landing */}
+                    <Route path="/" element={<Welcome />} />
+
+
+                    {/* Auth */}
                     <Route path="/signup" element={<SignupForm />} />
                     <Route path="/login" element={<LoginForm />} />
-                    
-                    {/* NEW - Email Verification Route */}
                     <Route path="/verify-email/:code" element={<VerifyEmail />} />
-                    
+
+                    {/* Shared dashboard redirect */}
                     <Route
                         path="/dashboard"
                         element={
                             <ProtectedRoute>
-                                <Dashboard />
+                                <Dashboard />  {/* redirects to /admin/dashboard or /user/dashboard */}
                             </ProtectedRoute>
                         }
                     />
 
-                    {/* Example Admin-Only Route */}
-                    {/* <Route
-                        path="/admin"
+                    {/* USER DASHBOARD */}
+                    <Route
+                        path="/user/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <UserDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* ADMIN DASHBOARD */}
+                    <Route
+                        path="/admin/dashboard"
                         element={
                             <AdminRoute>
-                                <AdminPanel />
+                                <AdminDashboard />
                             </AdminRoute>
                         }
-                    /> */}
+                    />
                 </Routes>
             </div>
         </Router>
