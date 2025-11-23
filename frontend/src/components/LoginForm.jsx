@@ -123,56 +123,64 @@ const LoginForm = () => {
     };
 
     if (success) {
-        return (
-            <div className="signup-container success-container">
-                <h2 className="success-title">✅ Login Successful!</h2>
-                {warning && <p className="success-message">{warning}</p>}
-                <p className="success-message">Redirecting to dashboard...</p>
+    return (
+        <div className="auth-bg">
+            <div className="page-container">
+                <div className="signup-container success-container">
+                    <h2 className="success-title">✅ Login Successful!</h2>
+                    {warning && <p className="success-message">{warning}</p>}
+                    <p className="success-message">Redirecting to dashboard...</p>
+                </div>
             </div>
-        );
-    }
+        </div>
+    );
+}
+
 
     return (
-    <div className="page-container">
-        <div className="login-container">
-            <h2 className="signup-title">Welcome Back!</h2>
-            <form onSubmit={handleSubmit} className="signup-form">
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
+    <div className="auth-bg">
+        <div className="page-container">
+            <div className="login-container">
+                <h2 className="signup-title">Welcome Back!</h2>
+                <form onSubmit={handleSubmit} className="signup-form">
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
 
-                {error && <p className="error-message">{error}</p>}
-                {warning && <p className="error-message">{warning}</p>}
+                    {error && <p className="error-message">{error}</p>}
+                    {warning && <p className="error-message">{warning}</p>}
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="submit-button"
-                >
-                    {loading ? "Logging in..." : "Login"}
-                </button>
-            </form>
-            <p className="signup-link">
-                Don't have an account? <Link to="/signup">Sign Up</Link>
-            </p>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="submit-button"
+                    >
+                        {loading ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+                <p className="signup-link">
+                    Don't have an account? <Link to="/signup">Sign Up</Link>
+                </p>
+            </div>
         </div>
     </div>
 );
+
 
 };
 

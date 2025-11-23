@@ -74,88 +74,102 @@ const SignupForm = () => {
     }
 
     return (
-        <div className="signup-container">
-            <h2 className="signup-title">Let's Get Started!</h2>
-            <form onSubmit={handleSubmit} className="signup-form">
-                <input
-                    type="text"
-                    name="firstName"
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
-                <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
-                <input
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="Confirm Password"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
-                <input
-                    type="text"
-                    name="phone"
-                    placeholder="Phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
-                <input
-                    type="text"
-                    name="address"
-                    placeholder="Address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                />
+    <div className="auth-bg">
+        <div className="page-container">
+            <div className="signup-container">
+                <h2 className="signup-title">Let's Get Started!</h2>
 
-                {error && <p className="error-message">{error}</p>}
+                <form onSubmit={handleSubmit} className="signup-form">
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="submit-button"
-                >
-                    {loading ? "Signing up..." : "Sign Up"}
-                </button>
-            </form>
-            <p className="login-link">
-                Already have an account? <Link to="/login">Login</Link>
-            </p>
+                    <input
+                        type="text"
+                        name="firstName"
+                        placeholder="First Name"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+
+                    <input
+                        type="text"
+                        name="lastName"
+                        placeholder="Last Name"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+
+                    <input
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="Confirm Password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+
+                    <input
+                        type="text"
+                        name="phone"
+                        placeholder="Phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+
+                    <input
+                        type="text"
+                        name="address"
+                        placeholder="Address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        required
+                        className="form-input"
+                    />
+
+                    {error && <p className="error-message">{error}</p>}
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="submit-button"
+                    >
+                        {loading ? "Signing up..." : "Sign Up"}
+                    </button>
+                </form>
+
+                <p className="login-link">
+                    Already have an account? <Link to="/login">Login</Link>
+                </p>
+            </div>
         </div>
-    );
+    </div>
+);
+
 };
 
 export default SignupForm;
