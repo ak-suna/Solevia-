@@ -114,14 +114,22 @@
 // export default App;
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Welcome from "./components/Welcome";
-import SignupForm from "./components/SignupForm";
-import LoginForm from "./components/LoginForm";
-import Dashboard from "./components/Dashboard"; // redirect-only dashboard
-import UserDashboard from "./components/UserDashboard"; // NEW
-import AdminDashboard from "./components/AdminDashboard"; // your admin dashboard
-import VerifyEmail from "./components/VerifyEmail";
+import Welcome from "./pages/Welcome";
+import SignupForm from "./auth/SignupForm";
+import LoginForm from "./auth/LoginForm";
+import Dashboard from "./pages/Dashboard"; // redirect-only dashboard
+import UserDashboard from "./pages/UserDashboard"; // NEW
+import AdminDashboard from "./pages/AdminDashboard"; // your admin dashboard
+import VerifyEmail from "./auth/VerifyEmail";
 import { isAuthenticated, isAdmin } from "./services/auth";
+import { Sidebar } from './components/Sidebar';
+import { HabitsCard } from './components/HabitsCard';
+import { GoalsCard } from './components/GoalsCard';
+import { Search, Bell, Menu, Flame } from 'lucide-react';
+import Journal from './pages/Journal';
+
+// import { TryComponent } from "./components/TryComponent";
+// import moodRoutes from "../backend/routes/moodRoutes";
 
 function App() {
     const ProtectedRoute = ({ children }) => {
@@ -176,6 +184,7 @@ function App() {
                             </AdminRoute>
                         }
                     />
+                    <Route path="/journal" element={<Journal />} />
                 </Routes>
             </div>
         </Router>

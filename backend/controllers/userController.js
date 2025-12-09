@@ -13,6 +13,7 @@ export const registerUser = async (req, res) => {
         await sendVerificationEmail(registeredUser);
 
         const token = generateToken({
+            id: registeredUser._id,
             email: registeredUser.email,
             firstName: registeredUser.firstName,
             lastName: registeredUser.lastName,
@@ -37,6 +38,7 @@ export const loginUser = async (req, res) => {
     try {
         const loginUser = await verifyUser(req.body);
         const token = generateToken({
+            id: loginUser._id,  
             email: loginUser.email,
             firstName: loginUser.firstName,
             lastName: loginUser.lastName,

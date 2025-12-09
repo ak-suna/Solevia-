@@ -1,3 +1,5 @@
+import { jwtDecode } from "jwt-decode"; // ✅ correct for v3+
+
 const API_URL = "http://localhost:5000/api/users";
 export const signup = async (userData) => {
     try {
@@ -60,6 +62,11 @@ export const login = async (credentials) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("role", data.role); // NEW
     localStorage.setItem("isVerified", data.isVerified);
+    // const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+
+    const decoded = jwtDecode(data.token);
+    const username = `${decoded.firstName || ""} `.trim();
+    localStorage.setItem("username", username);
     return data;
 };
 //Verify Email Function
@@ -111,5 +118,10 @@ export const isAuthenticated = () => {
 export const isAdmin = () => {
     return localStorage.getItem("role") === "admin";
 };
+
+export const getUsername = () => {
+  return localStorage.getItem("username");
+};
+
 
 
