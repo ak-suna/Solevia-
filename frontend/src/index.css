@@ -1,3 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+FullCalendar v6 CSS
+/* @import "@fullcalendar/core/internal.css";
+@import "@fullcalendar/daygrid/internal.css";
+@import "@fullcalendar/timegrid/internal.css"; */
+
+
 *{
   margin:0;
   padding:0;
