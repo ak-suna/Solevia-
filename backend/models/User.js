@@ -10,6 +10,8 @@ const userSchema = new Schema({
     isVerified: { type: Boolean, default: false },
     verificationCode: { type: String },
     verificationCodeExpires: { type: Date },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
     date: { type: Date, default: Date.now },
     role: { type: String, enum: ["user", "admin"], default: "user"}
 });
