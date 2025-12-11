@@ -189,10 +189,11 @@ router.get("/today", authenticate, async (req, res) => {
 });
 
 // GET: Get mood history (for calendar)
+// GET: Get mood history (for calendar)
 router.get("/history", authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
-        const { startDate, endDate, limit = 30 } = req.query;
+        const { startDate, endDate, limit = 90 } = req.query;
         
         const query = { userId };
         
@@ -201,13 +202,49 @@ router.get("/history", authenticate, async (req, res) => {
                 $gte: new Date(startDate),
                 $lte: new Date(endDate)
             };
+        } else {
+            // Default to last 90 days if no date range provided
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            query.date = { $gte: ninetyDaysAgo };
         }
         
         const moods = await Mood.find(query)
             .sort({ date: -1 })
             .limit(parseInt(limit));
         
-        res.json(moods);
+        // Group moods by date
+        const groupedMoods = {};
+        
+        moods.forEach(mood => {
+            const dateStr = mood.date.toISOString().split('T')[0];
+            
+            if (!groupedMoods[dateStr]) {
+                groupedMoods[dateStr] = {
+                    date: mood.date,
+                    morning: null,
+                    evening: null
+                };
+            }
+            
+            const moodData = {
+                emoji: mood.emoji,
+                label: mood.label,
+                value: mood.mood,
+                color: mood.color
+            };
+            
+            if (mood.period === "morning") {
+                groupedMoods[dateStr].morning = moodData;
+            } else if (mood.period === "evening") {
+                groupedMoods[dateStr].evening = moodData;
+            }
+        });
+        
+        // Convert object to array
+        const result = Object.values(groupedMoods);
+        
+        res.json(result);
         
     } catch (error) {
         console.error("Error fetching mood history:", error);

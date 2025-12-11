@@ -2,7 +2,7 @@ import React from 'react';
 
 const GoalsCard = () => {
   return (
-    <div className="bg-[#FFF5F5] p-6 rounded-3xl w-full">
+    <div className="bg-[#f9d9e3] p-10 rounded-[40px] w-full">
       <h3 className="text-sm font-bold text-gray-800 mb-6 uppercase tracking-wide opacity-80">
         Active Goals
       </h3>

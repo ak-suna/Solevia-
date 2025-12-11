@@ -1,10 +1,56 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Plus, Search, Calendar, Tag, Edit2, Trash2, Save, X, ArrowLeft } from 'lucide-react';
+import { BookOpen, Plus, Search, Calendar, Tag, Edit2, Trash2, Save, X, ArrowLeft, Bold, Italic, List, ListOrdered, Heading1, Heading2, Underline as UnderlineIcon, Highlighter, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import toast, { Toaster } from 'react-hot-toast';
 import Sidebar from '../components/Sidebar';
 import axios from 'axios';
 import { getToken } from '../services/auth';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Highlight from '@tiptap/extension-highlight';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+
+// Helper function for relative time
+const getRelativeTime = (dateString) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMs = now - date;
+  const diffInSec = Math.floor(diffInMs / 1000);
+  const diffInMin = Math.floor(diffInSec / 60);
+  const diffInHour = Math.floor(diffInMin / 60);
+  const diffInDay = Math.floor(diffInHour / 24);
+
+  if (diffInDay > 30) {
+    return `${Math.floor(diffInDay / 30)} month${Math.floor(diffInDay / 30) > 1 ? 's' : ''} ago`;
+  } else if (diffInDay > 0) {
+    return `${diffInDay} day${diffInDay > 1 ? 's' : ''} ago`;
+  } else if (diffInHour > 0) {
+    return `${diffInHour} hour${diffInHour > 1 ? 's' : ''} ago`;
+  } else if (diffInMin > 0) {
+    return `${diffInMin} minute${diffInMin > 1 ? 's' : ''} ago`;
+  } else {
+    return 'just now';
+  }
+};
+
+// Toolbar Button Component
+const ToolbarButton = ({ onClick, active, children, title }) => (
+  <button
+    onClick={onClick}
+    type="button"
+    title={title}
+    className={`p-2 rounded hover:bg-gray-100 transition-colors ${
+      active ? 'bg-[#D8E4E8] text-[#244856]': 'text-gray-700'
+    }`}
+  >
+    {children}
+  </button>
+);
 
 const Journal = () => {
   const navigate = useNavigate();
@@ -16,6 +62,7 @@ const Journal = () => {
   const [filterTag, setFilterTag] = useState('all');
   const [loading, setLoading] = useState(false);
   const [currentPrompt, setCurrentPrompt] = useState('');
+  const [expandedEntry, setExpandedEntry] = useState(null);
   
   // Form state
   const [title, setTitle] = useState('');
@@ -24,6 +71,24 @@ const Journal = () => {
   const [tags, setTags] = useState('');
 
   const API_URL = 'http://localhost:5000/api/journal';
+
+  // Tiptap Editor
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
+      Highlight.configure({ multicolor: true }),
+      TextStyle,
+      Color,
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      setContent(editor.getHTML());
+    },
+  });
 
   const moods = [
     { value: 'happy', emoji: '😊', label: 'Happy' },
@@ -58,7 +123,7 @@ const Journal = () => {
       excited: [
         "What has you feeling so energized? Share your excitement! ⚡",
         "Something great is happening! Tell me about it! 🎉",
-        "Capture this wonderful energy - what's making you excited? ✨"
+        "Capture this wonderful energy - what's making you excited! ✨"
       ],
       neutral: [
         "How was your day? What stands out? 🤔",
@@ -89,53 +154,47 @@ const Journal = () => {
   };
 
   // Check if coming from mood check - RUNS ONCE ON MOUNT
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    console.log('🔍 Location state on mount:', location.state);
-    
     if (location.state?.fromMoodCheck) {
       const moodValue = location.state.mood;
       const period = location.state.period;
       
-      console.log('✅ Coming from mood check!');
-      console.log('📊 Mood:', moodValue);
-      console.log('⏰ Period:', period);
-      
-      // Set everything at once
       setMood(moodValue);
       setIsWriting(true);
       
       const prompt = getMoodBasedPrompt(moodValue, period);
-      console.log('💭 Generated prompt:', prompt);
       setCurrentPrompt(prompt);
+      
+      toast.success('Ready to journal! Express yourself freely 💭');
       
       // Clear the state to prevent re-triggering
       window.history.replaceState({}, document.title);
     }
-  }, []); // Empty dependency array - runs once on mount
+  }, []);
 
   // Set random prompt when manually clicking "New Entry"
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Only set prompt if writing manually (not from mood check)
     if (isWriting && !currentPrompt && !mood) {
       const randomPrompt = defaultPrompts[Math.floor(Math.random() * defaultPrompts.length)];
-      console.log('📝 Setting random prompt:', randomPrompt);
       setCurrentPrompt(randomPrompt);
     }
   }, [isWriting]);
 
   // Load entries on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadEntries();
   }, []);
 
-  // Debug log to see current state
+  // Update editor content when editing
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    console.log('📌 Current state:', {
-      isWriting,
-      mood,
-      currentPrompt: currentPrompt ? 'SET' : 'NOT SET'
-    });
-  }, [isWriting, mood, currentPrompt]);
+    if (editor && content) {
+      editor.commands.setContent(content);
+    }
+  }, [editor, editingEntry]);
 
   const loadEntries = async () => {
     setLoading(true);
@@ -156,8 +215,8 @@ const Journal = () => {
   };
 
   const saveEntry = async () => {
-    if (!content.trim()) {
-      alert('Please write something before saving!');
+    if (!content.trim() || content === '<p></p>') {
+      toast.error('Please write something before saving!');
       return;
     }
 
@@ -178,40 +237,63 @@ const Journal = () => {
           entryData,
           { headers: { Authorization: `Bearer ${token}` }}
         );
+        toast.success('Entry updated successfully! 📝');
       } else {
         await axios.post(
           API_URL,
           entryData,
           { headers: { Authorization: `Bearer ${token}` }}
         );
+        toast.success('Entry saved successfully! ✨');
       }
       
       await loadEntries();
       resetForm();
     } catch (error) {
       console.error('Error saving entry:', error);
-      alert('Failed to save entry. Please try again.');
+      toast.error('Failed to save entry. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const deleteEntry = async (id) => {
-    if (!window.confirm('Delete this entry? This cannot be undone.')) return;
-    
-    setLoading(true);
-    try {
-      const token = getToken();
-      await axios.delete(`${API_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      await loadEntries();
-    } catch (error) {
-      console.error('Error deleting entry:', error);
-      alert('Failed to delete entry.');
-    } finally {
-      setLoading(false);
-    }
+    toast((t) => (
+      <div>
+        <p className="font-medium mb-2">Delete this entry?</p>
+        <p className="text-sm text-gray-600 mb-3">This cannot be undone.</p>
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              setLoading(true);
+              try {
+                const token = getToken();
+                await axios.delete(`${API_URL}/${id}`, {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                await loadEntries();
+                toast.success('Entry deleted');
+              } catch (error) {
+                console.error('Error deleting entry:', error);
+                toast.error('Failed to delete entry.');
+              } finally {
+                setLoading(false);
+              }
+              toast.dismiss(t.id);
+            }}
+            className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+          >
+            Delete
+          </button>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="px-3 py-1 bg-gray-200 rounded text-sm hover:bg-gray-300"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ), { duration: 5000 });
   };
 
   const startEdit = (entry) => {
@@ -222,6 +304,10 @@ const Journal = () => {
     setTags(entry.tags.join(', '));
     setIsWriting(true);
     setCurrentPrompt('');
+    if (editor) {
+      editor.commands.setContent(entry.content);
+    }
+    toast('Editing mode activated 📝');
   };
 
   const resetForm = () => {
@@ -232,6 +318,9 @@ const Journal = () => {
     setEditingEntry(null);
     setIsWriting(false);
     setCurrentPrompt('');
+    if (editor) {
+      editor.commands.clearContent();
+    }
   };
 
   const allTags = [...new Set(entries.flatMap(e => e.tags || []))];
@@ -243,13 +332,22 @@ const Journal = () => {
     return matchesSearch && matchesTag;
   });
 
+  if (!editor) {
+    return <div>Loading editor...</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-[#d6d0eb] p-6 flex gap-6">
+    <div className="min-h-screen bg-[#FCF8F5] p-6 flex gap-6 ">
+      <Toaster position="top-center" />
       <Sidebar />
 
-      <div className="flex-1 bg-white rounded-[30px] p-8 shadow-xl overflow-y-auto">
+<div className="flex-1 ml-28 bg-[#EDE5DA] rounded-[30px] p-8 shadow-xl overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-6"
+        >
           <div className="flex items-center gap-3">
             <button 
               onClick={() => navigate('/dashboard')}
@@ -257,120 +355,291 @@ const Journal = () => {
             >
               <ArrowLeft className="w-6 h-6 text-gray-600" />
             </button>
-            <BookOpen className="w-8 h-8 text-purple-600" />
+            <BookOpen className="w-8 h-8 text-[#244856]" />
             <div>
               <h1 className="text-3xl font-bold text-gray-800">My Journal</h1>
               <p className="text-gray-600">Your safe space for thoughts and reflections</p>
             </div>
           </div>
           {!isWriting && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsWriting(true)}
               disabled={loading}
-              className="flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-xl hover:bg-purple-700 transition-colors disabled:bg-gray-400"
+className="flex items-center gap-2 bg-[#244856] text-white px-6 py-3 rounded-xl hover:bg-[#366A7E]"
             >
               <Plus className="w-5 h-5" />
               New Entry
-            </button>
+            </motion.button>
           )}
-        </div>
+        </motion.div>
 
         {/* Writing Interface */}
-        {isWriting && (
-          <div className="bg-gray-50 rounded-2xl p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">
-                {editingEntry ? 'Edit Entry' : 'New Entry'}
-              </h2>
-              <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Mood-based prompt */}
-            {currentPrompt && (
-              <div className="bg-purple-50 border-l-4 border-purple-600 p-4 mb-4 rounded">
-                <p className="text-purple-800 italic">
-                  💭 {currentPrompt}
-                </p>
+        <AnimatePresence>
+          {isWriting && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+className="bg-[#FCF8F5] rounded-2xl p-6 mb-6 overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-800">
+                  {editingEntry ? 'Edit Entry' : 'New Entry'}
+                </h2>
+                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+                  <X className="w-6 h-6" />
+                </button>
               </div>
-            )}
 
-            <input
-              type="text"
-              placeholder="Title (optional)"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
+              {/* Mood-based prompt */}
+              {currentPrompt && (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-[#EDE5DA] border-l-4 border-[#244856] p-4 mb-4 rounded"
 
-            <textarea
-              placeholder="Start writing... Express yourself freely."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full h-64 px-4 py-3 border border-gray-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-              autoFocus
-            />
+                >
+                  <p className="text-[#244856] italic">
+                    💭 {currentPrompt}
+                  </p>
+                </motion.div>
+              )}
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                How are you feeling?
-              </label>
-              <div className="flex gap-2 flex-wrap">
-                {moods.map(m => (
-                  <button
-                    key={m.value}
-                    onClick={() => setMood(m.value)}
-                    className={`px-4 py-2 rounded-lg border-2 transition-all ${
-                      mood === m.value
-                        ? 'border-purple-600 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
-                    }`}
-                  >
-                    <span className="text-2xl mr-2">{m.emoji}</span>
-                    <span className="text-sm">{m.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tags (comma-separated)
-              </label>
               <input
                 type="text"
-                placeholder="gratitude, work, family..."
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Title (optional)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[#244856]
+"
               />
-            </div>
 
-            <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
-              <span>{content.split(/\s+/).filter(Boolean).length} words</span>
-              <span>{content.length} characters</span>
-            </div>
+              {/* Tiptap Toolbar */}
+              <div className="bg-[#FFFFF] border border-gray-300 rounded-t-lg p-2 flex flex-wrap gap-1">
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleBold().run()}
+                  active={editor.isActive('bold')}
+                  title="Bold"
+                >
+                  <Bold className="w-4 h-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleItalic().run()}
+                  active={editor.isActive('italic')}
+                  title="Italic"
+                >
+                  <Italic className="w-4 h-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleUnderline().run()}
+                  active={editor.isActive('underline')}
+                  title="Underline"
+                >
+                  <UnderlineIcon className="w-4 h-4" />
+                </ToolbarButton>
+                
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                  active={editor.isActive('heading', { level: 1 })}
+                  title="Heading 1"
+                >
+                  <Heading1 className="w-4 h-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                  active={editor.isActive('heading', { level: 2 })}
+                  title="Heading 2"
+                >
+                  <Heading2 className="w-4 h-4" />
+                </ToolbarButton>
+                
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleBulletList().run()}
+                  active={editor.isActive('bulletList')}
+                  title="Bullet List"
+                >
+                  <List className="w-4 h-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                  active={editor.isActive('orderedList')}
+                  title="Numbered List"
+                >
+                  <ListOrdered className="w-4 h-4" />
+                </ToolbarButton>
+                
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                  active={editor.isActive({ textAlign: 'left' })}
+                  title="Align Left"
+                >
+                  <AlignLeft className="w-4 h-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                  active={editor.isActive({ textAlign: 'center' })}
+                  title="Align Center"
+                >
+                  <AlignCenter className="w-4 h-4" />
+                </ToolbarButton>
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                  active={editor.isActive({ textAlign: 'right' })}
+                  title="Align Right"
+                >
+                  <AlignRight className="w-4 h-4" />
+                </ToolbarButton>
+                
+                <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                
+                <ToolbarButton
+                  onClick={() => editor.chain().focus().toggleHighlight({ color: '#fef08a' }).run()}
+                  active={editor.isActive('highlight')}
+                  title="Highlight"
+                >
+                  <Highlighter className="w-4 h-4" />
+                </ToolbarButton>
+                
+                <input
+                  type="color"
+                  onInput={(e) => editor.chain().focus().setColor(e.target.value).run()}
+                  value={editor.getAttributes('textStyle').color || '#000000'}
+                  className="w-8 h-8 rounded cursor-pointer"
+                  title="Text Color"
+                />
+              </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={saveEntry}
-                disabled={!content.trim() || loading}
-                className="flex items-center gap-2 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                <Save className="w-5 h-5" />
-                {loading ? 'Saving...' : (editingEntry ? 'Update' : 'Save')} Entry
-              </button>
-              <button
-                onClick={resetForm}
-                disabled={loading}
-                className="px-6 py-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:bg-gray-100"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+              {/* Tiptap Editor */}
+              <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-4 min-h-[16rem]">
+                <style dangerouslySetInnerHTML={{__html: `
+                  .ProseMirror {
+                    outline: none !important;
+                    min-height: 240px;
+                  }
+                  .ProseMirror h1 {
+                    font-size: 2em;
+                    font-weight: 700;
+                    margin: 0.5em 0;
+                    line-height: 1.2;
+                  }
+                  .ProseMirror h2 {
+                    font-size: 1.5em;
+                    font-weight: 700;
+                    margin: 0.5em 0;
+                    line-height: 1.3;
+                  }
+                  .ProseMirror ul {
+                    list-style-type: disc;
+                    padding-left: 1.5rem;
+                    margin: 1em 0;
+                  }
+                  .ProseMirror ol {
+                    list-style-type: decimal;
+                    padding-left: 1.5rem;
+                    margin: 1em 0;
+                  }
+                  .ProseMirror li {
+                    margin: 0.25em 0;
+                  }
+                  .ProseMirror p {
+                    margin: 0.5em 0;
+                  }
+                  .ProseMirror strong {
+                    font-weight: 700;
+                  }
+                  .ProseMirror em {
+                    font-style: italic;
+                  }
+                  .ProseMirror u {
+                    text-decoration: underline;
+                  }
+                  .ProseMirror mark {
+                    background-color: #fef08a;
+                    padding: 0.1em 0.2em;
+                    border-radius: 0.2em;
+                  }
+                `}} />
+                <EditorContent editor={editor} />
+              </div>
+
+              <div className="mb-4 mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  How are you feeling?
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {moods.map(m => (
+                    <motion.button
+                      key={m.value}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      type="button"
+                      onClick={() => setMood(m.value)}
+                      className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                        mood === m.value
+                          ? 'border-purple-600 bg-purple-50'
+                          : 'border-gray-200 hover:border-purple-300'
+                      }`}
+                    >
+                      <span className="text-2xl mr-2">{m.emoji}</span>
+                      <span className="text-sm">{m.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tags (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="gratitude, work, family..."
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856]
+"
+                />
+              </div>
+
+              <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
+                <span>{content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} words</span>
+                <span>{content.replace(/<[^>]*>/g, '').length} characters</span>
+              </div>
+
+              <div className="flex gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={saveEntry}
+                  disabled={!content.trim() || loading}
+                  type="button"
+                  className="flex items-center gap-2 bg-[#244856] text-white px-6 py-3 rounded-lg hover:bg-[#4B8EA8] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Save className="w-5 h-5" />
+                  {loading ? 'Saving...' : (editingEntry ? 'Update' : 'Save')} Entry
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={resetForm}
+                  disabled={loading}
+                  type="button"
+                  className="px-6 py-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:bg-gray-100"
+                >
+                  Cancel
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Loading State */}
         {loading && !isWriting && (
@@ -381,7 +650,11 @@ const Journal = () => {
 
         {/* Search and Filters */}
         {!isWriting && !loading && entries.length > 0 && (
-          <div className="bg-gray-50 rounded-2xl p-6 mb-6">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-gray-50 rounded-2xl p-6 mb-6"
+          >
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -390,13 +663,15 @@ const Journal = () => {
                   placeholder="Search entries..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856]
+"
                 />
               </div>
               <select
                 value={filterTag}
                 onChange={(e) => setFilterTag(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856]
+"
               >
                 <option value="all">All Tags</option>
                 {allTags.map(tag => (
@@ -404,14 +679,18 @@ const Journal = () => {
                 ))}
               </select>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Entries List */}
         {!loading && (
           <div className="space-y-4">
             {filteredEntries.length === 0 ? (
-              <div className="bg-gray-50 rounded-2xl p-12 text-center">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-gray-50 rounded-2xl p-12 text-center"
+              >
                 <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">
                   {entries.length === 0 ? 'Start Your Journey' : 'No Entries Found'}
@@ -423,75 +702,110 @@ const Journal = () => {
                   }
                 </p>
                 {entries.length === 0 && (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setIsWriting(true)}
                     className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
                   >
                     Write First Entry
-                  </button>
+                  </motion.button>
                 )}
-              </div>
+              </motion.div>
             ) : (
-              filteredEntries.map(entry => {
-                const moodData = moods.find(m => m.value === entry.mood);
-                return (
-                  <div key={entry._id} className="bg-gray-50 rounded-2xl p-6 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-bold text-gray-800">{entry.title}</h3>
-                          {moodData && (
-                            <span className="text-2xl" title={moodData.label}>
-                              {moodData.emoji}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(entry.createdAt).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
+              <AnimatePresence>
+                {filteredEntries.map((entry, index) => {
+                  const moodData = moods.find(m => m.value === entry.mood);
+                  const isExpanded = expandedEntry === entry._id;
+                  
+                  return (
+                    <motion.div
+                      key={entry._id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -100 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-gray-50 rounded-2xl p-6 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-xl font-bold text-gray-800">{entry.title}</h3>
+                            {moodData && (
+                              <span className="text-2xl" title={moodData.label}>
+                                {moodData.emoji}
+                              </span>
+                            )}
                           </div>
-                          <span>{entry.content.split(/\s+/).filter(Boolean).length} words</span>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {new Date(entry.createdAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            <span className="text-purple-600">
+                              {getRelativeTime(entry.createdAt)}
+                            </span>
+                            <span>{entry.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} words</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => startEdit(entry)}
+                            className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-5 h-5" />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => deleteEntry(entry._id)}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </motion.button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => startEdit(entry)}
-                          className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                        >
-                          <Edit2 className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => deleteEntry(entry._id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
 
-                    <p className="text-gray-700 mb-3 line-clamp-3">{entry.content}</p>
+                      <div 
+                        className={`text-gray-700 mb-3 prose prose-sm max-w-none cursor-pointer ${!isExpanded ? 'line-clamp-3' : ''}`}
+                        onClick={() => setExpandedEntry(isExpanded ? null : entry._id)}
+                        dangerouslySetInnerHTML={{ __html: entry.content }}
+                      />
 
-                    {entry.tags && entry.tags.length > 0 && (
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Tag className="w-4 h-4 text-gray-400" />
-                        {entry.tags.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
+                      {entry.content.length > 200 && (
+                        <button
+                          onClick={() => setExpandedEntry(isExpanded ? null : entry._id)}
+                          className="text-purple-600 text-sm hover:underline mb-3"
+                        >
+                          {isExpanded ? 'Show less' : 'Read more'}
+                        </button>
+                      )}
+
+                      {entry.tags && entry.tags.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Tag className="w-4 h-4 text-gray-400" />
+                          {entry.tags.map((tag, idx) => (
+                            <motion.span
+                              key={idx}
+                              whileHover={{ scale: 1.05 }}
+                              className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm cursor-pointer"
+                              onClick={() => setFilterTag(tag)}
+                            >
+                              {tag}
+                            </motion.span>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             )}
           </div>
         )}

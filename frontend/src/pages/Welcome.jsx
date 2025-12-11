@@ -34,8 +34,8 @@
 // export default Welcome;
 import React from "react";
 import { Link } from "react-router-dom";
-import landingBG from "../assets/images/try.jpg";
-import logoImage from "../assets/images/logo.png"; // Add your logo path
+import landingBG from "../assets/images/gbb.png";
+// import logoImage from "../assets/images/logo.png"; // Add your logo path
 
 const Welcome = () => {
   return (
@@ -49,13 +49,16 @@ const Welcome = () => {
       {/* Content */}
       <div className="relative z-10 text-center px-6 max-w-3xl">
         {/* Logo Animation */}
-        <div className="mb-12 flex justify-center animate-slide-from-right">
-          <img 
-            src={logoImage} 
-            alt="Solevia Logo" 
-            className="h-60 md:h-60 lg:h-80 w-auto object-contain drop-shadow-2xl"
-          />
-        </div>
+        {/* Logo Text Animation */}
+<div className="mb-12 flex justify-center animate-slide-from-right">
+  <h1 
+className="text-[90px] md:text-[150px] lg:text-[200px] text-white drop-shadow-2xl leading-none text-logo-glow"
+    style={{ fontFamily: "Brasika" }}
+  >
+    Solevia
+  </h1>
+</div>
+
 
         {/* Title Animation */}
         {/* <h1 className="text-4xl md:text-6xl font-light text-white mb-4 animate-fade-in-up animation-delay-200">
@@ -63,26 +66,28 @@ const Welcome = () => {
         </h1> */}
 
         {/* Subtitle Animation */}
-        <p className="text-xl md:text-2xl text-white/90 mb-4 font-light animate-fade-in-up animation-delay-400">
+        <p className="text-xl md:text-2xl text-white/90 mb-4 font-light animate-fade-in-up animation-delay-400"
+        style={{ fontFamily: "Brasika" }}
+        >
           Your journey to better wellbeing starts today.🍀
         </p>
 
         {/* Description Animation */}
-        <p className="text-base md:text-lg text-white/80 mb-10 font-light leading-relaxed max-w-2xl mx-auto animate-fade-in-up animation-delay-600">
+<p className="text-xl md:text-2xl text-white/80 mb-10 font-light leading-relaxed max-w-2xl mx-auto animate-fade-in-up animation-delay-600">
           Track your habits, boost your mindset, and take small daily steps toward a happier, healthier life.
         </p>
 
         {/* Buttons Animation */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animation-delay-800">
+        <div className="flex flex-col sm:flex-row gap-8 justify-center items-center animate-fade-in-up animation-delay-800">
           <Link 
             to="/signup" 
-            className="px-8 py-3 bg-white text-purple-600 rounded-full font-medium hover:bg-purple-50 transition-all duration-300 hover:scale-105 shadow-lg min-w-[160px]"
+    className="px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl min-w-[200px]"
           >
             Sign Up
           </Link>
           <Link 
             to="/login" 
-            className="px-8 py-3 bg-transparent text-white border-2 border-white rounded-full font-medium hover:bg-white/10 transition-all duration-300 hover:scale-105 backdrop-blur-sm min-w-[160px]"
+    className="px-10 py-4 text-xl bg-transparent text-white border-2 border-[#f096b3] rounded-full font-semibold hover:bg-white/10 transition-all duration-300 hover:scale-105 backdrop-blur-sm shadow-lg min-w-[200px]"
           >
             Log In
           </Link>

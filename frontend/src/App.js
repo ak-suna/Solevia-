@@ -122,10 +122,10 @@ import UserDashboard from "./pages/UserDashboard"; // NEW
 import AdminDashboard from "./pages/AdminDashboard"; // your admin dashboard
 import VerifyEmail from "./auth/VerifyEmail";
 import { isAuthenticated, isAdmin } from "./services/auth";
-import { Sidebar } from './components/Sidebar';
-import { HabitsCard } from './components/HabitsCard';
-import { GoalsCard } from './components/GoalsCard';
-import { Search, Bell, Menu, Flame } from 'lucide-react';
+// import { Sidebar } from './components/Sidebar';
+// import { HabitsCard } from './components/HabitsCard';
+// import { GoalsCard } from './components/GoalsCard';
+// import { Search, Bell, Menu, Flame } from 'lucide-react';
 import Journal from './pages/Journal';
 
 // import { TryComponent } from "./components/TryComponent";
@@ -184,7 +184,10 @@ function App() {
                             </AdminRoute>
                         }
                     />
-                    <Route path="/journal" element={<Journal />} />
+                    <Route 
+                    path="/journal" 
+                    element={
+                    <Journal />} />
                 </Routes>
             </div>
         </Router>

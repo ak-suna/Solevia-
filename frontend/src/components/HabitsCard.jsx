@@ -15,8 +15,8 @@ const HabitsCard = () => {
   };
 
   return (
-    <div className="bg-[#FFFBEB] p-6 rounded-3xl w-full">
-      <h3 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wide opacity-80">
+    <div className="bg-[#89beab] p-10 rounded-[40px] w-full">
+      <h3 className="text-sm font-bold text-[#1F3B36] mb-4 uppercase tracking-wide opacity-80">
         Today's Habits
       </h3>
       <div className="space-y-3">
@@ -29,14 +29,14 @@ const HabitsCard = () => {
             <div 
               className={`w-5 h-5 rounded flex items-center justify-center border transition-all duration-200 ${
                 habit.completed 
-                  ? 'bg-blue-500 border-blue-500' 
-                  : 'border-gray-400 bg-transparent group-hover:border-blue-400'
+                  ? 'bg-[#DB996E] border-[#DB996E]' 
+                  : 'border-gray-400 bg-transparent group-hover:border-[#DB996E]'
               }`}
             >
               {habit.completed && <Check size={14} className="text-white" strokeWidth={3} />}
             </div>
             <span className={`text-sm transition-colors ${
-              habit.completed ? 'text-gray-500 line-through' : 'text-gray-700 font-medium'
+              habit.completed ? 'text-white-10 line-through' : 'text-white font-medium'
             }`}>
               {habit.text}
             </span>

@@ -77,12 +77,12 @@ const SignupForm = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+<div className="min-h-screen bg-gradient-to-br from-[#f1bdcd] via-[#f5d9c9] to-[#A7D5C4]">
             <div className="flex min-h-screen">
                 {/* Left Side - Image */}
-                <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+<div className="hidden lg:flex lg:w-1/2 relative overflow-hidden rounded-l-[40px]">
                     <img 
-                        src='login.jpg'
+                        src='okayy.png'
                         alt="Signup" 
                         className="w-full h-full object-cover animate-fade-in"
                     />
@@ -93,6 +93,8 @@ const SignupForm = () => {
                             <p className="text-xl animate-slide-up opacity-90">Join thousands of users and start your journey today</p>
                         </div>
                     </div> */}
+                        {/* <div className="rounded-l-[40px]"></div> */}
+
                 </div>
 
                 {/* Right Side - Form */}
@@ -184,7 +186,7 @@ const SignupForm = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 active:scale-95"
+    c    className="px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl  min-w-[383px]"
                                 >
                                     {loading ? (
                                         <span className="flex items-center justify-center">
@@ -202,7 +204,7 @@ const SignupForm = () => {
 
                             <p className="text-center text-gray-600 mt-6">
                                 Already have an account?{" "}
-                                <Link to="/login" className="text-indigo-600 hover:text-indigo-800 font-semibold transition-colors duration-300 hover:underline">
+                                <Link to="/login" className="text-[#759a68] hover:text-[#6ca859] font-semibold transition-colors duration-300 hover:underline">
                                     Login
                                 </Link>
                             </p>

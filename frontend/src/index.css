@@ -52,3 +52,9 @@ FullCalendar v6 CSS
     transform: rotate(360deg);
   }
 }
+@font-face {
+  font-family: "Brasika";
+  src: url("./assets/fonts/Brasika.otf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
