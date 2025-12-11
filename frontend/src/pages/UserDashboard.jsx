@@ -897,9 +897,12 @@ const UserDashboard = () => {
             <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
           </button>
 
-          <button className="w-12 h-12 flex items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg">
-            <Menu className="w-7 h-7 text-gray-600" />
-          </button>
+          <button 
+  onClick={() => navigate('/settings')}
+  className="w-12 h-12 flex items-center justify-center rounded-full bg-white shadow-md hover:shadow-lg"
+>
+  <Menu className="w-7 h-7 text-gray-600" />
+</button>
         </div>
 
         {/* RIGHT SIDEBAR - Using commented layout's spacing */}
