@@ -13,7 +13,7 @@ module.exports = {
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  darkMode: 'class', // ADD THIS LINE!
+  darkMode: 'class', 
   theme: {
     extend: {},
   },
