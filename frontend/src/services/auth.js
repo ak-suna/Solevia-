@@ -89,6 +89,39 @@ export const verifyEmail = async (code) => {
 
     // return data;
 };
+// 🆕 NEW: Request password reset
+export const forgotPassword = async (email) => {
+    const response = await fetch(`${API_URL}/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to send reset email");
+    }
+
+    return data;
+};
+
+// 🆕 NEW: Reset password with token
+export const resetPassword = async (token, password) => {
+    const response = await fetch(`${API_URL}/reset-password/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Password reset failed");
+    }
+
+    return data;
+};
 
 export const logout = () => {
     localStorage.removeItem("token");

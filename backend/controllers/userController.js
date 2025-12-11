@@ -1,6 +1,6 @@
-import { addUsers, verifyUser } from "../services/userService.js";
+import { addUsers, verifyUser, requestPasswordReset, resetPassword } from "../services/userService.js";
 import { generateToken } from "../utils/generateToken.js";
-import { sendVerificationEmail } from "../utils/sendEmail.js";
+import { sendVerificationEmail, sendPasswordResetEmail  } from "../utils/sendEmail.js";
 import { User } from "../models/User.js";
 
 
@@ -94,7 +94,51 @@ export const verifyEmail = async (req, res) => {
         res.status(500).json({ error: "Email verification failed" });
     }
 };
+// 🆕 NEW: Forgot password - send reset email
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
 
+        const result = await requestPasswordReset(email);
+
+        // If user exists, send email
+        if (result.user) {
+            await sendPasswordResetEmail(result.user, result.resetToken);
+        }
+
+        // Always return success (security best practice)
+        res.status(200).json({ 
+            message: "If an account with that email exists, a password reset link has been sent." 
+        });
+    } catch (err) {
+        console.error("❌ Error in forgot password: ", err);
+        res.status(500).json({ error: "Failed to process password reset request" });
+    }
+};
+
+// 🆕 NEW: Reset password with token
+export const resetPasswordController = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ 
+                error: "Password must be at least 6 characters long" 
+            });
+        }
+
+        await resetPassword(token, password);
+
+        res.status(200).json({ 
+            success: true,
+            message: "Password reset successful! You can now log in with your new password." 
+        });
+    } catch (err) {
+        console.error("❌ Error resetting password: ", err);
+        res.status(400).json({ error: err.message });
+    }
+};
 
 // export const verifyEmail = async (req, res) => {
 //     try {

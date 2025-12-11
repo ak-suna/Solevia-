@@ -122,6 +122,8 @@ import UserDashboard from "./pages/UserDashboard"; // NEW
 import AdminDashboard from "./pages/AdminDashboard"; // your admin dashboard
 import VerifyEmail from "./auth/VerifyEmail";
 import { isAuthenticated, isAdmin } from "./services/auth";
+import ForgotPasswordPage from "./components/ForgotPasswordPage";
+import ResetPasswordPage from "./components/ResetPasswordPage";
 // import { Sidebar } from './components/Sidebar';
 // import { HabitsCard } from './components/HabitsCard';
 // import { GoalsCard } from './components/GoalsCard';
@@ -188,7 +190,12 @@ function App() {
                     path="/journal" 
                     element={
                     <Journal />} />
+
+                    <Route 
+                path="/forgot-password" element={<ForgotPasswordPage />} />
+<Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                 </Routes>
+                
             </div>
         </Router>
     );
