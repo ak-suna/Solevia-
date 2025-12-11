@@ -6,6 +6,8 @@ import userRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 import moodRoutes from "./routes/moodRoutes.js";
 import journalRoutes from "./routes/journalRoutes.js";
+import profileRoutes from "./routes/profile.js";
+
 
 dotenv.config();
 
@@ -25,6 +27,7 @@ app.use("/api/users", userRoutes);  // ← Make sure it says "/api/users"
 app.use("/api/admin", adminRoutes);
 app.use("/api/mood", moodRoutes);
 app.use("/api/journal", journalRoutes);
+app.use("/api/profile", profileRoutes);
 
 
 // Test route
