@@ -349,16 +349,15 @@ const Journal = () => {
           className="flex items-center justify-between mb-6"
         >
           <div className="flex items-center gap-3">
-            <button 
+            {/* <button 
               onClick={() => navigate('/dashboard')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-6 h-6 text-gray-600" />
-            </button>
+            </button> */}
             <BookOpen className="w-8 h-8 text-[#244856]" />
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">My Journal</h1>
-              <p className="text-gray-600">Your safe space for thoughts and reflections</p>
+<h1 className="text-3xl font-bold text-gray-800" style={{ fontFamily: "Brasika" }}>My Journal</h1>              
             </div>
           </div>
           {!isWriting && (
