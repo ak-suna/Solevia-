@@ -337,11 +337,11 @@ const Journal = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FCF8F5] p-6 flex gap-6 ">
+    <div className="min-h-screen flex gap-6  border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)]">
       <Toaster position="top-center" />
       <Sidebar />
 
-<div className="flex-1 ml-28 bg-[#EDE5DA] rounded-[30px] p-8 shadow-xl overflow-y-auto">
+<div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-[#f4f2f0] dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] overflow-y-auto">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -363,15 +363,26 @@ const Journal = () => {
           </div>
           {!isWriting && (
             <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsWriting(true)}
-              disabled={loading}
-className="flex items-center gap-2 bg-[#244856] text-white px-6 py-3 rounded-xl hover:bg-[#366A7E]"
-            >
-              <Plus className="w-5 h-5" />
-              New Entry
-            </motion.button>
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={() => setIsWriting(true)}
+  disabled={loading}
+  className="
+    flex flex-col items-center justify-center
+    bg-[#89beab] text-white
+    w-24 h-24
+    rounded-full shadow-lg
+    hover:bg-[#f8ba90]
+    hover:shadow-xl
+    transition-all
+    disabled:opacity-50 disabled:cursor-not-allowed
+  "
+>
+  <Plus className="w-9 h-8 mb-1" />
+  <span className="text-sm font-semibold text-white">New Entry</span>
+</motion.button>
+
+
           )}
         </motion.div>
 
@@ -621,7 +632,7 @@ className="bg-[#FCF8F5] rounded-2xl p-6 mb-6 overflow-hidden"
                   onClick={saveEntry}
                   disabled={!content.trim() || loading}
                   type="button"
-                  className="flex items-center gap-2 bg-[#244856] text-white px-6 py-3 rounded-lg hover:bg-[#4B8EA8] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  className="px-8 py-4 flex items-center justify-center gap-2 bg-[#89beab] text-white rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl min-w-[150px] min-h-[50px] transition-all"
                 >
                   <Save className="w-5 h-5" />
                   {loading ? 'Saving...' : (editingEntry ? 'Update' : 'Save')} Entry
@@ -632,7 +643,7 @@ className="bg-[#FCF8F5] rounded-2xl p-6 mb-6 overflow-hidden"
                   onClick={resetForm}
                   disabled={loading}
                   type="button"
-                  className="px-6 py-3 border-2 border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:bg-gray-100"
+                  className="px-8 py-4 border-2 border-gray-400 text-black rounded-full shadow-lg  hover:shadow-xl min-w-[150px] min-h-[50px] flex justify-center items-center transition-all"
                 >
                   Cancel
                 </motion.button>
@@ -706,7 +717,7 @@ className="bg-[#FCF8F5] rounded-2xl p-6 mb-6 overflow-hidden"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsWriting(true)}
-                    className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
+                    className="bg-[#89beab] text-white  p-5 rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl "
                   >
                     Write First Entry
                   </motion.button>
