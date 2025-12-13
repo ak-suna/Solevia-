@@ -939,6 +939,17 @@ const UserDashboard = () => {
   const [moodPeriod, setMoodPeriod] = useState(null);
   const [loading, setLoading] = useState(true);
 
+   const [habits, setHabits] = useState([
+    { id: 1, name: 'Morning Meditation', completedToday: true },
+    { id: 2, name: 'Drink 8 glasses of water', completedToday: true },
+    { id: 3, name: 'Evening walk', completedToday: false },
+  ]);
+
+  const [goals, setGoals] = useState([
+    { id: 1, name: 'Read 12 books this year', progress: 65, status: 'active' },
+    { id: 2, name: 'Exercise 4x per week', progress: 80, status: 'active' },
+  ]);
+
   useEffect(() => {
     checkMoodStatus();
     fetchMoodHistory();
@@ -967,10 +978,10 @@ const UserDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  // const handleLogout = () => {
+  //   logout();
+  //   navigate("/login");
+  // };
 
   const handleDateSelect = (dateStr) => {
     setSelectedDate(dateStr);
@@ -1153,8 +1164,12 @@ const UserDashboard = () => {
         {/* RIGHT SIDEBAR */}
         <div className="w-80 flex flex-col gap-5 pt-20">
           <StreaksCard />
-          <HabitsCard />
-          <GoalsCard />
+          <HabitsCard 
+
+/>
+<GoalsCard 
+ 
+/>
         </div>
       </div>
     </>
