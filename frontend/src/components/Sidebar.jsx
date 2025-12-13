@@ -109,7 +109,7 @@ const Sidebar = () => {
   const navItems = [
     { icon: Home, path: '/dashboard', label: 'Dashboard' },
     { icon: BookOpen, path: '/journal', label: 'Journal' },
-    { icon: CheckSquare, path: '/tasks', label: 'Tasks' },
+    { icon: CheckSquare, path: '/tasks', label: 'Habits' },
     { icon: Target, path: '/goals', label: 'Goals' },
     { icon: BarChart2, path: '/analytics', label: 'Analytics' },
     { icon: Users, path: '/community', label: 'Community' },
