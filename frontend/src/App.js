@@ -328,6 +328,10 @@ import ResetPasswordPage from "./components/ResetPasswordPage";
 import Journal from './pages/Journal';
 import ThemedLayout from "./layouts/ThemedLayout";
 import SettingsPage from "./pages/SettingsPage"; // ALREADY ADDED ✅
+import HabitsPage from "./pages/HabitsPage"; // ADD THIS
+import GoalsPage from "./pages/GoalsPage"; // ADD THIS
+import { HabitsProvider } from './contexts/HabitsContext';
+import { GoalsProvider } from './contexts/GoalsContext';
 
 function App() {
     const ProtectedRoute = ({ children }) => {
@@ -342,7 +346,10 @@ function App() {
 
     return (
         <Router>
+            <HabitsProvider>
+                <GoalsProvider>
             <div className="App">
+                
                 <Routes>
                     {/* PUBLIC ROUTES - NO DARK MODE */}
                     <Route path="/" element={<Welcome />} />
@@ -407,8 +414,12 @@ function App() {
                             </AdminRoute>
                         }
                     />
+                    <Route path="/tasks" element={<HabitsPage />} />
+<Route path="/goals" element={<GoalsPage />} />
                 </Routes>
             </div>
+            </GoalsProvider>
+            </HabitsProvider>
         </Router>
     );
 }
