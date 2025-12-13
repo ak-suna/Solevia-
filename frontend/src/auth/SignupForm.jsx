@@ -186,7 +186,7 @@ const SignupForm = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-    c    className="px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl  min-w-[383px]"
+                                    className="w-full px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl"
                                 >
                                     {loading ? (
                                         <span className="flex items-center justify-center">
