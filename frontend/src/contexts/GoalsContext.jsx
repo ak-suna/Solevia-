@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { getGoals, createGoal, updateGoalProgress as updateProgressAPI, deleteGoal as deleteGoalAPI } from '../services/goalService';
 
 const GoalsContext = createContext();
 
@@ -11,38 +12,63 @@ export const useGoals = () => {
 };
 
 export const GoalsProvider = ({ children }) => {
-  const [goals, setGoals] = useState([
-    { id: 1, name: 'Read 12 books this year', progress: 65, status: 'active', target: 12, current: 8, unit: 'books' },
-    { id: 2, name: 'Exercise 4x per week', progress: 80, status: 'active', target: 4, current: 3.2, unit: 'times/week' },
-  ]);
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const addGoal = (goalData) => {
-    const newGoal = {
-      id: Date.now(),
-      ...goalData,
-      progress: 0,
-      current: 0,
-      status: 'active'
-    };
-    setGoals([...goals, newGoal]);
+  // Load goals from database on mount
+  useEffect(() => {
+    loadGoals();
+  }, []);
+
+  const loadGoals = async () => {
+    try {
+      setLoading(true);
+      const data = await getGoals();
+      setGoals(data.map(g => ({
+        ...g,
+        id: g._id // Map MongoDB _id to id
+      })));
+    } catch (error) {
+      console.error('Error loading goals:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateProgress = (id, increment) => {
-    setGoals(goals.map(g => {
-      if (g.id === id) {
-        const newProgress = Math.min(100, Math.max(0, g.progress + increment));
-        return { ...g, progress: newProgress };
-      }
-      return g;
-    }));
+  const addGoal = async (goalData) => {
+    try {
+      const newGoal = await createGoal(goalData);
+      setGoals([{ ...newGoal, id: newGoal._id }, ...goals]);
+    } catch (error) {
+      console.error('Error adding goal:', error);
+      throw error;
+    }
   };
 
-  const deleteGoal = (id) => {
-    setGoals(goals.filter(g => g.id !== id));
+  const updateProgress = async (id, increment) => {
+    try {
+      const updated = await updateProgressAPI(id, increment);
+      setGoals(goals.map(g => 
+        g.id === id ? { ...updated, id: updated._id } : g
+      ));
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      throw error;
+    }
+  };
+
+  const deleteGoal = async (id) => {
+    try {
+      await deleteGoalAPI(id);
+      setGoals(goals.filter(g => g.id !== id));
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      throw error;
+    }
   };
 
   return (
-    <GoalsContext.Provider value={{ goals, addGoal, updateProgress, deleteGoal }}>
+    <GoalsContext.Provider value={{ goals, addGoal, updateProgress, deleteGoal, loading, loadGoals }}>
       {children}
     </GoalsContext.Provider>
   );
