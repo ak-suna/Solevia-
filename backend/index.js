@@ -7,6 +7,8 @@ import adminRoutes from "./routes/admin.js";
 import moodRoutes from "./routes/moodRoutes.js";
 import journalRoutes from "./routes/journalRoutes.js";
 import profileRoutes from "./routes/profile.js";
+import habitRoutes from './routes/habitRoutes.js';
+import goalRoutes from './routes/goalRoutes.js';
 
 
 dotenv.config();
@@ -28,6 +30,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/mood", moodRoutes);
 app.use("/api/journal", journalRoutes);
 app.use("/api/profile", profileRoutes);
+app.use('/api/habits', habitRoutes);
+app.use('/api/goals', goalRoutes);
 
 
 // Test route
