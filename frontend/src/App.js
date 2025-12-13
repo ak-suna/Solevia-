@@ -333,6 +333,7 @@ import GoalsPage from "./pages/GoalsPage"; // ADD THIS
 import { HabitsProvider } from './contexts/HabitsContext';
 import { GoalsProvider } from './contexts/GoalsContext';
 
+
 function App() {
     const ProtectedRoute = ({ children }) => {
         return isAuthenticated() ? children : <Navigate to="/login" />;
