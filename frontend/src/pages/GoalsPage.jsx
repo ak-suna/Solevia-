@@ -45,6 +45,7 @@ const GoalsPage = () => {
         >
           <div className="flex items-center gap-3">
             <div>
+              <TrendingUp className="w-8 h-8 text-[#f096b3] dark:text-[#f4873e]" />
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Goals</h1>
             </div>
           </div>

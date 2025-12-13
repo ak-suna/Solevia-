@@ -37,6 +37,7 @@ const HabitsPage = () => {
           style={{ fontFamily: "Brasika" }}
         >
           <div className="flex items-center gap-3">
+            <CheckCircle2 className="w-8 h-8 text-[#89beab] dark:text-[#6ca859]" />
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Daily Habits</h1>
             </div>
