@@ -109,16 +109,16 @@
 // export default router;
 import express from "express";
 import { Mood } from "../models/Mood.js";
-// UPDATE: Use YOUR auth middleware with correct name and path
-import { authenticate } from "../middleware/authMiddleware.js"; // Change path if needed
+import { authenticate } from "../middleware/authMiddleware.js";
+import mongoose from "mongoose";
 
 const router = express.Router();
 
-// POST: Save mood entry
+// POST: Save mood entry AND UPDATE STREAK
 router.post("/", authenticate, async (req, res) => {
     try {
         const { mood, emoji, label, color, period } = req.body;
-        const userId = req.user.id; // or req.user._id depending on your setup
+        const userId = req.user.id;
         
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
@@ -149,9 +149,41 @@ router.post("/", authenticate, async (req, res) => {
         
         await moodEntry.save();
         
+        // UPDATE MOOD STREAK
+        const User = mongoose.model('User');
+        const user = await User.findById(userId);
+        
+        const today = new Date().setHours(0, 0, 0, 0);
+        const lastEntry = user.moodStreak.lastEntryDate 
+            ? new Date(user.moodStreak.lastEntryDate).setHours(0, 0, 0, 0) 
+            : null;
+        
+        // If first entry of the day
+        if (!lastEntry || lastEntry < today) {
+            const yesterday = today - 86400000;
+            
+            if (!lastEntry) {
+                // First ever entry
+                user.moodStreak.current = 1;
+            } else if (lastEntry === yesterday) {
+                // Logged yesterday too - continue streak
+                user.moodStreak.current += 1;
+                if (user.moodStreak.current > user.moodStreak.best) {
+                    user.moodStreak.best = user.moodStreak.current;
+                }
+            } else if (today - lastEntry > 86400000) {
+                // Missed a day - reset
+                user.moodStreak.current = 1;
+            }
+            
+            user.moodStreak.lastEntryDate = new Date();
+            await user.save();
+        }
+        
         res.status(201).json({
             message: "Mood logged successfully",
-            mood: moodEntry
+            mood: moodEntry,
+            moodStreak: user.moodStreak
         });
         
     } catch (error) {
@@ -189,7 +221,6 @@ router.get("/today", authenticate, async (req, res) => {
 });
 
 // GET: Get mood history (for calendar)
-// GET: Get mood history (for calendar)
 router.get("/history", authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -203,7 +234,6 @@ router.get("/history", authenticate, async (req, res) => {
                 $lte: new Date(endDate)
             };
         } else {
-            // Default to last 90 days if no date range provided
             const ninetyDaysAgo = new Date();
             ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
             query.date = { $gte: ninetyDaysAgo };
@@ -213,7 +243,6 @@ router.get("/history", authenticate, async (req, res) => {
             .sort({ date: -1 })
             .limit(parseInt(limit));
         
-        // Group moods by date
         const groupedMoods = {};
         
         moods.forEach(mood => {
@@ -241,13 +270,28 @@ router.get("/history", authenticate, async (req, res) => {
             }
         });
         
-        // Convert object to array
         const result = Object.values(groupedMoods);
         
         res.json(result);
         
     } catch (error) {
         console.error("Error fetching mood history:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+// ADD THIS NEW ROUTE - Get user streaks
+router.get("/streaks", authenticate, async (req, res) => {
+    try {
+        const User = mongoose.model('User');
+        const user = await User.findById(req.user.id);
+        
+        res.json({
+            moodStreak: user.moodStreak || { current: 0, best: 0 },
+            habitStreak: user.habitStreak || { current: 0, best: 0 }
+        });
+    } catch (error) {
+        console.error("Error fetching streaks:", error);
         res.status(500).json({ message: "Server error" });
     }
 });

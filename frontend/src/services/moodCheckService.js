@@ -369,3 +369,29 @@ export const getMoodHistory = async (startDate, endDate) => {
     return [];
   }
 };
+export const getStreaks = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      return { moodStreak: { current: 0, best: 0 }, habitStreak: { current: 0, best: 0 } };
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/mood/streaks`, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error("Failed to fetch streaks");
+    }
+    
+    const data = await response.json();
+    return data;
+    
+  } catch (error) {
+    console.error("Error fetching streaks:", error);
+    return { moodStreak: { current: 0, best: 0 }, habitStreak: { current: 0, best: 0 } };
+  }
+};
