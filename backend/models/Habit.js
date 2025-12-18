@@ -16,14 +16,16 @@ const habitSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  streak: {
-    type: Number,
-    default: 0
-  },
-  bestStreak: {
-    type: Number,
-    default: 0
-  },
+
+  
+  // streak: {
+  //   type: Number,
+  //   default: 0
+  // },
+  // bestStreak: {
+  //   type: Number,
+  //   default: 0
+  // },
   lastCompletedDate: {
     type: Date,
     default: null
@@ -39,6 +41,7 @@ const habitSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
 
 // Index for faster queries
 habitSchema.index({ user: 1, createdAt: -1 });
