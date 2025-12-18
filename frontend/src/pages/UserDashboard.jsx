@@ -922,7 +922,7 @@ import { useNavigate } from "react-router-dom";
 import { logout, getUsername } from "../services/auth";
 import Calendar from "../components/Calendar";
 import MoodCheckPopup from "../components/MoodCheckPopup";
-import { shouldShowMoodCheck, saveMood, getMoodHistory } from "../services/moodCheckService";
+import { shouldShowMoodCheck, saveMood, getMoodHistory, getStreaks } from "../services/moodCheckService";
 import Sidebar from "../components/Sidebar";
 import HabitsCard from "../components/HabitsCard";
 import GoalsCard from "../components/GoalsCard";
@@ -938,8 +938,12 @@ const UserDashboard = () => {
   const [showMoodPopup, setShowMoodPopup] = useState(false);
   const [moodPeriod, setMoodPeriod] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // ADD THESE:
+  const [moodStreak, setMoodStreak] = useState({ current: 0, best: 0 });
+  const [habitStreak, setHabitStreak] = useState({ current: 0, best: 0 });
 
-   const [habits, setHabits] = useState([
+  const [habits, setHabits] = useState([
     { id: 1, name: 'Morning Meditation', completedToday: true },
     { id: 2, name: 'Drink 8 glasses of water', completedToday: true },
     { id: 3, name: 'Evening walk', completedToday: false },
@@ -953,7 +957,19 @@ const UserDashboard = () => {
   useEffect(() => {
     checkMoodStatus();
     fetchMoodHistory();
+    fetchStreaks(); // ADD THIS
   }, []);
+
+  // ADD THIS FUNCTION:
+  const fetchStreaks = async () => {
+    try {
+      const streaks = await getStreaks();
+      setMoodStreak(streaks.moodStreak);
+      setHabitStreak(streaks.habitStreak);
+    } catch (error) {
+      console.error("Error fetching streaks:", error);
+    }
+  };
 
   const fetchMoodHistory = async () => {
     try {
@@ -978,21 +994,22 @@ const UserDashboard = () => {
     }
   };
 
-  // const handleLogout = () => {
-  //   logout();
-  //   navigate("/login");
-  // };
-
   const handleDateSelect = (dateStr) => {
     setSelectedDate(dateStr);
   };
 
   const handleMoodSelect = async (moodData) => {
     try {
-      await saveMood(moodData, moodPeriod);
+      const result = await saveMood(moodData, moodPeriod);
       setShowMoodPopup(false);
       
+      // Update streak from response
+      if (result.moodStreak) {
+        setMoodStreak(result.moodStreak);
+      }
+      
       await fetchMoodHistory();
+      await fetchStreaks(); // Refresh streaks
       
       navigate('/journal', { 
         state: { 
@@ -1011,12 +1028,38 @@ const UserDashboard = () => {
     setShowMoodPopup(false);
   };
 
-  const StreaksCard = () => (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 h-36 shadow-lg flex flex-col justify-center items-center">
-      <h2 className="font-bold text-lg text-gray-900 dark:text-white">🔥 Streaks</h2>
-      <p className="text-gray-500 dark:text-gray-400 text-sm">Keep up your streak!</p>
+  // REPLACE THIS COMPONENT:
+const StreaksCard = () => (
+  <div className="bg-[#f8ba90] rounded-[40px] p-6 h-[200px] shadow-lg flex flex-col justify-between border-2 border-[#f4873e]/20">
+    {/* Main Streak - Mood */}
+    <div className="mb-3">
+      <h3 className="text-[#1F3B36] text-sm uppercase tracking-wide font-bold">Check-in Streak</h3>
+      <div className="flex items-center justify-center mt-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#f4873e] to-[#ff9e5e] rounded-full flex items-center justify-center shadow-md">
+            <Flame className="w-5 h-5 text-white" fill="#f4873e" />
+          </div>
+          <div className="flex items-center">
+            <span className="text-4xl font-bold text-white">{moodStreak.current}</span>
+            <span className="text-lg font-bold text-white/80 ml-2">days</span>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+    
+    {/* Stats Row */}
+    <div className="grid grid-cols-2 gap-4 mt-auto">
+      <div className="bg-white/60 rounded-xl p-3 backdrop-blur-sm border border-[#f4873e]/10">
+        <p className="text-[#2d6b57] text-xs mb-1">Best Streak</p>
+        <p className="text-xl font-bold text-[#8b5a2b]">{moodStreak.best}</p>
+      </div>
+      <div className="bg-white/60 rounded-xl p-3 backdrop-blur-sm border border-[#f4873e]/10">
+        <p className="text-[#2d6b57] text-xs mb-1">Habit Streak</p>
+        <p className="text-xl font-bold text-[#2d6b57]">{habitStreak.current}</p>
+      </div>
+    </div>
+  </div>
+);
 
   const getSelectedDateMood = () => {
     if (!selectedDate || !moodHistory.length) return null;
@@ -1164,10 +1207,8 @@ const UserDashboard = () => {
         {/* RIGHT SIDEBAR */}
         <div className="w-80 flex flex-col gap-5 pt-20">
           <StreaksCard />
-          <HabitsCard 
-
-/>
-<GoalsCard/>
+          <HabitsCard />
+          <GoalsCard/>
         </div>
       </div>
     </>
