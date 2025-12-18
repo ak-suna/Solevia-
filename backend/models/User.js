@@ -13,7 +13,11 @@ const userSchema = new Schema({
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
     date: { type: Date, default: Date.now },
-    role: { type: String, enum: ["user", "admin"], default: "user"}
+    role: { type: String, enum: ["user", "admin"], default: "user"},
+    moodStreak: {current: { type: Number, default: 0 }, best: { type: Number, default: 0 }, lastEntryDate: { type: Date, default: null }
+  },
+    habitStreak: {current: { type: Number, default: 0 }, best: { type: Number, default: 0 }, lastCheckDate: { type: Date, default: null }
+}
 });
 
 export const User = model("User", userSchema);
