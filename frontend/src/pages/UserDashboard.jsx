@@ -1167,9 +1167,7 @@ const UserDashboard = () => {
           <HabitsCard 
 
 />
-<GoalsCard 
- 
-/>
+<GoalsCard/>
         </div>
       </div>
     </>

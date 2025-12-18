@@ -198,7 +198,7 @@ const HabitsCard = () => {
   };
 
   return (
-    <div className="bg-[#89beab] p-10 rounded-[40px] w-full h-[270px] flex flex-col">
+    <div className="bg-[#89beab] p-10 rounded-[40px] w-full h-[250px] flex flex-col">
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-sm font-bold text-[#1F3B36] uppercase tracking-wide opacity-80">
           Today's Habits

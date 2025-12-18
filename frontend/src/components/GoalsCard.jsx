@@ -201,7 +201,7 @@ const GoalsCard = () => {
   };
 
   return (
-    <div className="bg-[#f9d9e3] p-10 rounded-[40px] w-full height-[280px]">
+    <div className="bg-[#f9d9e3] p-10 rounded-[40px] w-full height-[250px]">
       
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide opacity-80">
