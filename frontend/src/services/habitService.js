@@ -26,3 +26,7 @@ export const deleteHabit = async (id) => {
   const response = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
   return response.data;
 };
+export const checkNewDay = async () => {
+  const response = await axios.post(`${API_URL}/check-day`, {}, getAuthHeader());
+  return response.data;
+};
