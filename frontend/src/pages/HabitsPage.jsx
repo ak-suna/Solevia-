@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Circle, Plus, Trash2, Flame } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import { useHabits } from '../contexts/HabitsContext';
 
 const HabitsPage = () => {
   const navigate = useNavigate();
-  const { habits, addHabit, toggleHabit, deleteHabit } = useHabits();
+  const { habits, addHabit, toggleHabit, deleteHabit, globalStreak } = useHabits();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
@@ -154,10 +154,6 @@ const HabitsPage = () => {
                         }`}>
                           {habit.name}
                         </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                          <Flame className="w-4 h-4 text-orange-500" />
-                          <span>{habit.streak} day streak</span>
-                        </div>
                       </div>
                     </div>
 
@@ -179,15 +175,19 @@ const HabitsPage = () => {
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Streak</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">5 days</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {globalStreak?.current || 0} days
+            </p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Best Streak</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">12 days</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {globalStreak?.best || 0} days
+            </p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Completion Rate</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">78%</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{percentage}%</p>
           </div>
         </div>
       </div>

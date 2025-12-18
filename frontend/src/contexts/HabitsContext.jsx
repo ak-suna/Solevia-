@@ -14,11 +14,32 @@ export const useHabits = () => {
 export const HabitsProvider = ({ children }) => {
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
+  // ADD THESE TWO LINES:
+  const [globalStreak, setGlobalStreak] = useState({ current: 0, best: 0 });
 
-  // Load habits from database on mount
+  // Load habits and check day on mount
   useEffect(() => {
     loadHabits();
+    checkNewDay(); // ADD THIS
   }, []);
+
+  // ADD THIS FUNCTION:
+  const checkNewDay = async () => {
+    try {
+      const response = await fetch('/api/habits/check-day', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth
+        }
+      });
+      const streak = await response.json();
+      setGlobalStreak(streak);
+      // Reload habits after day check to get updated completedToday
+      await loadHabits();
+    } catch (error) {
+      console.error('Error checking new day:', error);
+    }
+  };
 
   const loadHabits = async () => {
     try {
@@ -26,9 +47,9 @@ export const HabitsProvider = ({ children }) => {
       const data = await getHabits();
       setHabits(data.map(h => ({
         ...h,
-        id: h._id, // Map MongoDB _id to id
-        completedToday: h.completedToday || false,
-        streak: h.streak || 0
+        id: h._id,
+        completedToday: h.completedToday || false
+        // REMOVE: streak: h.streak || 0
       })));
     } catch (error) {
       console.error('Error loading habits:', error);
@@ -70,7 +91,15 @@ export const HabitsProvider = ({ children }) => {
   };
 
   return (
-    <HabitsContext.Provider value={{ habits, addHabit, toggleHabit, deleteHabit, loading, loadHabits }}>
+    <HabitsContext.Provider value={{ 
+      habits, 
+      addHabit, 
+      toggleHabit, 
+      deleteHabit, 
+      loading, 
+      loadHabits,
+      globalStreak // ADD THIS
+    }}>
       {children}
     </HabitsContext.Provider>
   );
