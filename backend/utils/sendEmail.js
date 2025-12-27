@@ -197,7 +197,7 @@ export const sendVerificationEmail = async (user) => {
             subject: "Verify Your Email - SOLEVIA",
             html: `
                 <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #333;">Welcome to SOLEVMA!</h2>
+                    <h2 style="color: #333;">Welcome to SOLEVIA!</h2>
                     <p>Hi ${user.firstName},</p>
                     <p>Thank you for registering. Please verify your email address by clicking the button below:</p>
                     <a href="${verificationUrl}" 
