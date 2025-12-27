@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Target, TrendingUp, CheckCircle2, Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import { useGoals } from '../contexts/GoalsContext';
 
 const GoalsPage = () => {
-  const navigate = useNavigate();
   const { goals, addGoal, updateProgress, deleteGoal } = useGoals();
 
   const [showAddForm, setShowAddForm] = useState(false);
