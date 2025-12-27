@@ -89,8 +89,11 @@
 
 // export default router;
 import express from 'express';
+import mongoose from 'mongoose';
 import Habit from '../models/Habit.js';
-import { authenticate } from '../middleware/authMiddleware.js'; // Changed here
+import HabitDay from '../models/HabitDay.js';
+import { User } from '../models/User.js';
+import { authenticate } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -105,7 +108,7 @@ router.get('/', authenticate, async (req, res) => { // Changed here
 });
 
 // Create new habit
-router.post('/', authenticate, async (req, res) => { // Changed here
+router.post('/', authenticate, async (req, res) => {
   try {
     const { name, category } = req.body;
     
@@ -113,8 +116,7 @@ router.post('/', authenticate, async (req, res) => { // Changed here
       user: req.user.id,
       name,
       category: category || 'general',
-      completedToday: false,
-      streak: 0
+      completedToday: false
     });
     
     await habit.save();
@@ -162,44 +164,121 @@ router.delete('/:id', authenticate, async (req, res) => { // Changed here
   }
 });
 
-// Add this new route
+// Check new day and update streak logic
 router.post('/check-day', authenticate, async (req, res) => {
   try {
-    const User = mongoose.model('User'); // Import your User model
     const user = await User.findById(req.user.id);
     const habits = await Habit.find({ user: req.user.id });
     
     if (habits.length === 0) {
-      return res.json(user.habitStreak);
+      return res.json(user.habitStreak || { current: 0, best: 0 });
     }
 
-    const today = new Date().setHours(0, 0, 0, 0);
-    const lastCheck = user.habitStreak.lastCheckDate 
-      ? new Date(user.habitStreak.lastCheckDate).setHours(0, 0, 0, 0) 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTimestamp = today.getTime();
+    
+    const lastCheck = user.habitStreak?.lastCheckDate 
+      ? new Date(user.habitStreak.lastCheckDate).setHours(0, 0, 0, 0)
       : null;
     
+    // Initialize habitStreak if it doesn't exist
+    if (!user.habitStreak) {
+      user.habitStreak = {
+        current: 0,
+        best: 0,
+        lastCheckDate: null,
+        consecutiveLowDays: 0,
+        lastCompletionDate: null
+      };
+    }
+    
     // If it's a new day and we haven't checked yet
-    if (!lastCheck || today > lastCheck) {
-      const yesterday = today - 86400000;
+    if (!lastCheck || todayTimestamp > lastCheck) {
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      const yesterdayTimestamp = yesterday.getTime();
       
-      // Check if ALL habits were completed yesterday
-      const allCompletedYesterday = habits.every(h => {
-        if (!h.lastCompletedDate) return false;
-        const completedDate = new Date(h.lastCompletedDate).setHours(0, 0, 0, 0);
-        return completedDate === yesterday;
-      });
-      
-      if (allCompletedYesterday) {
-        user.habitStreak.current += 1;
-        if (user.habitStreak.current > user.habitStreak.best) {
-          user.habitStreak.best = user.habitStreak.current;
+      // Only process if we had a previous check (not first time)
+      if (lastCheck) {
+        const totalYesterday = habits.length;
+        
+        // Check if yesterday's snapshot already exists
+        let yesterdaySnapshot = await HabitDay.findOne({
+          user: req.user.id,
+          date: yesterday
+        });
+        
+        // If snapshot doesn't exist, create it
+        // We use lastCompletedDate to determine if a habit was completed yesterday
+        // A habit was completed yesterday if its lastCompletedDate is exactly yesterday
+        if (!yesterdaySnapshot && totalYesterday > 0) {
+          const yesterdayHabits = habits.map(h => {
+            let wasCompleted = false;
+            if (h.lastCompletedDate) {
+              const completedDate = new Date(h.lastCompletedDate);
+              completedDate.setHours(0, 0, 0, 0);
+              wasCompleted = completedDate.getTime() === yesterdayTimestamp;
+            }
+            return {
+              habitId: h._id,
+              name: h.name,
+              completed: wasCompleted
+            };
+          });
+          
+          const completedCount = yesterdayHabits.filter(h => h.completed).length;
+          const completionPercentage = totalYesterday > 0 
+            ? Math.round((completedCount / totalYesterday) * 100) 
+            : 0;
+          
+          // Only create snapshot if we have habits
+          if (totalYesterday > 0) {
+            yesterdaySnapshot = await HabitDay.create({
+              user: req.user.id,
+              date: yesterday,
+              habits: yesterdayHabits,
+              completionPercentage,
+              completedCount,
+              totalCount: totalYesterday
+            });
+          }
         }
-      } else if (lastCheck && today - lastCheck > 86400000) {
-        // Missed a day - reset streak
-        user.habitStreak.current = 0;
+        
+        // Use snapshot for streak calculations
+        const completionPercentage = yesterdaySnapshot ? yesterdaySnapshot.completionPercentage : 0;
+        
+        // NEW STREAK LOGIC:
+        // 1. If completion >= 80%: Increment streak by 1, reset consecutiveLowDays
+        // 2. If completion < 80%: Streak stays the same (pauses), increment consecutiveLowDays
+        // 3. If TWO consecutive days with < 80%: Reset streak to 0, reset consecutiveLowDays
+        
+        if (yesterdaySnapshot && yesterdaySnapshot.totalCount > 0) {
+          if (completionPercentage >= 80) {
+            // Increment streak
+            user.habitStreak.current = (user.habitStreak.current || 0) + 1;
+            if (user.habitStreak.current > (user.habitStreak.best || 0)) {
+              user.habitStreak.best = user.habitStreak.current;
+            }
+            // Reset consecutive low days
+            user.habitStreak.consecutiveLowDays = 0;
+            user.habitStreak.lastCompletionDate = yesterday;
+          } else {
+            // Completion < 80%: Pause streak, increment consecutive low days
+            user.habitStreak.consecutiveLowDays = (user.habitStreak.consecutiveLowDays || 0) + 1;
+            
+            // If two consecutive days with < 80%, reset streak
+            if (user.habitStreak.consecutiveLowDays >= 2) {
+              user.habitStreak.current = 0;
+              user.habitStreak.consecutiveLowDays = 0;
+            }
+          }
+        }
       }
       
-      user.habitStreak.lastCheckDate = new Date();
+      // Update lastCheckDate
+      user.habitStreak.lastCheckDate = today;
       
       // Reset all habits' completedToday for new day
       await Habit.updateMany(
@@ -210,8 +289,26 @@ router.post('/check-day', authenticate, async (req, res) => {
       await user.save();
     }
     
-    res.json(user.habitStreak);
+    res.json(user.habitStreak || { current: 0, best: 0, consecutiveLowDays: 0 });
   } catch (error) {
+    console.error('Error checking new day:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get historical habit data
+router.get('/history', authenticate, async (req, res) => {
+  try {
+    const { limit = 30 } = req.query; // Default to last 30 days
+    
+    const habitDays = await HabitDay.find({ user: req.user.id })
+      .sort({ date: -1 })
+      .limit(parseInt(limit))
+      .populate('habits.habitId', 'name');
+    
+    res.json(habitDays);
+  } catch (error) {
+    console.error('Error fetching habit history:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
