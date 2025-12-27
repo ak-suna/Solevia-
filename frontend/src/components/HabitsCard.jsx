@@ -178,7 +178,7 @@ import { useHabits } from '../contexts/HabitsContext';
 
 const HabitsCard = () => {
   const navigate = useNavigate();
-  const { habits, toggleHabit, addHabit } = useHabits();
+  const { habits, toggleHabit, addHabit, globalStreak } = useHabits();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
@@ -213,7 +213,7 @@ const HabitsCard = () => {
 
       <div className="mb-4">
         <div className="flex justify-between text-xs mb-2">
-          <span className="text-white">{completedToday} of {total}</span>
+          <span className="text-white">{completedToday}/{total} completed ({percentage}%)</span>
           <span className="font-semibold text-white">{percentage}%</span>
         </div>
         <div className="w-full bg-white/30 rounded-full h-2">
@@ -222,6 +222,11 @@ const HabitsCard = () => {
             style={{ width: `${percentage}%` }}
           />
         </div>
+        {globalStreak && globalStreak.current > 0 && (
+          <div className="mt-2 text-xs text-white/90">
+            🔥 {globalStreak.current} days streak
+          </div>
+        )}
       </div>
 
       {/* Add Habit Quick Form */}
