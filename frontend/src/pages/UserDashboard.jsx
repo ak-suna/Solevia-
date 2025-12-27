@@ -919,21 +919,20 @@
 // export default UserDashboard;
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout, getUsername } from "../services/auth";
+import { getUsername } from "../services/auth";
 import Calendar from "../components/Calendar";
 import MoodCheckPopup from "../components/MoodCheckPopup";
 import { shouldShowMoodCheck, saveMood, getMoodHistory, getStreaks } from "../services/moodCheckService";
 import Sidebar from "../components/Sidebar";
 import HabitsCard from "../components/HabitsCard";
 import GoalsCard from "../components/GoalsCard";
-import { Search, Bell, Menu, Flame, Plus} from 'lucide-react';
+import { Bell, Menu, Flame, Plus } from 'lucide-react';
 import NotificationBell from '../components/NotificationBell';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   const username = getUsername();
   const [selectedDate, setSelectedDate] = useState(null);
-  const [dateEntries, setDateEntries] = useState({});
   const [moodHistory, setMoodHistory] = useState([]);
   
   const [showMoodPopup, setShowMoodPopup] = useState(false);
@@ -943,17 +942,6 @@ const UserDashboard = () => {
   // ADD THESE:
   const [moodStreak, setMoodStreak] = useState({ current: 0, best: 0 });
   const [habitStreak, setHabitStreak] = useState({ current: 0, best: 0 });
-
-  const [habits, setHabits] = useState([
-    { id: 1, name: 'Morning Meditation', completedToday: true },
-    { id: 2, name: 'Drink 8 glasses of water', completedToday: true },
-    { id: 3, name: 'Evening walk', completedToday: false },
-  ]);
-
-  const [goals, setGoals] = useState([
-    { id: 1, name: 'Read 12 books this year', progress: 65, status: 'active' },
-    { id: 2, name: 'Exercise 4x per week', progress: 80, status: 'active' },
-  ]);
 
   useEffect(() => {
     checkMoodStatus();

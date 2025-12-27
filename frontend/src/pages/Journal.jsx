@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Plus, Search, Calendar, Tag, Edit2, Trash2, Save, X, ArrowLeft, Bold, Italic, List, ListOrdered, Heading1, Heading2, Underline as UnderlineIcon, Highlighter, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { BookOpen, Plus, Search, Calendar, Tag, Edit2, Trash2, Save, X, Bold, Italic, List, ListOrdered, Heading1, Heading2, Underline as UnderlineIcon, Highlighter, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
 import Sidebar from '../components/Sidebar';
@@ -52,6 +52,15 @@ const ToolbarButton = ({ onClick, active, children, title }) => (
   </button>
 );
 
+// Default prompts - moved outside component to prevent recreation on every render
+const defaultPrompts = [
+  "What made you smile today?",
+  "What are you grateful for?",
+  "What challenged you today?",
+  "What do you want to remember about today?",
+  "How are you feeling right now?"
+];
+
 const Journal = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -100,14 +109,6 @@ const Journal = () => {
     { value: 'angry', emoji: '😠', label: 'Angry' }
   ];
 
-  const defaultPrompts = [
-    "What made you smile today?",
-    "What are you grateful for?",
-    "What challenged you today?",
-    "What do you want to remember about today?",
-    "How are you feeling right now?"
-  ];
-
   const getMoodBasedPrompt = (moodValue, period) => {
     const prompts = {
       happy: [
@@ -153,8 +154,25 @@ const Journal = () => {
     return `${period === 'morning' ? '🌅 Morning Check-In' : '🌙 Evening Reflection'}: ${selectedPrompt}`;
   };
 
+  const loadEntries = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = getToken();
+      const response = await axios.get(API_URL, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEntries(response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    } catch (error) {
+      console.error('Error loading entries:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate]);
+
   // Check if coming from mood check - RUNS ONCE ON MOUNT
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (location.state?.fromMoodCheck) {
       const moodValue = location.state.mood;
@@ -171,48 +189,28 @@ const Journal = () => {
       // Clear the state to prevent re-triggering
       window.history.replaceState({}, document.title);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Set random prompt when manually clicking "New Entry"
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (isWriting && !currentPrompt && !mood) {
       const randomPrompt = defaultPrompts[Math.floor(Math.random() * defaultPrompts.length)];
       setCurrentPrompt(randomPrompt);
     }
-  }, [isWriting]);
+  }, [isWriting, currentPrompt, mood]);
 
   // Load entries on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadEntries();
-  }, []);
+  }, [loadEntries]);
 
   // Update editor content when editing
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (editor && content) {
       editor.commands.setContent(content);
     }
-  }, [editor, editingEntry]);
-
-  const loadEntries = async () => {
-    setLoading(true);
-    try {
-      const token = getToken();
-      const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setEntries(response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-    } catch (error) {
-      console.error('Error loading entries:', error);
-      if (error.response?.status === 401) {
-        navigate('/login');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [editor, editingEntry, content]);
 
   const saveEntry = async () => {
     if (!content.trim() || content === '<p></p>') {
