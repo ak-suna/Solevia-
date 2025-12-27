@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { getHabits, createHabit, toggleHabit as toggleHabitAPI, deleteHabit as deleteHabitAPI } from '../services/habitService';
 
 const HabitsContext = createContext();
@@ -17,31 +17,7 @@ export const HabitsProvider = ({ children }) => {
   // ADD THESE TWO LINES:
   const [globalStreak, setGlobalStreak] = useState({ current: 0, best: 0 });
 
-  // Load habits and check day on mount
-  useEffect(() => {
-    loadHabits();
-    checkNewDay(); // ADD THIS
-  }, []);
-
-  // ADD THIS FUNCTION:
-  const checkNewDay = async () => {
-    try {
-      const response = await fetch('/api/habits/check-day', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth
-        }
-      });
-      const streak = await response.json();
-      setGlobalStreak(streak);
-      // Reload habits after day check to get updated completedToday
-      await loadHabits();
-    } catch (error) {
-      console.error('Error checking new day:', error);
-    }
-  };
-
-  const loadHabits = async () => {
+  const loadHabits = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getHabits();
@@ -56,7 +32,31 @@ export const HabitsProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // ADD THIS FUNCTION:
+  const checkNewDay = useCallback(async () => {
+    try {
+      const response = await fetch('/api/habits/check-day', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth
+        }
+      });
+      const streak = await response.json();
+      setGlobalStreak(streak);
+      // Reload habits after day check to get updated completedToday
+      await loadHabits();
+    } catch (error) {
+      console.error('Error checking new day:', error);
+    }
+  }, [loadHabits]);
+
+  // Load habits and check day on mount
+  useEffect(() => {
+    loadHabits();
+    checkNewDay();
+  }, [loadHabits, checkNewDay]);
 
   const addHabit = async (name) => {
     try {
