@@ -34,16 +34,11 @@ export const HabitsProvider = ({ children }) => {
     }
   }, []);
 
-  // ADD THIS FUNCTION:
+  // Check for new day and update streak
   const checkNewDay = useCallback(async () => {
     try {
-      const response = await fetch('/api/habits/check-day', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth
-        }
-      });
-      const streak = await response.json();
+      const { checkNewDay } = await import('../services/habitService');
+      const streak = await checkNewDay();
       setGlobalStreak(streak);
       // Reload habits after day check to get updated completedToday
       await loadHabits();
