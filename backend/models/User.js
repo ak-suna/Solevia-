@@ -17,7 +17,37 @@ const userSchema = new Schema({
     moodStreak: {current: { type: Number, default: 0 }, best: { type: Number, default: 0 }, lastEntryDate: { type: Date, default: null }
   },
     habitStreak: {current: { type: Number, default: 0 }, best: { type: Number, default: 0 }, lastCheckDate: { type: Date, default: null }
+},
+
+// ADD THESE FIELDS (keep all existing fields)
+socketId: { 
+    type: String, 
+    default: null 
+},
+
+notificationPreferences: {
+    habits: {
+        inApp: { type: Boolean, default: true },
+        email: { type: Boolean, default: true }
+    },
+    moods: {
+        inApp: { type: Boolean, default: true },
+        email: { type: Boolean, default: false }
+    },
+    streaks: {
+        inApp: { type: Boolean, default: true },
+        email: { type: Boolean, default: false }
+    },
+    community: {
+        inApp: { type: Boolean, default: true },
+        email: { type: Boolean, default: false }
+    },
+    system: {
+        inApp: { type: Boolean, default: true },
+        email: { type: Boolean, default: true }
+    }
 }
 });
+
 
 export const User = model("User", userSchema);

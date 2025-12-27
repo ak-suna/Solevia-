@@ -258,3 +258,58 @@ export const sendPasswordResetEmail = async (user, resetToken) => {
         throw new Error("Failed to send password reset email");
     }
 };
+export const sendNotificationEmail = async (user, notification) => {
+    try {
+        const transporter = getTransporter();
+
+        const priorityColors = {
+            HIGH: "#d9534f",
+            MEDIUM: "#f0ad4e",
+            LOW: "#5bc0de"
+        };
+
+        const color = priorityColors[notification.priority] || "#5bc0de";
+
+        let actionButton = "";
+        if (notification.data?.actionUrl) {
+            actionButton = `
+                <a href="${process.env.FRONTEND_URL}${notification.data.actionUrl}" 
+                   style="display: inline-block; padding: 12px 24px; margin: 20px 0; 
+                          background-color: ${color}; color: white; text-decoration: none; 
+                          border-radius: 4px;">
+                    View Details
+                </a>
+            `;
+        }
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: `${notification.title} - SOLEVIA`,
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+                    <div style="background-color: ${color}; color: white; padding: 15px; border-radius: 4px 4px 0 0;">
+                        <h2 style="margin: 0; color: white;">${notification.title}</h2>
+                        <span style="font-size: 12px; opacity: 0.9;">${notification.priority} Priority</span>
+                    </div>
+                    <div style="background-color: #f9f9f9; padding: 20px; border: 1px solid #ddd; border-top: none; border-radius: 0 0 4px 4px;">
+                        <p>Hi ${user.firstName},</p>
+                        <p style="font-size: 16px; line-height: 1.6;">${notification.message}</p>
+                        ${actionButton}
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                        <p style="color: #999; font-size: 12px;">
+                            You can manage your notification preferences in your 
+                            <a href="${process.env.FRONTEND_URL}/settings">account settings</a>.
+                        </p>
+                    </div>
+                </div>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Notification email sent to: ${user.email}`);
+    } catch (error) {
+        console.error("❌ Error sending notification email:", error);
+        throw new Error("Failed to send notification email");
+    }
+};
