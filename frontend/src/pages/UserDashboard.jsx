@@ -927,6 +927,7 @@ import Sidebar from "../components/Sidebar";
 import HabitsCard from "../components/HabitsCard";
 import GoalsCard from "../components/GoalsCard";
 import { Search, Bell, Menu, Flame, Plus} from 'lucide-react';
+import NotificationBell from '../components/NotificationBell';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -1191,10 +1192,7 @@ const StreaksCard = () => (
 
         {/* Top Right Navigation Buttons */}
         <div className="absolute top-6 right-6 flex items-center gap-6">
-          <button className="relative w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg">
-            <Bell className="w-7 h-7 text-gray-600 dark:text-gray-300" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
-          </button>
+          <NotificationBell />
 
           <button 
             onClick={() => navigate('/settings')}
