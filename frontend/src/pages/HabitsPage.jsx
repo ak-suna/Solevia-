@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
-import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckCircle2, Circle, Plus, Trash2, Calendar, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import { useHabits } from '../contexts/HabitsContext';
+import { getHabitHistory } from '../services/habitService';
 
 const HabitsPage = () => {
   const { habits, addHabit, toggleHabit, deleteHabit, globalStreak } = useHabits();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
+  const [habitHistory, setHabitHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
 
   const handleAddHabit = () => {
     if (newHabitName.trim()) {
@@ -20,6 +24,42 @@ const HabitsPage = () => {
 
   const completedCount = habits.filter(h => h.completedToday).length;
   const percentage = habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0;
+
+  const loadHistory = async () => {
+    try {
+      setLoadingHistory(true);
+      const history = await getHabitHistory(30);
+      setHabitHistory(history);
+    } catch (error) {
+      console.error('Error loading habit history:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    if (showHistory) {
+      loadHistory();
+    }
+  }, [showHistory]);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dateOnly = new Date(date);
+    dateOnly.setHours(0, 0, 0, 0);
+    
+    if (dateOnly.getTime() === today.getTime()) {
+      return 'Today';
+    }
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (dateOnly.getTime() === yesterday.getTime()) {
+      return 'Yesterday';
+    }
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
@@ -106,9 +146,16 @@ const HabitsPage = () => {
               style={{ width: `${percentage}%` }}
             />
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {completedCount} of {habits.length} habits completed
-          </p>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {completedCount} of {habits.length} habits completed ({percentage}%)
+            </p>
+            {globalStreak && globalStreak.current > 0 && (
+              <p className="text-sm font-semibold text-[#89beab] dark:text-teal-400">
+                🔥 {globalStreak.current} days streak
+              </p>
+            )}
+          </div>
         </motion.div>
 
         {/* Habits List */}
@@ -170,11 +217,11 @@ const HabitsPage = () => {
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-3 gap-4 mt-6 mb-6">
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Streak</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {globalStreak?.current || 0} days
+              🔥 {globalStreak?.current || 0}
             </p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center">
@@ -184,10 +231,114 @@ const HabitsPage = () => {
             </p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Completion Rate</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Today's Completion</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{percentage}%</p>
           </div>
         </div>
+
+        {/* History Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setShowHistory(!showHistory)}
+          className="w-full flex items-center justify-center gap-2 bg-[#89beab] dark:bg-teal-600 text-white px-6 py-3 rounded-xl hover:bg-[#7aad99] dark:hover:bg-teal-700 transition-all mb-6"
+        >
+          <Calendar className="w-5 h-5" />
+          {showHistory ? 'Hide Past Habits' : 'View Past Habits'}
+        </motion.button>
+
+        {/* History Section */}
+        <AnimatePresence>
+          {showHistory && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 mb-6 overflow-hidden"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Past Habits</h2>
+                <button
+                  onClick={() => setShowHistory(false)}
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                >
+                  <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {loadingHistory ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 dark:text-gray-400">Loading history...</p>
+                </div>
+              ) : habitHistory.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">No history available yet.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {habitHistory.map((day, index) => (
+                    <motion.div
+                      key={day._id || index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600"
+                    >
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                          {formatDate(day.date)}
+                        </h3>
+                        <span className="text-sm font-bold text-[#89beab] dark:text-teal-400">
+                          {day.completedCount}/{day.totalCount} ({day.completionPercentage}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mb-3">
+                        <div
+                          className={`h-2 rounded-full transition-all ${
+                            day.completionPercentage >= 80
+                              ? 'bg-gradient-to-r from-green-500 to-green-600'
+                              : day.completionPercentage >= 50
+                              ? 'bg-gradient-to-r from-yellow-500 to-yellow-600'
+                              : 'bg-gradient-to-r from-red-500 to-red-600'
+                          }`}
+                          style={{ width: `${day.completionPercentage}%` }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        {day.habits && day.habits.length > 0 ? (
+                          day.habits.map((habitItem, habitIndex) => (
+                            <div
+                              key={habitItem.habitId || habitIndex}
+                              className="flex items-center gap-2 text-sm"
+                            >
+                              {habitItem.completed ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                              ) : (
+                                <Circle className="w-4 h-4 text-gray-300 dark:text-gray-500 flex-shrink-0" />
+                              )}
+                              <span
+                                className={
+                                  habitItem.completed
+                                    ? 'text-gray-500 dark:text-gray-400 line-through'
+                                    : 'text-gray-900 dark:text-white'
+                                }
+                              >
+                                {habitItem.name}
+                              </span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500 dark:text-gray-400">No habits recorded</p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
