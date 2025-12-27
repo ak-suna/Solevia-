@@ -30,3 +30,8 @@ export const checkNewDay = async () => {
   const response = await axios.post(`${API_URL}/check-day`, {}, getAuthHeader());
   return response.data;
 };
+
+export const getHabitHistory = async (limit = 30) => {
+  const response = await axios.get(`${API_URL}/history?limit=${limit}`, getAuthHeader());
+  return response.data;
+};
