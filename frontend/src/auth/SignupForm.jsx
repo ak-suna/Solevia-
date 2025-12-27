@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { signup } from "../services/auth";
 import { useNavigate, Link } from "react-router-dom";
+import { signupSchema } from "../utils/validationSchemas";
 
 const SignupForm = () => {
     const navigate = useNavigate();
@@ -14,21 +15,35 @@ const SignupForm = () => {
         address: "",
     });
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        // Clear field error when user starts typing
+        if (fieldErrors[e.target.name]) {
+            setFieldErrors({ ...fieldErrors, [e.target.name]: "" });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setFieldErrors({});
 
-        // Password match validation
-        if (formData.password !== formData.confirmPassword) {
-            setError("Passwords do not match");
-            return;
+        // Zod validation
+        try {
+            signupSchema.parse(formData);
+        } catch (err) {
+            if (err.issues) {
+                const errors = {};
+                err.issues.forEach((issue) => {
+                    errors[issue.path[0]] = issue.message;
+                });
+                setFieldErrors(errors);
+                return;
+            }
         }
 
         setLoading(true);
@@ -106,76 +121,125 @@ const SignupForm = () => {
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <input
-                                        type="text"
-                                        name="firstName"
-                                        placeholder="First Name"
-                                        value={formData.firstName}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                    />
+                                    <div>
+                                        <input
+                                            type="text"
+                                            name="firstName"
+                                            placeholder="First Name"
+                                            value={formData.firstName}
+                                            onChange={handleChange}
+                                            required
+                                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                                fieldErrors.firstName ? "border-red-500" : "border-gray-300"
+                                            }`}
+                                        />
+                                        {fieldErrors.firstName && (
+                                            <p className="text-red-500 text-xs mt-1">{fieldErrors.firstName}</p>
+                                        )}
+                                    </div>
 
-                                    <input
-                                        type="text"
-                                        name="lastName"
-                                        placeholder="Last Name"
-                                        value={formData.lastName}
-                                        onChange={handleChange}
-                                        required
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                    />
+                                    <div>
+                                        <input
+                                            type="text"
+                                            name="lastName"
+                                            placeholder="Last Name"
+                                            value={formData.lastName}
+                                            onChange={handleChange}
+                                            required
+                                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                                fieldErrors.lastName ? "border-red-500" : "border-gray-300"
+                                            }`}
+                                        />
+                                        {fieldErrors.lastName && (
+                                            <p className="text-red-500 text-xs mt-1">{fieldErrors.lastName}</p>
+                                        )}
+                                    </div>
                                 </div>
 
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                />
+                                <div>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        placeholder="Email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        required
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                            fieldErrors.email ? "border-red-500" : "border-gray-300"
+                                        }`}
+                                    />
+                                    {fieldErrors.email && (
+                                        <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+                                    )}
+                                </div>
 
-                                <input
-                                    type="password"
-                                    name="password"
-                                    placeholder="Password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                />
+                                <div>
+                                    <input
+                                        type="password"
+                                        name="password"
+                                        placeholder="Password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        required
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                            fieldErrors.password ? "border-red-500" : "border-gray-300"
+                                        }`}
+                                    />
+                                    {fieldErrors.password && (
+                                        <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
+                                    )}
+                                </div>
 
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    placeholder="Confirm Password"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                />
+                                <div>
+                                    <input
+                                        type="password"
+                                        name="confirmPassword"
+                                        placeholder="Confirm Password"
+                                        value={formData.confirmPassword}
+                                        onChange={handleChange}
+                                        required
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                            fieldErrors.confirmPassword ? "border-red-500" : "border-gray-300"
+                                        }`}
+                                    />
+                                    {fieldErrors.confirmPassword && (
+                                        <p className="text-red-500 text-xs mt-1">{fieldErrors.confirmPassword}</p>
+                                    )}
+                                </div>
 
-                                <input
-                                    type="text"
-                                    name="phone"
-                                    placeholder="Phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                />
+                                <div>
+                                    <input
+                                        type="text"
+                                        name="phone"
+                                        placeholder="Phone"
+                                        value={formData.phone}
+                                        onChange={handleChange}
+                                        required
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                            fieldErrors.phone ? "border-red-500" : "border-gray-300"
+                                        }`}
+                                    />
+                                    {fieldErrors.phone && (
+                                        <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>
+                                    )}
+                                </div>
 
-                                <input
-                                    type="text"
-                                    name="address"
-                                    placeholder="Address"
-                                    value={formData.address}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                />
+                                <div>
+                                    <input
+                                        type="text"
+                                        name="address"
+                                        placeholder="Address"
+                                        value={formData.address}
+                                        onChange={handleChange}
+                                        required
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                            fieldErrors.address ? "border-red-500" : "border-gray-300"
+                                        }`}
+                                    />
+                                    {fieldErrors.address && (
+                                        <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>
+                                    )}
+                                </div>
 
                                 {error && (
                                     <p className="text-red-500 text-sm text-center bg-red-50 py-2 px-4 rounded-lg animate-shake">

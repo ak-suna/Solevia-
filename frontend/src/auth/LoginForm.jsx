@@ -261,6 +261,7 @@
 import React, { useState } from "react";
 import { login, isVerified } from "../services/auth";
 import { useNavigate, Link } from "react-router-dom";
+import { loginSchema } from "../utils/validationSchemas";
 
 const LoginForm = () => {
     const navigate = useNavigate();
@@ -270,17 +271,38 @@ const LoginForm = () => {
     });
     const [error, setError] = useState("");
     const [warning, setWarning] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+        // Clear field error when user starts typing
+        if (fieldErrors[e.target.name]) {
+            setFieldErrors({ ...fieldErrors, [e.target.name]: "" });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setWarning("");
+        setFieldErrors({});
+
+        // Zod validation
+        try {
+            loginSchema.parse(formData);
+        } catch (err) {
+            if (err.issues) {
+                const errors = {};
+                err.issues.forEach((issue) => {
+                    errors[issue.path[0]] = issue.message;
+                });
+                setFieldErrors(errors);
+                return;
+            }
+        }
+
         setLoading(true);
 
         try {
@@ -335,26 +357,40 @@ const LoginForm = () => {
                             <p className="text-gray-600 text-center mb-6">Login to access your account</p>
 
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
-                                />
-
-                                <div className="space-y-2">
+                                <div>
                                     <input
-                                        type="password"
-                                        name="password"
-                                        placeholder="Password"
-                                        value={formData.password}
+                                        type="email"
+                                        name="email"
+                                        placeholder="Email"
+                                        value={formData.email}
                                         onChange={handleChange}
                                         required
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                            fieldErrors.email ? "border-red-500" : "border-gray-300"
+                                        }`}
                                     />
+                                    {fieldErrors.email && (
+                                        <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div>
+                                        <input
+                                            type="password"
+                                            name="password"
+                                            placeholder="Password"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            required
+                                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
+                                                fieldErrors.password ? "border-red-500" : "border-gray-300"
+                                            }`}
+                                        />
+                                        {fieldErrors.password && (
+                                            <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
+                                        )}
+                                    </div>
                                     {/* 🆕 NEW: Forgot Password Link */}
                                     <div className="text-right">
                                         <Link 
