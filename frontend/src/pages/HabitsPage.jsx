@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import { useHabits } from '../contexts/HabitsContext';
 
 const HabitsPage = () => {
-  const navigate = useNavigate();
   const { habits, addHabit, toggleHabit, deleteHabit, globalStreak } = useHabits();
 
   const [showAddForm, setShowAddForm] = useState(false);
