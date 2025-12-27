@@ -736,7 +736,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, changePassword } from "../services/profile";
 import { logout } from "../services/auth";
-import { ChevronRight, LogOut, Save, X, Check, Camera, Moon, Sun, ChevronLeft  } from "lucide-react";
+import { ChevronRight, LogOut, X, Check, Camera, Moon, Sun, ChevronLeft  } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext"; // IMPORT AT TOP
 import { Link } from "react-router-dom";
 
