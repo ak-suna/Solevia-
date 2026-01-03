@@ -53,22 +53,25 @@ export const HabitsProvider = ({ children }) => {
     checkNewDay();
   }, [loadHabits, checkNewDay]);
 
-  const addHabit = async (name) => {
-    try {
-      const newHabit = await createHabit(name);
-      setHabits([{ ...newHabit, id: newHabit._id }, ...habits]);
-    } catch (error) {
-      console.error('Error adding habit:', error);
-      throw error;
-    }
-  };
+  const addHabit = async (name, category = 'Other') => { // ✅ ADD category parameter
+  try {
+    const newHabit = await createHabit(name, category); // ✅ PASS category
+    setHabits([{ ...newHabit, id: newHabit._id }, ...habits]);
+  } catch (error) {
+    console.error('Error adding habit:', error);
+    throw error;
+  }
+};
 
   const toggleHabit = async (id) => {
     try {
-      const updated = await toggleHabitAPI(id);
+      const response = await toggleHabitAPI(id);
+      // Response now contains { habit, updatedGoals }
+      const updatedHabit = response.habit || response; // Handle backward compatibility
       setHabits(habits.map(h => 
-        h.id === id ? { ...updated, id: updated._id } : h
+        h.id === id ? { ...updatedHabit, id: updatedHabit._id } : h
       ));
+      return response;
     } catch (error) {
       console.error('Error toggling habit:', error);
       throw error;

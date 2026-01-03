@@ -12,7 +12,7 @@ export const getHabits = async () => {
   return response.data;
 };
 
-export const createHabit = async (name, category = 'general') => {
+export const createHabit = async (name, category = 'Other') => {
   const response = await axios.post(API_URL, { name, category }, getAuthHeader());
   return response.data;
 };
@@ -33,5 +33,10 @@ export const checkNewDay = async () => {
 
 export const getHabitHistory = async (limit = 30) => {
   const response = await axios.get(`${API_URL}/history?limit=${limit}`, getAuthHeader());
+  return response.data;
+};
+
+export const getLinkedGoals = async (habitId) => {
+  const response = await axios.get(`${API_URL}/${habitId}/linked-goals`, getAuthHeader());
   return response.data;
 };

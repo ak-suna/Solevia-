@@ -38,7 +38,23 @@ const goalSchema = new mongoose.Schema({
   deadline: {
     type: Date,
     default: null
-  }
+  },
+  category: {
+    type: String,
+    enum: ['Fitness', 'Health', 'Learning', 'Career', 'Finance', 'Personal', 'Other'],
+    default: 'Other'
+  },
+  linkedHabits: [{
+    habitId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Habit',
+      required: true
+    },
+    contributionValue: {
+      type: Number,
+      default: 1
+    }
+  }]
 }, {
   timestamps: true
 });

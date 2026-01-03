@@ -36,8 +36,13 @@ const habitSchema = new mongoose.Schema({
   }],
   category: {
     type: String,
-    default: 'general'
-  }
+    enum: ['Fitness', 'Health', 'Learning', 'Career', 'Finance', 'Personal', 'Other'],
+    default: 'Other'
+  },
+  linkedGoals: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Goal'
+  }]
 }, {
   timestamps: true
 });

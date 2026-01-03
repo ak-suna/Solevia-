@@ -366,7 +366,7 @@ const Journal = () => {
   disabled={loading}
   className="
     flex flex-col items-center justify-center
-    bg-[#89beab] text-white
+    bg-[#f9d9e3] text-black
     w-24 h-24
     rounded-full shadow-lg
     hover:bg-[#f8ba90]
@@ -376,7 +376,7 @@ const Journal = () => {
   "
 >
   <Plus className="w-9 h-8 mb-1" />
-  <span className="text-sm font-semibold text-white">New Entry</span>
+  <span className="text-sm font-semibold text-black">New Entry</span>
 </motion.button>
 
 
@@ -714,7 +714,7 @@ className="bg-[#FCF8F5] rounded-2xl p-6 mb-6 overflow-hidden"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsWriting(true)}
-                    className="bg-[#89beab] text-white  p-5 rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl "
+                    className="bg-[#f9d9e3] text-white  p-5 rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl "
                   >
                     Write First Entry
                   </motion.button>

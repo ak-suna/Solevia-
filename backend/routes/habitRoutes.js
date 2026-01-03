@@ -108,20 +108,24 @@ router.get('/', authenticate, async (req, res) => { // Changed here
 });
 
 // Create new habit
+// Create new habit
 router.post('/', authenticate, async (req, res) => {
   try {
+    console.log('📝 Creating habit:', req.body); // ADD for debugging
     const { name, category } = req.body;
     
     const habit = new Habit({
       user: req.user.id,
       name,
-      category: category || 'general',
+      category: category || 'Other', // Changed 'general' to 'Other'
       completedToday: false
     });
     
     await habit.save();
+    console.log('✅ Habit created:', habit); // ADD for debugging
     res.status(201).json(habit);
   } catch (error) {
+    console.error('❌ Error creating habit:', error); // ADD for debugging
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -135,6 +139,7 @@ router.patch('/:id/toggle', authenticate, async (req, res) => {
       return res.status(404).json({ message: 'Habit not found' });
     }
     
+    const wasCompleted = habit.completedToday;
     habit.completedToday = !habit.completedToday;
     
     // FIX: Proper if-else instead of ternary
@@ -143,7 +148,47 @@ router.patch('/:id/toggle', authenticate, async (req, res) => {
     }
     
     await habit.save();
-    res.json(habit);
+    
+    // Update linked goals if habit was just completed
+    const updatedGoals = [];
+    if (habit.completedToday && !wasCompleted && habit.linkedGoals && habit.linkedGoals.length > 0) {
+      const Goal = (await import('../models/Goal.js')).default;
+      const goals = await Goal.find({ 
+        _id: { $in: habit.linkedGoals },
+        user: req.user.id 
+      });
+      
+      for (const goal of goals) {
+        // Find the contribution value for this habit
+        const habitLink = goal.linkedHabits.find(
+          link => link.habitId.toString() === habit._id.toString()
+        );
+        
+        if (habitLink) {
+          const contributionValue = habitLink.contributionValue || 1;
+          goal.current = Math.max(0, goal.current + contributionValue);
+          
+          // Auto-calculate progress
+          goal.progress = goal.target > 0 
+            ? Math.min(100, Math.max(0, Math.round((goal.current / goal.target) * 100)))
+            : 0;
+          
+          // Update status if completed
+          if (goal.progress >= 100) {
+            goal.status = 'completed';
+            goal.current = Math.min(goal.current, goal.target);
+            goal.progress = 100;
+          } else if (goal.status === 'completed' && goal.progress < 100) {
+            goal.status = 'active';
+          }
+          
+          await goal.save();
+          updatedGoals.push(goal);
+        }
+      }
+    }
+    
+    res.json({ habit, updatedGoals });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -309,6 +354,27 @@ router.get('/history', authenticate, async (req, res) => {
     res.json(habitDays);
   } catch (error) {
     console.error('Error fetching habit history:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get linked goals for a habit
+router.get('/:id/linked-goals', authenticate, async (req, res) => {
+  try {
+    const habit = await Habit.findById(req.params.id)
+      .populate('linkedGoals', 'name target current progress unit')
+      .select('linkedGoals');
+    
+    if (!habit) {
+      return res.status(404).json({ message: 'Habit not found' });
+    }
+    
+    if (habit.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+    
+    res.json(habit.linkedGoals);
+  } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
