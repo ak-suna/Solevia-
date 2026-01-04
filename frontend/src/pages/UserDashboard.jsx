@@ -1169,7 +1169,7 @@ const StreaksCard = () => (
           {/* New Entry Button */}
           <button
             onClick={() => navigate('/journal')}
-            className="absolute bottom-2 right-4 bg-[#89beab] dark:bg-teal-600 text-white p-5 rounded-full shadow-lg hover:bg-[#89beab] dark:hover:bg-teal-700 hover:shadow-xl transition-all flex items-center gap-2 group"
+            className="absolute bottom-2 right-4 bg-[#89beab] dark:bg-teal-600 text-white p-5 rounded-full shadow-lg hover:bg-[#FFA669] dark:hover:bg-teal-700 hover:shadow-xl transition-all flex items-center gap-2 group"
           >
             <Plus className="w-6 h-6" />
             <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">
