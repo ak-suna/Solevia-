@@ -29,7 +29,7 @@ const ForgotPasswordPage = () => {
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
                 <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 animate-fade-in">
                     <div className="text-6xl mb-4">📧</div>
-                    <h2 className="text-3xl font-bold text-green-600 mb-4">Check Your Email!</h2>
+                    <h2 className="text-3xl font-bold text-[#89beab] mb-4">Check Your Email!</h2>
                     <p className="text-gray-600 mb-6">
                         If an account exists with <strong>{email}</strong>, you'll receive a password reset link shortly.
                     </p>
@@ -38,7 +38,7 @@ const ForgotPasswordPage = () => {
                     </p>
                     <Link
                         to="/login"
-                        className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-300"
+                        className="w-full px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl"
                     >
                         Back to Login
                     </Link>
@@ -53,8 +53,7 @@ const ForgotPasswordPage = () => {
                 {/* Left Side - Form */}
                 <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
                     <div className="max-w-md w-full animate-fade-in-left">
-                        <div className="bg-white rounded-2xl shadow-2xl p-8 backdrop-blur-sm bg-opacity-95">
-                            <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
+<div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-lg w-full mx-4 animate-fade-in">                            <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
                                 Forgot Password?
                             </h2>
                             <p className="text-gray-600 text-center mb-6">
