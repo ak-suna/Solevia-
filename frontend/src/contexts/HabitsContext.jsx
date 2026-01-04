@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { getHabits, createHabit, toggleHabit as toggleHabitAPI, deleteHabit as deleteHabitAPI } from '../services/habitService';
+import { getTodayHabits, createHabit, toggleHabit as toggleHabitAPI, deleteHabit as deleteHabitAPI } from '../services/habitService';
 
 const HabitsContext = createContext();
 
@@ -20,12 +20,12 @@ export const HabitsProvider = ({ children }) => {
   const loadHabits = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getHabits();
+      // Use getTodayHabits to only get today's habits (one-time + recurring)
+      const data = await getTodayHabits();
       setHabits(data.map(h => ({
         ...h,
         id: h._id,
         completedToday: h.completedToday || false
-        // REMOVE: streak: h.streak || 0
       })));
     } catch (error) {
       console.error('Error loading habits:', error);
@@ -53,20 +53,30 @@ export const HabitsProvider = ({ children }) => {
     checkNewDay();
   }, [loadHabits, checkNewDay]);
 
-  const addHabit = async (name, category = 'Other') => { // ✅ ADD category parameter
-  try {
-    const newHabit = await createHabit(name, category); // ✅ PASS category
-    setHabits([{ ...newHabit, id: newHabit._id }, ...habits]);
-  } catch (error) {
-    console.error('Error adding habit:', error);
-    throw error;
-  }
-};
+  const addHabit = async (habitData) => {
+    try {
+      const newHabit = await createHabit(habitData);
+      // Only add to list if it's for today or recurring
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const habitDate = newHabit.habitDate ? new Date(newHabit.habitDate).setHours(0, 0, 0, 0) : null;
+      const todayTimestamp = today.getTime();
+      
+      if (newHabit.isRecurring || (habitDate && habitDate === todayTimestamp)) {
+        setHabits([{ ...newHabit, id: newHabit._id }, ...habits]);
+      }
+      // Reload habits to ensure we have the correct filtered list
+      await loadHabits();
+    } catch (error) {
+      console.error('Error adding habit:', error);
+      throw error;
+    }
+  };
 
   const toggleHabit = async (id) => {
     try {
       const response = await toggleHabitAPI(id);
-      // Response now contains { habit, updatedGoals }
+      // Response now contains { habit, updatedGoal, updatedGoals }
       const updatedHabit = response.habit || response; // Handle backward compatibility
       setHabits(habits.map(h => 
         h.id === id ? { ...updatedHabit, id: updatedHabit._id } : h
