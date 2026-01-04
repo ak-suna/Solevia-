@@ -237,7 +237,17 @@ router.get('/:id/linked-habits', authenticate, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
     
-    res.json(goal.linkedHabits);
+    // Also get habits that link to this goal via linkedGoalId (new one-directional linking)
+    const Habit = (await import('../models/Habit.js')).default;
+    const habitsLinkedToGoal = await Habit.find({
+      user: req.user.id,
+      linkedGoalId: req.params.id
+    }).select('name category goalContribution isRecurring');
+    
+    res.json({
+      oldLinkedHabits: goal.linkedHabits || [],
+      newLinkedHabits: habitsLinkedToGoal
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

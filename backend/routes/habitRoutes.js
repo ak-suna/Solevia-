@@ -97,8 +97,8 @@ import { authenticate } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Get all habits for logged-in user
-router.get('/', authenticate, async (req, res) => { // Changed here
+// Get all habits for logged-in user (for backward compatibility)
+router.get('/', authenticate, async (req, res) => {
   try {
     const habits = await Habit.find({ user: req.user.id }).sort({ createdAt: -1 });
     res.json(habits);
@@ -107,25 +107,128 @@ router.get('/', authenticate, async (req, res) => { // Changed here
   }
 });
 
-// Create new habit
+// Get today's habits (one-time + recurring that match today)
+router.get('/today', authenticate, async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(today);
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    const todayDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Get one-time habits for today that are not archived
+    const oneTimeHabits = await Habit.find({
+      user: req.user.id,
+      habitDate: { $gte: today, $lte: todayEnd },
+      isArchived: { $ne: true },
+      isRecurring: { $ne: true }
+    }).populate('linkedGoalId', 'name').sort({ createdAt: -1 });
+    
+    // Get recurring habits that match today
+    const recurringHabits = await Habit.find({
+      user: req.user.id,
+      isRecurring: true,
+      isArchived: { $ne: true },
+      $or: [
+        { frequency: 'daily' },
+        { 
+          frequency: 'weekly',
+          daysOfWeek: todayDayOfWeek
+        },
+        {
+          frequency: 'custom',
+          daysOfWeek: todayDayOfWeek
+        }
+      ]
+    }).populate('linkedGoalId', 'name').sort({ createdAt: -1 });
+    
+    // Combine and return
+    const allHabits = [...oneTimeHabits, ...recurringHabits];
+    res.json(allHabits);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get past/archived habits
+router.get('/past', authenticate, async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const pastHabits = await Habit.find({
+      user: req.user.id,
+      $or: [
+        { isArchived: true },
+        { 
+          habitDate: { $lt: today },
+          isRecurring: { $ne: true }
+        }
+      ]
+    }).populate('linkedGoalId', 'name').sort({ habitDate: -1, createdAt: -1 });
+    
+    res.json(pastHabits);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Create new habit
 router.post('/', authenticate, async (req, res) => {
   try {
-    console.log('📝 Creating habit:', req.body); // ADD for debugging
-    const { name, category } = req.body;
+    console.log('📝 Creating habit:', req.body);
+    const { 
+      name, 
+      category, 
+      habitDate,
+      isRecurring,
+      frequency,
+      daysOfWeek,
+      linkedGoalId,
+      goalContribution
+    } = req.body;
+    
+    // Set habitDate: if recurring, use today; otherwise use provided date or today
+    let finalHabitDate;
+    if (isRecurring) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      finalHabitDate = today;
+    } else {
+      if (habitDate) {
+        finalHabitDate = new Date(habitDate);
+        finalHabitDate.setHours(0, 0, 0, 0);
+      } else {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        finalHabitDate = today;
+      }
+    }
     
     const habit = new Habit({
       user: req.user.id,
       name,
-      category: category || 'Other', // Changed 'general' to 'Other'
-      completedToday: false
+      category: category || 'Other',
+      completedToday: false,
+      habitDate: finalHabitDate,
+      isArchived: false,
+      isRecurring: isRecurring || false,
+      frequency: isRecurring ? (frequency || 'daily') : null,
+      daysOfWeek: isRecurring && daysOfWeek ? daysOfWeek : [],
+      linkedGoalId: linkedGoalId || null,
+      goalContribution: goalContribution || 10
     });
     
     await habit.save();
-    console.log('✅ Habit created:', habit); // ADD for debugging
+    
+    // Populate linkedGoalId for response
+    await habit.populate('linkedGoalId', 'name');
+    
+    console.log('✅ Habit created:', habit);
     res.status(201).json(habit);
   } catch (error) {
-    console.error('❌ Error creating habit:', error); // ADD for debugging
+    console.error('❌ Error creating habit:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -133,7 +236,8 @@ router.post('/', authenticate, async (req, res) => {
 // Toggle habit completion
 router.patch('/:id/toggle', authenticate, async (req, res) => {
   try {
-    const habit = await Habit.findOne({ _id: req.params.id, user: req.user.id });
+    const habit = await Habit.findOne({ _id: req.params.id, user: req.user.id })
+      .populate('linkedGoalId', 'name target current progress unit');
     
     if (!habit) {
       return res.status(404).json({ message: 'Habit not found' });
@@ -142,14 +246,47 @@ router.patch('/:id/toggle', authenticate, async (req, res) => {
     const wasCompleted = habit.completedToday;
     habit.completedToday = !habit.completedToday;
     
-    // FIX: Proper if-else instead of ternary
     if (habit.completedToday) {
       habit.lastCompletedDate = new Date();
     }
     
     await habit.save();
     
-    // Update linked goals if habit was just completed
+    // Update linked goal if habit was just completed (using new linkedGoalId field)
+    let updatedGoal = null;
+    if (habit.completedToday && !wasCompleted && habit.linkedGoalId) {
+      const Goal = (await import('../models/Goal.js')).default;
+      const goal = await Goal.findById(habit.linkedGoalId);
+      
+      if (goal && goal.user.toString() === req.user.id) {
+        // Calculate contribution based on goalContribution percentage
+        // For percentage-based contribution, we update the progress directly
+        const contributionPercent = habit.goalContribution || 10;
+        
+        // Update progress by the contribution percentage
+        goal.progress = Math.min(100, Math.max(0, goal.progress + contributionPercent));
+        
+        // Update current value proportionally
+        if (goal.target > 0) {
+          const progressRatio = goal.progress / 100;
+          goal.current = Math.min(goal.target, Math.round(goal.target * progressRatio));
+        }
+        
+        // Update status if completed
+        if (goal.progress >= 100) {
+          goal.status = 'completed';
+          goal.current = goal.target;
+          goal.progress = 100;
+        } else if (goal.status === 'completed' && goal.progress < 100) {
+          goal.status = 'active';
+        }
+        
+        await goal.save();
+        updatedGoal = goal;
+      }
+    }
+    
+    // Also handle old linkedGoals array for backward compatibility
     const updatedGoals = [];
     if (habit.completedToday && !wasCompleted && habit.linkedGoals && habit.linkedGoals.length > 0) {
       const Goal = (await import('../models/Goal.js')).default;
@@ -188,14 +325,68 @@ router.patch('/:id/toggle', authenticate, async (req, res) => {
       }
     }
     
-    res.json({ habit, updatedGoals });
+    res.json({ habit, updatedGoal, updatedGoals });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Update habit
+router.put('/:id', authenticate, async (req, res) => {
+  try {
+    const habit = await Habit.findOne({ _id: req.params.id, user: req.user.id });
+    
+    if (!habit) {
+      return res.status(404).json({ message: 'Habit not found' });
+    }
+    
+    const { 
+      name, 
+      category, 
+      habitDate,
+      isRecurring,
+      frequency,
+      daysOfWeek,
+      linkedGoalId,
+      goalContribution,
+      isArchived
+    } = req.body;
+    
+    if (name !== undefined) habit.name = name;
+    if (category !== undefined) habit.category = category;
+    if (isArchived !== undefined) habit.isArchived = isArchived;
+    
+    if (isRecurring !== undefined) {
+      habit.isRecurring = isRecurring;
+      if (isRecurring) {
+        habit.frequency = frequency || 'daily';
+        habit.daysOfWeek = daysOfWeek || [];
+        // For recurring habits, habitDate is not used
+      } else {
+        habit.frequency = null;
+        habit.daysOfWeek = [];
+        if (habitDate) {
+          const date = new Date(habitDate);
+          date.setHours(0, 0, 0, 0);
+          habit.habitDate = date;
+        }
+      }
+    }
+    
+    if (linkedGoalId !== undefined) habit.linkedGoalId = linkedGoalId || null;
+    if (goalContribution !== undefined) habit.goalContribution = goalContribution || 10;
+    
+    await habit.save();
+    await habit.populate('linkedGoalId', 'name');
+    
+    res.json(habit);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
 // Delete habit
-router.delete('/:id', authenticate, async (req, res) => { // Changed here
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const habit = await Habit.findOneAndDelete({ _id: req.params.id, user: req.user.id });
     
@@ -363,7 +554,8 @@ router.get('/:id/linked-goals', authenticate, async (req, res) => {
   try {
     const habit = await Habit.findById(req.params.id)
       .populate('linkedGoals', 'name target current progress unit')
-      .select('linkedGoals');
+      .populate('linkedGoalId', 'name target current progress unit')
+      .select('linkedGoals linkedGoalId');
     
     if (!habit) {
       return res.status(404).json({ message: 'Habit not found' });
@@ -373,7 +565,11 @@ router.get('/:id/linked-goals', authenticate, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
     
-    res.json(habit.linkedGoals);
+    // Return both old linkedGoals array and new linkedGoalId
+    res.json({ 
+      linkedGoals: habit.linkedGoals || [],
+      linkedGoal: habit.linkedGoalId || null
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
