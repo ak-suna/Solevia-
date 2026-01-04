@@ -12,8 +12,23 @@ export const getHabits = async () => {
   return response.data;
 };
 
-export const createHabit = async (name, category = 'Other') => {
-  const response = await axios.post(API_URL, { name, category }, getAuthHeader());
+export const getTodayHabits = async () => {
+  const response = await axios.get(`${API_URL}/today`, getAuthHeader());
+  return response.data;
+};
+
+export const getPastHabits = async () => {
+  const response = await axios.get(`${API_URL}/past`, getAuthHeader());
+  return response.data;
+};
+
+export const createHabit = async (habitData) => {
+  const response = await axios.post(API_URL, habitData, getAuthHeader());
+  return response.data;
+};
+
+export const updateHabit = async (id, habitData) => {
+  const response = await axios.put(`${API_URL}/${id}`, habitData, getAuthHeader());
   return response.data;
 };
 
