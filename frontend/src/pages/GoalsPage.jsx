@@ -170,7 +170,7 @@ const GoalsPage = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAddForm(!showAddForm)}
-            className="flex items-center gap-2 bg-[#fab689]  text-black px-6 py-3 rounded-xl hover:bg-[#e67a35] dark:hover:bg-orange-700 transition-all"
+            className="flex items-center gap-2 bg-[#89beab]  text-black px-6 py-3 rounded-xl hover:bg-[#FFA669] dark:hover:bg-orange-700 transition-all"
           >
             <Plus className="w-5 h-5" />
             New Goal
@@ -269,7 +269,7 @@ const GoalsPage = () => {
           
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-6 h-6 text-green-600" />
+              <TrendingUp className="w-6 h-6 text-black" />
               <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Avg Progress</p>
             </div>
             <p className="text-3xl font-bold text-gray-900 dark:text-white">{avgProgress}%</p>
@@ -294,7 +294,7 @@ const GoalsPage = () => {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
                   selectedCategory === category
-                    ? 'bg-[#f4873e] text-white'
+                    ? 'bg-[#FFA669] text-white'
                     : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500'
                 }`}
               >
@@ -306,7 +306,7 @@ const GoalsPage = () => {
 
         {/* Goals List */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>
             {selectedCategory === 'All' ? 'All Goals' : `${selectedCategory} Goals`}
           </h2>
 
@@ -391,7 +391,7 @@ const GoalsPage = () => {
                     {/* Progress Bar */}
                     <div className="w-full bg-gray-200 dark:bg-gray-500 rounded-full h-3 mb-3 overflow-hidden">
                       <div 
-                        className="bg-gradient-to-r from-[#f4873e] to-pink-500 h-3 rounded-full transition-all duration-500 relative overflow-hidden"
+                        className="bg-gradient-to-r from-[#a5c7bb] to-[#46c294] h-3 rounded-full transition-all duration-500 relative overflow-hidden"
                         style={{ width: `${goal.progress}%` }}
                       >
                         {goal.progress === 100 && (
@@ -418,14 +418,14 @@ const GoalsPage = () => {
                       </button>
                       <button
                         onClick={() => updateProgress(goal.id, 1)}
-                        className="px-3 py-1 bg-[#f4873e] text-white rounded-lg hover:bg-[#e67a35] text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-[#FFA669] text-white rounded-lg hover:bg-[#fd9048] text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={(goal.current || 0) >= goal.target}
                       >
                         +1
                       </button>
                       <button
                         onClick={() => updateProgress(goal.id, 5)}
-                        className="px-3 py-1 bg-[#f4873e] text-white rounded-lg hover:bg-[#e67a35] text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-[#FFA669] text-white rounded-lg hover:bg-[#fd9048] text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={(goal.current || 0) >= goal.target}
                       >
                         +5
