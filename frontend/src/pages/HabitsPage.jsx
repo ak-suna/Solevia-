@@ -394,18 +394,28 @@
 
 // export default HabitsPage;
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, Plus, Trash2, Calendar, X } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2, Calendar, X, Repeat, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
 import { useHabits } from '../contexts/HabitsContext';
-import { getHabitHistory, getLinkedGoals } from '../services/habitService';
+import { useGoals } from '../contexts/GoalsContext';
+import { getHabitHistory, getLinkedGoals, getPastHabits } from '../services/habitService';
+import { useToast } from '../hooks/useToast';
 
 const HabitsPage = () => {
   const { habits, addHabit, toggleHabit, deleteHabit, globalStreak } = useHabits();
+  const { goals } = useGoals();
+  const { showToast, ToastContainer } = useToast();
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
   const [newHabitCategory, setNewHabitCategory] = useState('Other');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState('daily');
+  const [daysOfWeek, setDaysOfWeek] = useState([]);
+  const [linkedGoalId, setLinkedGoalId] = useState('');
+  const [goalContribution, setGoalContribution] = useState(10);
+  const [habitDate, setHabitDate] = useState(new Date().toISOString().split('T')[0]);
 
   const categoryColors = {
     Fitness: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700',
@@ -420,15 +430,63 @@ const HabitsPage = () => {
   const [habitHistory, setHabitHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [linkedGoalsMap, setLinkedGoalsMap] = useState({});
+  const [pastHabits, setPastHabits] = useState([]);
 
-  const handleAddHabit = () => {
+  const handleAddHabit = async () => {
     if (newHabitName.trim()) {
-      addHabit(newHabitName, newHabitCategory);
-      setNewHabitName('');
-      setNewHabitCategory('Other');
-      setShowAddForm(false);
+      const habitData = {
+        name: newHabitName,
+        category: newHabitCategory,
+        isRecurring,
+        frequency: isRecurring ? frequency : null,
+        daysOfWeek: isRecurring ? daysOfWeek : [],
+        linkedGoalId: linkedGoalId || null,
+        goalContribution: goalContribution || 10,
+        habitDate: isRecurring ? null : habitDate
+      };
+      
+      try {
+        await addHabit(habitData);
+        // Reset form
+        setNewHabitName('');
+        setNewHabitCategory('Other');
+        setIsRecurring(false);
+        setFrequency('daily');
+        setDaysOfWeek([]);
+        setLinkedGoalId('');
+        setGoalContribution(10);
+        setHabitDate(new Date().toISOString().split('T')[0]);
+        setShowAddForm(false);
+      } catch (error) {
+        console.error('Error adding habit:', error);
+      }
     }
   };
+
+  const handleToggleHabit = async (id) => {
+    try {
+      const response = await toggleHabit(id);
+      // Show toast if goal was updated
+      if (response.updatedGoal) {
+        const goalName = response.updatedGoal.name || 'Goal';
+        const habit = habits.find(h => h.id === id);
+        const contribution = habit?.goalContribution || 10;
+        showToast(`✓ Habit completed! '${goalName}' +${contribution}%`, 'success');
+      }
+    } catch (error) {
+      console.error('Error toggling habit:', error);
+    }
+  };
+
+  const toggleDayOfWeek = (day) => {
+    setDaysOfWeek(prev => 
+      prev.includes(day) 
+        ? prev.filter(d => d !== day)
+        : [...prev, day].sort()
+    );
+  };
+
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const completedCount = habits.filter(h => h.completedToday).length;
   const percentage = habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0;
@@ -436,8 +494,12 @@ const HabitsPage = () => {
   const loadHistory = async () => {
     try {
       setLoadingHistory(true);
-      const history = await getHabitHistory(30);
+      const [history, past] = await Promise.all([
+        getHabitHistory(30),
+        getPastHabits()
+      ]);
       setHabitHistory(history);
+      setPastHabits(past);
     } catch (error) {
       console.error('Error loading habit history:', error);
     } finally {
@@ -472,8 +534,11 @@ const HabitsPage = () => {
     }
   }, [habits]);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
+  const formatDate = (dateInput) => {
+    if (!dateInput) return '';
+    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    if (isNaN(date.getTime())) return '';
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dateOnly = new Date(date);
@@ -490,9 +555,15 @@ const HabitsPage = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  // Filter goals by category for the dropdown (but allow selecting from any)
+  const filteredGoals = newHabitCategory && newHabitCategory !== 'Other'
+    ? goals.filter(g => g.category === newHabitCategory)
+    : goals;
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
       <Sidebar />
+      <ToastContainer />
 
       <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
         
@@ -541,6 +612,8 @@ const HabitsPage = () => {
               className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 mb-6 overflow-hidden"
             >
               <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Add New Habit</h3>
+              
+              {/* Habit Name */}
               <input
                 type="text"
                 value={newHabitName}
@@ -549,6 +622,8 @@ const HabitsPage = () => {
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-3 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-[#89beab] outline-none"
                 onKeyPress={(e) => e.key === 'Enter' && handleAddHabit()}
               />
+              
+              {/* Category */}
               <select
                 value={newHabitCategory}
                 onChange={(e) => setNewHabitCategory(e.target.value)}
@@ -562,6 +637,116 @@ const HabitsPage = () => {
                 <option value="Personal">Personal</option>
                 <option value="Other">Other</option>
               </select>
+
+              {/* Date (disabled if recurring) */}
+              {!isRecurring && (
+                <input
+                  type="date"
+                  value={habitDate}
+                  onChange={(e) => setHabitDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-3 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-[#89beab] outline-none"
+                />
+              )}
+
+              {/* Recurring Checkbox */}
+              <div className="mb-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    className="w-4 h-4 text-[#89beab] rounded focus:ring-[#89beab]"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    Make this a recurring habit
+                  </span>
+                </label>
+              </div>
+
+              {/* Recurring Options */}
+              {isRecurring && (
+                <div className="mb-3 pl-6 border-l-2 border-[#89beab]">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Frequency:
+                  </label>
+                  <select
+                    value={frequency}
+                    onChange={(e) => {
+                      setFrequency(e.target.value);
+                      if (e.target.value !== 'weekly' && e.target.value !== 'custom') {
+                        setDaysOfWeek([]);
+                      }
+                    }}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mb-3 dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-[#89beab] outline-none"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="custom">Custom Days</option>
+                  </select>
+
+                  {/* Days of Week Selection */}
+                  {(frequency === 'weekly' || frequency === 'custom') && (
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Select Days:
+                      </label>
+                      <div className="flex gap-2 flex-wrap">
+                        {dayLabels.map((label, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => toggleDayOfWeek(index)}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                              daysOfWeek.includes(index)
+                                ? 'bg-[#89beab] text-white'
+                                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Link to Goal */}
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Link to Goal (Optional):
+                </label>
+                <select
+                  value={linkedGoalId}
+                  onChange={(e) => setLinkedGoalId(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-[#89beab] outline-none"
+                >
+                  <option value="">None</option>
+                  {filteredGoals.map(goal => (
+                    <option key={goal.id} value={goal.id}>
+                      {goal.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Goal Contribution */}
+              {linkedGoalId && (
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Contribution per completion (%):
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={goalContribution}
+                    onChange={(e) => setGoalContribution(parseInt(e.target.value) || 10)}
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-[#89beab] outline-none"
+                  />
+                </div>
+              )}
+
               <div className="flex gap-2">
                 <button
                   onClick={handleAddHabit}
@@ -574,6 +759,12 @@ const HabitsPage = () => {
                     setShowAddForm(false);
                     setNewHabitName('');
                     setNewHabitCategory('Other');
+                    setIsRecurring(false);
+                    setFrequency('daily');
+                    setDaysOfWeek([]);
+                    setLinkedGoalId('');
+                    setGoalContribution(10);
+                    setHabitDate(new Date().toISOString().split('T')[0]);
                   }}
                   className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-all"
                 >
@@ -596,7 +787,7 @@ const HabitsPage = () => {
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-4 mb-2">
             <div 
-              className="bg-gradient-to-r from-[#89beab] to-green-500 h-4 rounded-full transition-all duration-500"
+              className="bg-gradient-to-r from-[#89beab] to-[#7ac0a6] h-4 rounded-full transition-all duration-500"
               style={{ width: `${percentage}%` }}
             />
           </div>
@@ -614,7 +805,7 @@ const HabitsPage = () => {
 
         {/* Habits List */}
         <div className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Habit Checklist</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4" style={{ fontFamily: "Brasika" }}>Habit Checklist</h2>
 
           <div className="space-y-3">
             {habits.length === 0 ? (
@@ -635,7 +826,7 @@ const HabitsPage = () => {
                   >
                     <div className="flex items-center gap-3 flex-1">
                       <button
-                        onClick={() => toggleHabit(habit.id)}
+                        onClick={() => handleToggleHabit(habit.id)}
                         className="flex-shrink-0"
                       >
                         {habit.completedToday ? (
@@ -646,13 +837,39 @@ const HabitsPage = () => {
                       </button>
                       
                       <div className="flex-1">
-                        <p className={`font-medium ${
-                          habit.completedToday 
-                            ? 'text-gray-500 dark:text-gray-400 line-through' 
-                            : 'text-gray-900 dark:text-white'
-                        }`}>
-                          {habit.name}
-                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className={`font-medium ${
+                            habit.completedToday 
+                              ? 'text-gray-500 dark:text-gray-400 line-through' 
+                              : 'text-gray-900 dark:text-white'
+                          }`}>
+                            {habit.name}
+                          </p>
+                          
+                          {/* Recurring Icon */}
+                          {habit.isRecurring && (
+                            <span className="text-[#89beab] dark:text-teal-400" title="Recurring habit">
+                              <Repeat className="w-4 h-4" />
+                            </span>
+                          )}
+                          
+                          {/* Linked Goal Badge */}
+                          {habit.linkedGoalId && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs font-medium">
+                              <Target className="w-3 h-3" />
+                              {typeof habit.linkedGoalId === 'object' && habit.linkedGoalId.name 
+                                ? habit.linkedGoalId.name 
+                                : 'Goal'} (+{habit.goalContribution || 10}%)
+                            </span>
+                          )}
+                          
+                          {/* Date for one-time habits */}
+                          {!habit.isRecurring && habit.habitDate && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {formatDate(habit.habitDate)}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
