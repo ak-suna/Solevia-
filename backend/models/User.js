@@ -16,8 +16,13 @@ const userSchema = new Schema({
     role: { type: String, enum: ["user", "admin"], default: "user"},
     moodStreak: {current: { type: Number, default: 0 }, best: { type: Number, default: 0 }, lastEntryDate: { type: Date, default: null }
   },
-    habitStreak: {current: { type: Number, default: 0 }, best: { type: Number, default: 0 }, lastCheckDate: { type: Date, default: null }
-},
+    habitStreak: {
+        current: { type: Number, default: 0 }, 
+        best: { type: Number, default: 0 }, 
+        lastCheckDate: { type: Date, default: null },
+        consecutiveLowDays: { type: Number, default: 0 },
+        lastCompletionDate: { type: Date, default: null }
+    },
 
 // ADD THESE FIELDS (keep all existing fields)
 socketId: { 

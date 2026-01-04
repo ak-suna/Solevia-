@@ -86,9 +86,11 @@ import { authenticate } from '../middleware/authMiddleware.js'; // Changed here
 const router = express.Router();
 
 // Get all goals for logged-in user
-router.get('/', authenticate, async (req, res) => { // Changed here
+router.get('/', authenticate, async (req, res) => {
   try {
-    const goals = await Goal.find({ user: req.user.id }).sort({ createdAt: -1 });
+    const goals = await Goal.find({ user: req.user.id })
+      .populate('linkedHabits.habitId', 'name category')
+      .sort({ createdAt: -1 });
     res.json(goals);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -96,9 +98,9 @@ router.get('/', authenticate, async (req, res) => { // Changed here
 });
 
 // Create new goal
-router.post('/', authenticate, async (req, res) => { // Changed here
+router.post('/', authenticate, async (req, res) => {
   try {
-    const { name, target, unit, deadline } = req.body;
+    const { name, target, unit, deadline, category } = req.body;
     
     const goal = new Goal({
       user: req.user.id,
@@ -106,6 +108,7 @@ router.post('/', authenticate, async (req, res) => { // Changed here
       target,
       unit,
       deadline: deadline || null,
+      category: category || 'Other',
       progress: 0,
       current: 0,
       status: 'active'
@@ -119,20 +122,28 @@ router.post('/', authenticate, async (req, res) => { // Changed here
 });
 
 // Update goal progress
-router.patch('/:id/progress', authenticate, async (req, res) => { // Changed here
+router.patch('/:id/progress', authenticate, async (req, res) => {
   try {
-    const { increment } = req.body;
+    const { currentIncrement } = req.body;
     const goal = await Goal.findOne({ _id: req.params.id, user: req.user.id });
     
     if (!goal) {
       return res.status(404).json({ message: 'Goal not found' });
     }
     
-    goal.progress = Math.min(100, Math.max(0, goal.progress + increment));
+    // Update current value
+    goal.current = Math.max(0, goal.current + (currentIncrement || 0));
+    
+    // Auto-calculate progress from current and target
+    goal.progress = goal.target > 0 
+      ? Math.min(100, Math.max(0, Math.round((goal.current / goal.target) * 100)))
+      : 0;
     
     // Update status if completed
-    if (goal.progress === 100) {
+    if (goal.progress >= 100) {
       goal.status = 'completed';
+      goal.current = Math.min(goal.current, goal.target); // Cap current at target
+      goal.progress = 100; // Ensure progress is exactly 100 when completed
     } else if (goal.status === 'completed' && goal.progress < 100) {
       goal.status = 'active';
     }
@@ -145,7 +156,7 @@ router.patch('/:id/progress', authenticate, async (req, res) => { // Changed her
 });
 
 // Delete goal
-router.delete('/:id', authenticate, async (req, res) => { // Changed here
+router.delete('/:id', authenticate, async (req, res) => {
   try {
     const goal = await Goal.findOneAndDelete({ _id: req.params.id, user: req.user.id });
     
@@ -153,7 +164,90 @@ router.delete('/:id', authenticate, async (req, res) => { // Changed here
       return res.status(404).json({ message: 'Goal not found' });
     }
     
+    // Remove goal from linked habits
+    const Habit = (await import('../models/Habit.js')).default;
+    await Habit.updateMany(
+      { linkedGoals: req.params.id },
+      { $pull: { linkedGoals: req.params.id } }
+    );
+    
     res.json({ message: 'Goal deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Link habits to goal
+router.patch('/:id/link-habits', authenticate, async (req, res) => {
+  try {
+    const { habitIds, contributionValues } = req.body;
+    const goal = await Goal.findOne({ _id: req.params.id, user: req.user.id });
+    
+    if (!goal) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+    
+    const Habit = (await import('../models/Habit.js')).default;
+    
+    // Remove old links from habits
+    const oldHabitIds = goal.linkedHabits.map(link => link.habitId.toString());
+    await Habit.updateMany(
+      { _id: { $in: oldHabitIds } },
+      { $pull: { linkedGoals: req.params.id } }
+    );
+    
+    // Create new linked habits array
+    const linkedHabits = habitIds.map((habitId, index) => ({
+      habitId,
+      contributionValue: contributionValues && contributionValues[index] !== undefined 
+        ? contributionValues[index] 
+        : 1
+    }));
+    
+    goal.linkedHabits = linkedHabits;
+    await goal.save();
+    
+    // Add goal to habits' linkedGoals
+    if (habitIds && habitIds.length > 0) {
+      await Habit.updateMany(
+        { _id: { $in: habitIds }, user: req.user.id },
+        { $addToSet: { linkedGoals: req.params.id } }
+      );
+    }
+    
+    const populatedGoal = await Goal.findById(goal._id).populate('linkedHabits.habitId', 'name category');
+    res.json(populatedGoal);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get linked habits for a goal
+router.get('/:id/linked-habits', authenticate, async (req, res) => {
+  try {
+    const goal = await Goal.findById(req.params.id)
+      .populate('linkedHabits.habitId', 'name category')
+      .select('linkedHabits');
+    
+    if (!goal) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+    
+    if (goal.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+    
+    // Also get habits that link to this goal via linkedGoalId (new one-directional linking)
+    const Habit = (await import('../models/Habit.js')).default;
+    const habitsLinkedToGoal = await Habit.find({
+      user: req.user.id,
+      linkedGoalId: req.params.id
+    }).select('name category goalContribution isRecurring');
+    
+    res.json({
+      oldLinkedHabits: goal.linkedHabits || [],
+      newLinkedHabits: habitsLinkedToGoal
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

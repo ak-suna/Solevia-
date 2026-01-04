@@ -45,9 +45,9 @@ export const GoalsProvider = ({ children }) => {
     }
   };
 
-  const updateProgress = async (id, increment) => {
+  const updateProgress = async (id, currentIncrement) => {
     try {
-      const updated = await updateProgressAPI(id, increment);
+      const updated = await updateProgressAPI(id, currentIncrement);
       setGoals(goals.map(g => 
         g.id === id ? { ...updated, id: updated._id } : g
       ));

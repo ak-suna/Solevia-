@@ -1019,7 +1019,7 @@ const UserDashboard = () => {
 
   // REPLACE THIS COMPONENT:
 const StreaksCard = () => (
-  <div className="bg-[#f8ba90] rounded-[40px] p-6 h-[200px] shadow-lg flex flex-col justify-between border-2 border-[#f4873e]/20">
+  <div className="bg-[#f8ba90] rounded-[40px] p-6 h-[180px] shadow-lg flex flex-col justify-between border-2 border-[#f4873e]/20">
     {/* Main Streak - Mood */}
     <div className="mb-3">
       <h3 className="text-[#1F3B36] text-sm uppercase tracking-wide font-bold">Check-in Streak</h3>
@@ -1037,7 +1037,7 @@ const StreaksCard = () => (
     </div>
     
     {/* Stats Row */}
-    <div className="grid grid-cols-2 gap-4 mt-auto">
+    <div className="grid grid-cols-2 gap-4 mt-auto ">
       <div className="bg-white/60 rounded-xl p-3 backdrop-blur-sm border border-[#f4873e]/10">
         <p className="text-[#2d6b57] text-xs mb-1">Best Streak</p>
         <p className="text-xl font-bold text-[#8b5a2b]">{moodStreak.best}</p>
@@ -1169,7 +1169,7 @@ const StreaksCard = () => (
           {/* New Entry Button */}
           <button
             onClick={() => navigate('/journal')}
-            className="absolute bottom-2 right-4 bg-[#89beab] dark:bg-teal-600 text-white p-5 rounded-full shadow-lg hover:bg-[#89beab] dark:hover:bg-teal-700 hover:shadow-xl transition-all flex items-center gap-2 group"
+            className="absolute bottom-2 right-4 bg-[#89beab] dark:bg-teal-600 text-white p-5 rounded-full shadow-lg hover:bg-[#FFA669] dark:hover:bg-teal-700 hover:shadow-xl transition-all flex items-center gap-2 group"
           >
             <Plus className="w-6 h-6" />
             <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 whitespace-nowrap">

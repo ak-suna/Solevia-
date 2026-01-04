@@ -366,7 +366,7 @@ const Journal = () => {
   disabled={loading}
   className="
     flex flex-col items-center justify-center
-    bg-[#89beab] text-white
+    bg-[#89beab] text-black
     w-24 h-24
     rounded-full shadow-lg
     hover:bg-[#f8ba90]
@@ -375,8 +375,8 @@ const Journal = () => {
     disabled:opacity-50 disabled:cursor-not-allowed
   "
 >
-  <Plus className="w-9 h-8 mb-1" />
-  <span className="text-sm font-semibold text-white">New Entry</span>
+  <Plus className="w-12 h-11 mb-1" />
+  {/* <span className="text-sm font-semibold text-black" style={{ fontFamily: "Brasika" }}></span> */}
 </motion.button>
 
 
@@ -714,7 +714,7 @@ className="bg-[#FCF8F5] rounded-2xl p-6 mb-6 overflow-hidden"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsWriting(true)}
-                    className="bg-[#89beab] text-white  p-5 rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl "
+                    className="bg-[#89beab] text-black  p-5 rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl " style={{ fontFamily: "Brasika" }}
                   >
                     Write First Entry
                   </motion.button>

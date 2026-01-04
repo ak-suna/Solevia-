@@ -17,12 +17,26 @@ export const createGoal = async (goalData) => {
   return response.data;
 };
 
-export const updateGoalProgress = async (id, increment) => {
-  const response = await axios.patch(`${API_URL}/${id}/progress`, { increment }, getAuthHeader());
+export const updateGoalProgress = async (id, currentIncrement) => {
+  const response = await axios.patch(`${API_URL}/${id}/progress`, { currentIncrement }, getAuthHeader());
   return response.data;
 };
 
 export const deleteGoal = async (id) => {
   const response = await axios.delete(`${API_URL}/${id}`, getAuthHeader());
+  return response.data;
+};
+
+export const linkHabitsToGoal = async (goalId, habitIds, contributionValues) => {
+  const response = await axios.patch(
+    `${API_URL}/${goalId}/link-habits`,
+    { habitIds, contributionValues },
+    getAuthHeader()
+  );
+  return response.data;
+};
+
+export const getLinkedHabits = async (goalId) => {
+  const response = await axios.get(`${API_URL}/${goalId}/linked-habits`, getAuthHeader());
   return response.data;
 };

@@ -12,8 +12,23 @@ export const getHabits = async () => {
   return response.data;
 };
 
-export const createHabit = async (name, category = 'general') => {
-  const response = await axios.post(API_URL, { name, category }, getAuthHeader());
+export const getTodayHabits = async () => {
+  const response = await axios.get(`${API_URL}/today`, getAuthHeader());
+  return response.data;
+};
+
+export const getPastHabits = async () => {
+  const response = await axios.get(`${API_URL}/past`, getAuthHeader());
+  return response.data;
+};
+
+export const createHabit = async (habitData) => {
+  const response = await axios.post(API_URL, habitData, getAuthHeader());
+  return response.data;
+};
+
+export const updateHabit = async (id, habitData) => {
+  const response = await axios.put(`${API_URL}/${id}`, habitData, getAuthHeader());
   return response.data;
 };
 
@@ -28,5 +43,15 @@ export const deleteHabit = async (id) => {
 };
 export const checkNewDay = async () => {
   const response = await axios.post(`${API_URL}/check-day`, {}, getAuthHeader());
+  return response.data;
+};
+
+export const getHabitHistory = async (limit = 30) => {
+  const response = await axios.get(`${API_URL}/history?limit=${limit}`, getAuthHeader());
+  return response.data;
+};
+
+export const getLinkedGoals = async (habitId) => {
+  const response = await axios.get(`${API_URL}/${habitId}/linked-goals`, getAuthHeader());
   return response.data;
 };
