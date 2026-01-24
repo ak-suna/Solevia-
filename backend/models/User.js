@@ -24,6 +24,11 @@ const userSchema = new Schema({
         lastCompletionDate: { type: Date, default: null }
     },
 
+    disabled: {
+  type: Boolean,
+  default: false
+},
+
 // ADD THESE FIELDS (keep all existing fields)
 socketId: { 
     type: String, 
