@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, changePassword } from "../services/profile";
 import { logout } from "../services/auth";
-import { ChevronRight, LogOut, X, Check, Camera, Moon, Sun, ChevronLeft  } from "lucide-react";
-import { useTheme } from "../contexts/ThemeContext"; // IMPORT AT TOP
+import { ChevronRight, LogOut, X, Check, Camera, Moon, Sun, ChevronLeft, Save } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
 import { Link } from "react-router-dom";
 
 const SettingsPage = () => {
     const navigate = useNavigate();
-    const { theme, toggleTheme } = useTheme(); // USE HOOK NORMALLY
-    
+    const { theme, toggleTheme } = useTheme();
+
     const [activeSection, setActiveSection] = useState("account");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -39,10 +39,10 @@ const SettingsPage = () => {
     const fetchProfile = async () => {
         try {
             const data = await getProfile();
-            console.log("✅ Profile data received:", data); // Debug log
+            console.log("✅ Profile data received:", data);
             setProfile(data);
         } catch (error) {
-            console.error("❌ Profile fetch error:", error); // Debug log
+            console.error("❌ Profile fetch error:", error);
             setMessage({ type: "error", text: error.message });
         } finally {
             setLoading(false);
@@ -107,35 +107,34 @@ const SettingsPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
-                
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-400 dark:border-pink-500"></div>
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f4873e]"></div>
             </div>
         );
     }
 
     const InfoField = ({ label, value, field, editable = true }) => (
-        <div className="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 px-4 transition-colors">
-            <span className="text-gray-600 dark:text-gray-400 font-medium">{label}</span>
+        <div className="flex items-center justify-between py-4 border-b border-[#f4873e]/10 dark:border-gray-600 hover:bg-[#f8ba90]/10 dark:hover:bg-gray-700 px-4 transition-colors rounded-lg">
+            <span className="text-gray-700 dark:text-gray-300 font-medium">{label}</span>
             {editingField === field ? (
                 <div className="flex items-center gap-2">
                     <input
                         type="text"
                         value={tempValue}
                         onChange={(e) => setTempValue(e.target.value)}
-                        className="px-3 py-1 border border-pink-300 dark:border-pink-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-400"
+                        className="px-3 py-1 border-2 border-[#f4873e] dark:border-orange-500 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
                         autoFocus
                     />
                     <button
                         onClick={() => saveField(field)}
                         disabled={saving}
-                        className="p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded"
+                        className="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"
                     >
                         <Check className="w-5 h-5" />
                     </button>
                     <button
                         onClick={cancelEditing}
-                        className="p-1 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                        className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -146,9 +145,9 @@ const SettingsPage = () => {
                     {editable && (
                         <button
                             onClick={() => startEditing(field)}
-                            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                            className="p-1.5 hover:bg-[#f8ba90]/30 dark:hover:bg-gray-600 rounded-lg transition-colors"
                         >
-                            <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            <ChevronRight className="w-5 h-5 text-[#f4873e] dark:text-orange-400" />
                         </button>
                     )}
                 </div>
@@ -157,63 +156,59 @@ const SettingsPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
-            {/* Back Button */}
-        <Link
-            to="/dashboard"
-            className="flex items-center mb-6 text-gray-700 dark:text-gray-300 hover:text-pink-500 dark:hover:text-pink-400 transition font-medium"
-        >
-            <ChevronLeft className="mr-2 w-5 h-5" />
-            Back to Dashboard
-        </Link>
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-6">
+            <Link
+                to="/dashboard"
+                className="flex items-center mb-6 text-gray-700 dark:text-gray-300 hover:text-[#f4873e] dark:hover:text-orange-400 transition font-medium"
+            >
+                <ChevronLeft className="mr-2 w-5 h-5" />
+                Back to Dashboard
+            </Link>
+
             <div className="max-w-6xl mx-auto flex gap-6">
                 {/* Left Sidebar */}
-                <div className="w-72 bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg h-fit">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Settings</h2>
+                <div className="w-72 bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-6 shadow-lg h-fit border-2 border-[#f4873e]/20 dark:border-gray-700">
+                    <h2 className="text-2xl font-bold text-[#1F3B36] dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Settings</h2>
                     <div className="space-y-2">
                         <button
                             onClick={() => setActiveSection("account")}
-                            className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
-                                activeSection === "account"
-                                    ? "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border-l-4 border-pink-500"
-                                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
+                            className={`w-full text-left px-4 py-3 rounded-2xl font-medium transition-all ${activeSection === "account"
+                                ? "bg-white dark:bg-gray-700 text-[#f4873e] dark:text-orange-400 shadow-md border-l-4 border-[#f4873e]"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700"
+                                }`}
                         >
                             Account
                         </button>
                         <button
                             onClick={() => setActiveSection("appearance")}
-                            className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
-                                activeSection === "appearance"
-                                    ? "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border-l-4 border-pink-500"
-                                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
+                            className={`w-full text-left px-4 py-3 rounded-2xl font-medium transition-all ${activeSection === "appearance"
+                                ? "bg-white dark:bg-gray-700 text-[#f4873e] dark:text-orange-400 shadow-md border-l-4 border-[#f4873e]"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700"
+                                }`}
                         >
                             Appearance
                         </button>
                         <button
                             onClick={() => setActiveSection("notifications")}
-                            className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
-                                activeSection === "notifications"
-                                    ? "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border-l-4 border-pink-500"
-                                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
+                            className={`w-full text-left px-4 py-3 rounded-2xl font-medium transition-all ${activeSection === "notifications"
+                                ? "bg-white dark:bg-gray-700 text-[#f4873e] dark:text-orange-400 shadow-md border-l-4 border-[#f4873e]"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700"
+                                }`}
                         >
                             Notifications
                         </button>
                         <button
                             onClick={() => setActiveSection("security")}
-                            className={`w-full text-left px-4 py-3 rounded-xl font-medium transition-all ${
-                                activeSection === "security"
-                                    ? "bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 border-l-4 border-pink-500"
-                                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            }`}
+                            className={`w-full text-left px-4 py-3 rounded-2xl font-medium transition-all ${activeSection === "security"
+                                ? "bg-white dark:bg-gray-700 text-[#f4873e] dark:text-orange-400 shadow-md border-l-4 border-[#f4873e]"
+                                : "text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700"
+                                }`}
                         >
                             Security
                         </button>
                         <button
                             onClick={handleLogout}
-                            className="w-full text-left px-4 py-3 rounded-xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all flex items-center gap-2 mt-8"
+                            className="w-full text-left px-4 py-3 rounded-2xl font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all flex items-center gap-2 mt-8"
                         >
                             <LogOut className="w-5 h-5" />
                             Logout
@@ -222,14 +217,13 @@ const SettingsPage = () => {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-lg">
+                <div className="flex-1 bg-[#f4f2f0] dark:bg-gray-800 rounded-[40px] p-8 shadow-lg border-2 border-gray-200 dark:border-gray-700">
                     {/* Message Display */}
                     {message.text && (
-                        <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-                            message.type === "success"
-                                ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
-                                : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
-                        }`}>
+                        <div className={`mb-6 p-4 rounded-2xl flex items-center gap-3 ${message.type === "success"
+                            ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-2 border-green-200 dark:border-green-800"
+                            : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-2 border-red-200 dark:border-red-800"
+                            }`}>
                             {message.type === "success" ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
                             <span>{message.text}</span>
                         </div>
@@ -238,21 +232,21 @@ const SettingsPage = () => {
                     {/* Account Section */}
                     {activeSection === "account" && (
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Account Settings</h2>
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Account Settings</h2>
 
                             {/* Profile Picture */}
-                            <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-[#f4873e]/20 dark:border-gray-600">
                                 <div className="relative">
-                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-400 to-purple-400 flex items-center justify-center text-white text-2xl font-bold">
+                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                                         {profile.firstName?.charAt(0) || "U"}{profile.lastName?.charAt(0) || ""}
                                     </div>
-                                    <button className="absolute bottom-0 right-0 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-lg border-2 border-pink-200 dark:border-pink-600 hover:border-pink-400 transition-colors">
-                                        <Camera className="w-4 h-4 text-pink-500 dark:text-pink-400" />
+                                    <button className="absolute bottom-0 right-0 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-lg border-2 border-[#f4873e] dark:border-orange-500 hover:border-[#ff9e5e] transition-colors">
+                                        <Camera className="w-4 h-4 text-[#f4873e] dark:text-orange-400" />
                                     </button>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Profile Picture</p>
-                                    <button className="text-sm text-pink-500 dark:text-pink-400 hover:text-pink-600 dark:hover:text-pink-300 font-medium">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Profile Picture</p>
+                                    <button className="text-sm text-[#f4873e] dark:text-orange-400 hover:text-[#ff9e5e] dark:hover:text-orange-300 font-medium">
                                         Upload new picture
                                     </button>
                                 </div>
@@ -260,31 +254,31 @@ const SettingsPage = () => {
 
                             {/* Basic Info */}
                             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Basic Info</h3>
-                            <div className="space-y-1 mb-8">
-                                <InfoField 
-                                    label="First Name" 
-                                    value={profile.firstName} 
+                            <div className="space-y-2 mb-8">
+                                <InfoField
+                                    label="First Name"
+                                    value={profile.firstName}
                                     field="firstName"
                                 />
-                                <InfoField 
-                                    label="Last Name" 
-                                    value={profile.lastName} 
+                                <InfoField
+                                    label="Last Name"
+                                    value={profile.lastName}
                                     field="lastName"
                                 />
-                                <InfoField 
-                                    label="Email" 
-                                    value={profile.email} 
+                                <InfoField
+                                    label="Email"
+                                    value={profile.email}
                                     field="email"
                                     editable={false}
                                 />
-                                <InfoField 
-                                    label="Phone" 
-                                    value={profile.phone} 
+                                <InfoField
+                                    label="Phone"
+                                    value={profile.phone}
                                     field="phone"
                                 />
-                                <InfoField 
-                                    label="Address" 
-                                    value={profile.address} 
+                                <InfoField
+                                    label="Address"
+                                    value={profile.address}
                                     field="address"
                                 />
                             </div>
@@ -294,29 +288,27 @@ const SettingsPage = () => {
                     {/* Appearance Section */}
                     {activeSection === "appearance" && (
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Appearance</h2>
-                            
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Appearance</h2>
+
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                                <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600">
                                     <div>
                                         <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Dark Mode</h3>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
                                             Currently: {theme === 'dark' ? 'Dark' : 'Light'}
                                         </p>
                                     </div>
-                                    
-                                    {/* Toggle Button */}
+
                                     <button
                                         onClick={toggleTheme}
-                                        className="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-300 dark:bg-pink-600 transition-colors"
+                                        className="relative inline-flex h-8 w-14 items-center rounded-full bg-gray-300 dark:bg-[#f4873e] transition-colors"
                                     >
                                         <span
-                                            className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform flex items-center justify-center ${
-                                                theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
-                                            }`}
+                                            className={`h-6 w-6 transform rounded-full bg-white transition-transform flex items-center justify-center ${theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
+                                                }`}
                                         >
                                             {theme === 'dark' ? (
-                                                <Moon className="w-4 h-4 text-pink-600" />
+                                                <Moon className="w-4 h-4 text-[#f4873e]" />
                                             ) : (
                                                 <Sun className="w-4 h-4 text-gray-600" />
                                             )}
@@ -328,16 +320,16 @@ const SettingsPage = () => {
                     )}
 
                     {/* Notifications Section */}
-{activeSection === "notifications" && (
-    <NotificationSettingsContent />
-)}
+                    {activeSection === "notifications" && (
+                        <NotificationSettingsContent />
+                    )}
 
                     {/* Security Section */}
                     {activeSection === "security" && (
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Security</h2>
-                            
-                            {/* Change Password Form */}
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Security</h2>
+
+
                             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Change Password</h3>
                             <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
                                 <div>
@@ -347,9 +339,9 @@ const SettingsPage = () => {
                                     <input
                                         type="password"
                                         value={passwordData.currentPassword}
-                                        onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                                         required
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                        className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
                                     />
                                 </div>
                                 <div>
@@ -359,10 +351,10 @@ const SettingsPage = () => {
                                     <input
                                         type="password"
                                         value={passwordData.newPassword}
-                                        onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                         required
                                         minLength={6}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                        className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
                                     />
                                 </div>
                                 <div>
@@ -372,16 +364,16 @@ const SettingsPage = () => {
                                     <input
                                         type="password"
                                         value={passwordData.confirmPassword}
-                                        onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                                         required
                                         minLength={6}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+                                        className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
                                     />
                                 </div>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="px-6 py-2 bg-pink-500 dark:bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-600 dark:hover:bg-pink-700 transition-all disabled:opacity-50"
+                                    className="px-6 py-2 bg-[#89beab] dark:bg-teal-600 text-white rounded-xl font-medium hover:bg-[#FFA669] dark:hover:bg-teal-700 transition-all disabled:opacity-50 shadow-md"
                                 >
                                     {saving ? "Updating..." : "Change Password"}
                                 </button>
@@ -393,9 +385,10 @@ const SettingsPage = () => {
         </div>
     );
 };
+
 function NotificationSettingsContent() {
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
-    
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
     const [preferences, setPreferences] = useState({
         habits: { inApp: true, email: true },
         moods: { inApp: true, email: false },
@@ -503,29 +496,28 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000"
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-400"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f4873e]"></div>
             </div>
         );
     }
 
     return (
         <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Notification Preferences</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Notification Preferences</h2>
 
             {message && (
-                <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-                    message.type === "success"
-                        ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800"
-                        : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800"
-                }`}>
+                <div className={`mb-6 p-4 rounded-2xl flex items-center gap-3 ${message.type === "success"
+                    ? "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-2 border-green-200 dark:border-green-800"
+                    : "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-2 border-red-200 dark:border-red-800"
+                    }`}>
                     {message.type === "success" ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
                     <span>{message.text}</span>
                 </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 {categories.map((category) => (
-                    <div key={category.key} className="p-6 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                    <div key={category.key} className="p-6 bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600">
                         <div className="mb-4">
                             <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{category.title}</h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400">{category.description}</p>
@@ -537,11 +529,9 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000"
                                     type="checkbox"
                                     checked={preferences[category.key]?.inApp ?? true}
                                     onChange={() => handleToggle(category.key, "inApp")}
-                                    className="w-5 h-5 text-pink-600 rounded focus:ring-pink-500"
+                                    className="w-5 h-5 text-[#f4873e] rounded focus:ring-[#f4873e]"
                                 />
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">In-App</span>
-                                </div>
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">In-App</span>
                             </label>
 
                             <label className="flex items-center gap-3 cursor-pointer">
@@ -549,11 +539,9 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000"
                                     type="checkbox"
                                     checked={preferences[category.key]?.email ?? false}
                                     onChange={() => handleToggle(category.key, "email")}
-                                    className="w-5 h-5 text-pink-600 rounded focus:ring-pink-500"
+                                    className="w-5 h-5 text-[#f4873e] rounded focus:ring-[#f4873e]"
                                 />
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</span>
-                                </div>
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</span>
                             </label>
                         </div>
                     </div>
@@ -563,15 +551,15 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000"
             <button
                 onClick={handleSave}
                 disabled={saving}
-                className="mt-6 flex items-center gap-2 bg-pink-500 dark:bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-600 dark:hover:bg-pink-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-6 flex items-center gap-2 bg-[#89beab] dark:bg-teal-600 text-white px-6 py-3 rounded-xl hover:bg-[#FFA669] dark:hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
             >
                 <Save size={18} />
                 {saving ? "Saving..." : "Save Preferences"}
             </button>
 
-            <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">💡 How it works</h4>
-                <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <div className="mt-6 bg-[#89beab]/10 dark:bg-teal-900/20 border-2 border-[#89beab]/30 dark:border-teal-800 rounded-2xl p-4">
+                <h4 className="font-semibold text-[#1F3B36] dark:text-teal-300 mb-2">💡 How it works</h4>
+                <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
                     <li>• <strong>In-App:</strong> Real-time notifications in your dashboard</li>
                     <li>• <strong>Email:</strong> Notifications sent when you're offline</li>
                     <li>• <strong>High Priority:</strong> Habit reminders always send emails</li>
@@ -580,4 +568,5 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000"
         </div>
     );
 }
+
 export default SettingsPage;
