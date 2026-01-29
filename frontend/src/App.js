@@ -36,7 +36,7 @@
 //             <HabitsProvider>
 //                 <GoalsProvider>
 //             <div className="App">
-                
+
 //                 <Routes>
 //                     {/* PUBLIC ROUTES - NO DARK MODE */}
 //                     <Route path="/" element={<Welcome />} />
@@ -132,6 +132,8 @@ import GoalsPage from "./pages/GoalsPage";
 import { HabitsProvider } from './contexts/HabitsContext';
 import { GoalsProvider } from './contexts/GoalsContext';
 import { NotificationProvider } from './contexts/NotificationContext'; // ← ADD THIS
+import CommunityPage from "./pages/CommunityPage";
+import GroupDetailsPage from "./pages/GroupDetailsPage";
 
 function App() {
     const ProtectedRoute = ({ children }) => {
@@ -215,26 +217,47 @@ function App() {
                                     }
                                 />
 
-                                <Route 
-                                    path="/tasks" 
+                                <Route
+                                    path="/tasks"
                                     element={
                                         <ProtectedRoute>
                                             <ThemedLayout>
                                                 <HabitsPage />
                                             </ThemedLayout>
                                         </ProtectedRoute>
-                                    } 
+                                    }
                                 />
 
-                                <Route 
-                                    path="/goals" 
+                                <Route
+                                    path="/goals"
                                     element={
                                         <ProtectedRoute>
                                             <ThemedLayout>
                                                 <GoalsPage />
                                             </ThemedLayout>
                                         </ProtectedRoute>
-                                    } 
+                                    }
+                                />
+                                <Route
+                                    path="/community"
+                                    element={
+                                        <ProtectedRoute>
+                                            <ThemedLayout>
+                                                <CommunityPage />
+                                            </ThemedLayout>
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                <Route
+                                    path="/community/group/:groupId"
+                                    element={
+                                        <ProtectedRoute>
+                                            <ThemedLayout>
+                                                <GroupDetailsPage />
+                                            </ThemedLayout>
+                                        </ProtectedRoute>
+                                    }
                                 />
                             </Routes>
                         </div>
