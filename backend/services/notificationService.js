@@ -1,3 +1,4 @@
+// backend/services/notificationService.js
 import Notification from "../models/Notification.js";
 import { User } from "../models/User.js";
 import { getNotificationConfig, calculateExpiryDate } from "../utils/notificationTypes.js";
@@ -17,6 +18,15 @@ class NotificationService {
       const user = await User.findById(userId);
       if (!user) {
         throw new Error("User not found");
+      }
+
+      // ✅ TIME-BASED CHECK FOR MOOD REMINDERS
+      if (type === "MOOD_REMINDER_MORNING" || type === "MOOD_REMINDER_EVENING") {
+        const shouldSend = this.shouldSendMoodReminder(type);
+        if (!shouldSend) {
+          console.log(`⏰ Skipping ${type} - outside time window`);
+          return null; // Don't create notification if outside time window
+        }
       }
 
       const config = getNotificationConfig(type);
@@ -45,6 +55,22 @@ class NotificationService {
       console.error("❌ Error creating notification:", error);
       throw error;
     }
+  }
+
+  // ✅ NEW METHOD: Check if mood reminder should be sent based on time
+  shouldSendMoodReminder(type) {
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    if (type === "MOOD_REMINDER_MORNING") {
+      // Morning: 6 AM to 12 PM (6-11)
+      return currentHour >= 6 && currentHour < 12;
+    } else if (type === "MOOD_REMINDER_EVENING") {
+      // Evening: 5 PM to 11 PM (17-22)
+      return currentHour >= 17 && currentHour < 23;
+    }
+
+    return true; // For other types, always send
   }
 
   determineChannels(type, user, config) {
@@ -159,7 +185,11 @@ class NotificationService {
           userId,
           ...notificationData
         });
-        notifications.push(notification);
+        
+        // ✅ Only add if notification was created (not null)
+        if (notification) {
+          notifications.push(notification);
+        }
       } catch (error) {
         console.error(`❌ Failed to create notification for user ${userId}:`, error);
       }
@@ -168,5 +198,6 @@ class NotificationService {
     return notifications;
   }
 }
+
 
 export default new NotificationService();
