@@ -350,12 +350,13 @@ const Journal = () => {
             {/* <button 
               onClick={() => navigate('/dashboard')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-6 h-6 text-gray-600" />
+            > */}
+              {/* <ArrowLeft className="w-6 h-6 text-gray-600" />
             </button> */}
-            <BookOpen className="w-8 h-8 text-[#244856]" />
+            {/* <BookOpen className="w-8 h-8 text-[#244856]" /> */}
             <div>
-<h1 className="text-3xl font-bold text-gray-800" style={{ fontFamily: "Brasika" }}>My Journal</h1>              
+<h1 className="text-3xl font-bold text-gray-800" style={{ fontFamily: "Brasika" }}>My Journal</h1>
+              {/* <p className="text-gray-600">Your safe space for thoughts and reflections</p> */}
             </div>
           </div>
           {!isWriting && (
