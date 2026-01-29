@@ -1,0 +1,411 @@
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
+
+// Helper to get auth headers
+const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+    };
+};
+
+// ==================== POSTS ====================
+
+export const getPosts = async (page = 1, limit = 10, category = null, type = null) => {
+    try {
+        let url = `${API_BASE_URL}/posts?page=${page}&limit=${limit}`;
+        if (category && category !== "all") url += `&category=${category}`;
+        if (type && type !== "all") url += `&type=${type}`;
+
+        const response = await fetch(url, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch posts");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching posts:", error);
+        throw error;
+    }
+};
+
+export const getPostById = async (postId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch post");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching post:", error);
+        throw error;
+    }
+};
+
+export const getUserPosts = async (page = 1, limit = 10) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/posts/user?page=${page}&limit=${limit}`,
+            { headers: getAuthHeaders() }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch user posts");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching user posts:", error);
+        throw error;
+    }
+};
+
+export const createPost = async (postData) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(postData)
+        });
+
+        if (!response.ok) throw new Error("Failed to create post");
+        return await response.json();
+    } catch (error) {
+        console.error("Error creating post:", error);
+        throw error;
+    }
+};
+
+export const updatePost = async (postId, postData) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+            method: "PUT",
+            headers: getAuthHeaders(),
+            body: JSON.stringify(postData)
+        });
+
+        if (!response.ok) throw new Error("Failed to update post");
+        return await response.json();
+    } catch (error) {
+        console.error("Error updating post:", error);
+        throw error;
+    }
+};
+
+export const deletePost = async (postId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to delete post");
+        return await response.json();
+    } catch (error) {
+        console.error("Error deleting post:", error);
+        throw error;
+    }
+};
+
+export const addReaction = async (postId, emoji) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/${postId}/react`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ emoji })
+        });
+
+        if (!response.ok) throw new Error("Failed to add reaction");
+        return await response.json();
+    } catch (error) {
+        console.error("Error adding reaction:", error);
+        throw error;
+    }
+};
+
+export const addComment = async (postId, content) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/${postId}/comment`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ content })
+        });
+
+        if (!response.ok) throw new Error("Failed to add comment");
+        return await response.json();
+    } catch (error) {
+        console.error("Error adding comment:", error);
+        throw error;
+    }
+};
+
+export const deleteComment = async (postId, commentId) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/posts/${postId}/comment/${commentId}`,
+            {
+                method: "DELETE",
+                headers: getAuthHeaders()
+            }
+        );
+
+        if (!response.ok) throw new Error("Failed to delete comment");
+        return await response.json();
+    } catch (error) {
+        console.error("Error deleting comment:", error);
+        throw error;
+    }
+};
+
+export const reportPost = async (postId, reason, description) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/posts/${postId}/report`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ reason, description })
+        });
+
+        if (!response.ok) throw new Error("Failed to report post");
+        return await response.json();
+    } catch (error) {
+        console.error("Error reporting post:", error);
+        throw error;
+    }
+};
+
+// ==================== GROUPS ====================
+
+export const getAllGroups = async (category = null, page = 1, limit = 20) => {
+    try {
+        let url = `${API_BASE_URL}/groups?page=${page}&limit=${limit}`;
+        if (category && category !== "all") url += `&category=${category}`;
+
+        const response = await fetch(url, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch groups");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching groups:", error);
+        throw error;
+    }
+};
+
+export const getGroupById = async (groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch group");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching group:", error);
+        throw error;
+    }
+};
+
+export const getUserGroups = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/user`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch user groups");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching user groups:", error);
+        throw error;
+    }
+};
+
+export const joinGroup = async (groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/join`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to join group");
+        return await response.json();
+    } catch (error) {
+        console.error("Error joining group:", error);
+        throw error;
+    }
+};
+
+export const leaveGroup = async (groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/leave`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to leave group");
+        return await response.json();
+    } catch (error) {
+        console.error("Error leaving group:", error);
+        throw error;
+    }
+};
+
+export const getGroupPosts = async (groupId, page = 1, limit = 10) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/groups/${groupId}/posts?page=${page}&limit=${limit}`,
+            { headers: getAuthHeaders() }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch group posts");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching group posts:", error);
+        throw error;
+    }
+};
+
+export const completeWeeklyTask = async (groupId) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/groups/${groupId}/complete-task`,
+            {
+                method: "POST",
+                headers: getAuthHeaders()
+            }
+        );
+
+        if (!response.ok) throw new Error("Failed to complete task");
+        return await response.json();
+    } catch (error) {
+        console.error("Error completing task:", error);
+        throw error;
+    }
+};
+
+// ==================== CHALLENGES ====================
+
+export const getAllChallenges = async (category = null, status = "active", page = 1, limit = 10) => {
+    try {
+        let url = `${API_BASE_URL}/challenges?page=${page}&limit=${limit}&status=${status}`;
+        if (category && category !== "all") url += `&category=${category}`;
+
+        const response = await fetch(url, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch challenges");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching challenges:", error);
+        throw error;
+    }
+};
+
+export const getChallengeById = async (challengeId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/challenges/${challengeId}`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch challenge");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching challenge:", error);
+        throw error;
+    }
+};
+
+export const getUserChallenges = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/challenges/user`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch user challenges");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching user challenges:", error);
+        throw error;
+    }
+};
+
+export const joinChallenge = async (challengeId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/challenges/${challengeId}/join`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to join challenge");
+        return await response.json();
+    } catch (error) {
+        console.error("Error joining challenge:", error);
+        throw error;
+    }
+};
+
+export const leaveChallenge = async (challengeId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/challenges/${challengeId}/leave`, {
+            method: "POST",
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to leave challenge");
+        return await response.json();
+    } catch (error) {
+        console.error("Error leaving challenge:", error);
+        throw error;
+    }
+};
+
+export const updateChallengeProgress = async (challengeId, completed) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/challenges/${challengeId}/progress`,
+            {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ completed })
+            }
+        );
+
+        if (!response.ok) throw new Error("Failed to update progress");
+        return await response.json();
+    } catch (error) {
+        console.error("Error updating progress:", error);
+        throw error;
+    }
+};
+
+export const getChallengeLeaderboard = async (challengeId) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/challenges/${challengeId}/leaderboard`,
+            { headers: getAuthHeaders() }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch leaderboard");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+        throw error;
+    }
+};
+
+// ==================== REPORTS ====================
+
+export const createReport = async (targetId, reportType, reason, description) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/reports`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ targetId, reportType, reason, description })
+        });
+
+        if (!response.ok) throw new Error("Failed to create report");
+        return await response.json();
+    } catch (error) {
+        console.error("Error creating report:", error);
+        throw error;
+    }
+};
