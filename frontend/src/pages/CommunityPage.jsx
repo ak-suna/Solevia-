@@ -107,8 +107,8 @@ const CommunityPage = () => {
                         <button
                             onClick={() => setActiveTab("feed")}
                             className={`pb-3 px-4 flex items-center gap-2 font-semibold transition-all ${activeTab === "feed"
-                                    ? "border-b-2 border-[#f4873e] text-[#f4873e] dark:text-orange-400"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-[#f4873e]"
+                                ? "border-b-2 border-[#f4873e] text-[#f4873e] dark:text-orange-400"
+                                : "text-gray-600 dark:text-gray-400 hover:text-[#f4873e]"
                                 }`}
                         >
                             <MessageSquare className="w-5 h-5" />
@@ -118,8 +118,8 @@ const CommunityPage = () => {
                         <button
                             onClick={() => setActiveTab("groups")}
                             className={`pb-3 px-4 flex items-center gap-2 font-semibold transition-all ${activeTab === "groups"
-                                    ? "border-b-2 border-[#89beab] text-[#89beab] dark:text-teal-400"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-[#89beab]"
+                                ? "border-b-2 border-[#89beab] text-[#89beab] dark:text-teal-400"
+                                : "text-gray-600 dark:text-gray-400 hover:text-[#89beab]"
                                 }`}
                         >
                             <Users className="w-5 h-5" />
@@ -129,8 +129,8 @@ const CommunityPage = () => {
                         <button
                             onClick={() => setActiveTab("challenges")}
                             className={`pb-3 px-4 flex items-center gap-2 font-semibold transition-all ${activeTab === "challenges"
-                                    ? "border-b-2 border-[#f8ba90] text-[#f8ba90]"
-                                    : "text-gray-600 dark:text-gray-400 hover:text-[#f8ba90]"
+                                ? "border-b-2 border-[#f8ba90] text-[#f8ba90]"
+                                : "text-gray-600 dark:text-gray-400 hover:text-[#f8ba90]"
                                 }`}
                         >
                             <Trophy className="w-5 h-5" />
@@ -146,8 +146,8 @@ const CommunityPage = () => {
                                     key={cat.value}
                                     onClick={() => setPostCategory(cat.value)}
                                     className={`px-4 py-2 rounded-full flex items-center gap-2 whitespace-nowrap transition-all ${postCategory === cat.value
-                                            ? "bg-[#f4873e] text-white shadow-md"
-                                            : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                                        ? "bg-[#f4873e] text-white shadow-md"
+                                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                                         }`}
                                 >
                                     <span>{cat.icon}</span>
@@ -199,7 +199,7 @@ const CommunityPage = () => {
                                                 </p>
                                                 <button
                                                     onClick={() => navigate('/community/groups/browse')}
-                                                    className="bg-[#89beab] text-white px-6 py-2 rounded-full hover:bg-[#FFA669] transition-all"
+                                                    className="px-6 py-3 bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white rounded-full font-bold hover:shadow-lg"
                                                 >
                                                     Browse Groups
                                                 </button>
@@ -229,7 +229,7 @@ const CommunityPage = () => {
                                                 </p>
                                                 <button
                                                     onClick={() => navigate('/community/challenges/browse')}
-                                                    className="bg-[#f8ba90] text-white px-6 py-2 rounded-full hover:bg-[#f4873e] transition-all"
+                                                    className="px-6 py-3 bg-gradient-to-r from-[#f4873e] to-[#ff9e5e] text-white rounded-full font-bold hover:shadow-lg"
                                                 >
                                                     Browse Challenges
                                                 </button>
