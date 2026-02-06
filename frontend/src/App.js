@@ -131,9 +131,13 @@ import HabitsPage from "./pages/HabitsPage";
 import GoalsPage from "./pages/GoalsPage";
 import { HabitsProvider } from './contexts/HabitsContext';
 import { GoalsProvider } from './contexts/GoalsContext';
-import { NotificationProvider } from './contexts/NotificationContext'; // ← ADD THIS
+import { NotificationProvider } from './contexts/NotificationContext';
 import CommunityPage from "./pages/CommunityPage";
+import BrowseChallengesPage from "./pages/BrowseChallengesPage";
+import BrowseGroupsPage from "./pages/BrowseGroupsPage";
 import GroupDetailsPage from "./pages/GroupDetailsPage";
+import MemoryCapsule from './pages/MemoryCapsule';
+
 
 function App() {
     const ProtectedRoute = ({ children }) => {
@@ -239,12 +243,40 @@ function App() {
                                     }
                                 />
                                 <Route
+                                    path="/capsules"
+                                    element={
+                                        <ProtectedRoute>
+                                            <ThemedLayout>
+                                                <MemoryCapsule />
+                                            </ThemedLayout>
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
                                     path="/community"
                                     element={
                                         <ProtectedRoute>
                                             <ThemedLayout>
                                                 <CommunityPage />
                                             </ThemedLayout>
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                <Route
+                                    path="/community/challenges/browse"
+                                    element={
+                                        <ProtectedRoute>
+                                            <BrowseChallengesPage />
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                <Route
+                                    path="/community/groups/browse"
+                                    element={
+                                        <ProtectedRoute>
+                                            <BrowseGroupsPage />
                                         </ProtectedRoute>
                                     }
                                 />

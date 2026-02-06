@@ -73,6 +73,7 @@ import postRoutes from "./routes/postRoutes.js";
 import groupRoutes from "./routes/groupRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import capsuleRoutes from './routes/capsuleRoutes.js';
 
 dotenv.config();
 
@@ -97,6 +98,7 @@ app.use("/api/journal", journalRoutes);
 app.use("/api/profile", profileRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/goals', goalRoutes);
+app.use('/api/capsules', capsuleRoutes);
 
 // ============ NEW NOTIFICATION ROUTE ============
 app.use("/api/notifications", notificationRoutes);
@@ -106,6 +108,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/reports", reportRoutes);
+
 
 // Test route
 app.get("/", (req, res) => {
