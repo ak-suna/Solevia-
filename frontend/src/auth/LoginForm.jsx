@@ -112,7 +112,7 @@
 //                                         {error}
 //                                     </p>
 //                                 )}
-                                
+
 //                                 {warning && (
 //                                     <p className="text-orange-600 text-sm text-center bg-orange-50 py-2 px-4 rounded-lg animate-shake">
 //                                         {warning}
@@ -262,6 +262,7 @@ import React, { useState } from "react";
 import { login, isVerified } from "../services/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { loginSchema } from "../utils/validationSchemas";
+import { initializeEncryption } from '../utils/encryption';
 
 const LoginForm = () => {
     const navigate = useNavigate();
@@ -308,6 +309,8 @@ const LoginForm = () => {
         try {
             const response = await login(formData);
             console.log("Login successful:", response);
+
+            initializeEncryption(formData.password);
 
             if (!isVerified()) {
                 setWarning("⚠️ Please verify your email. Check your inbox for the verification link.");
@@ -365,9 +368,8 @@ const LoginForm = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         required
-                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
-                                            fieldErrors.email ? "border-red-500" : "border-gray-300"
-                                        }`}
+                                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${fieldErrors.email ? "border-red-500" : "border-gray-300"
+                                            }`}
                                     />
                                     {fieldErrors.email && (
                                         <p className="text-red-500 text-xs mt-1">{fieldErrors.email}</p>
@@ -383,9 +385,8 @@ const LoginForm = () => {
                                             value={formData.password}
                                             onChange={handleChange}
                                             required
-                                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${
-                                                fieldErrors.password ? "border-red-500" : "border-gray-300"
-                                            }`}
+                                            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300 ${fieldErrors.password ? "border-red-500" : "border-gray-300"
+                                                }`}
                                         />
                                         {fieldErrors.password && (
                                             <p className="text-red-500 text-xs mt-1">{fieldErrors.password}</p>
@@ -393,8 +394,8 @@ const LoginForm = () => {
                                     </div>
                                     {/* 🆕 NEW: Forgot Password Link */}
                                     <div className="text-right">
-                                        <Link 
-                                            to="/forgot-password" 
+                                        <Link
+                                            to="/forgot-password"
                                             className="text-sm text-[#759a68] hover:text-[#6ca859] font-semibold transition-colors duration-300 hover:underline"
                                         >
                                             Forgot Password?
@@ -407,7 +408,7 @@ const LoginForm = () => {
                                         {error}
                                     </p>
                                 )}
-                                
+
                                 {warning && (
                                     <p className="text-orange-600 text-sm text-center bg-orange-50 py-2 px-4 rounded-lg animate-shake">
                                         {warning}
@@ -445,9 +446,9 @@ const LoginForm = () => {
 
                 {/* Right Side - Image */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-                    <img 
+                    <img
                         src='okay.png'
-                        alt="Login" 
+                        alt="Login"
                         className="w-full h-full object-cover animate-fade-in"
                     />
                 </div>
