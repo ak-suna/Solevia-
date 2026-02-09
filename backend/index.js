@@ -54,6 +54,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http"; // ← ADD THIS
 import connectDB from "./config/db.js";
+import moderatorRoutes from "./routes/moderatorRoutes.js";
 
 // Existing routes
 import userRoutes from "./routes/auth.js";
@@ -109,6 +110,7 @@ app.use("/api/groups", groupRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/reports", reportRoutes);
 
+app.use("/api/moderators", moderatorRoutes);
 
 // Test route
 app.get("/", (req, res) => {
