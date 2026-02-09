@@ -409,3 +409,143 @@ export const createReport = async (targetId, reportType, reason, description) =>
         throw error;
     }
 };
+
+// ADD THESE FUNCTIONS TO YOUR EXISTING communityService.js:
+
+// ==================== JOIN REQUESTS ====================
+
+export const requestToJoinGroup = async (groupId, message = "") => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/request`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ message })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to submit join request");
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error requesting to join:", error);
+        throw error;
+    }
+};
+
+export const getGroupJoinRequests = async (groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/requests`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch join requests");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching requests:", error);
+        throw error;
+    }
+};
+
+export const approveJoinRequest = async (groupId, requestId) => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/groups/${groupId}/requests/${requestId}/approve`,
+            {
+                method: "PUT",
+                headers: getAuthHeaders()
+            }
+        );
+
+        if (!response.ok) throw new Error("Failed to approve request");
+        return await response.json();
+    } catch (error) {
+        console.error("Error approving request:", error);
+        throw error;
+    }
+};
+
+export const rejectJoinRequest = async (groupId, requestId, reason = "") => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/groups/${groupId}/requests/${requestId}/reject`,
+            {
+                method: "PUT",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ reason })
+            }
+        );
+
+        if (!response.ok) throw new Error("Failed to reject request");
+        return await response.json();
+    } catch (error) {
+        console.error("Error rejecting request:", error);
+        throw error;
+    }
+};
+
+// ==================== MODERATOR MANAGEMENT ====================
+
+export const getModeratorCandidates = async (groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/moderators/candidates/${groupId}`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch candidates");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching candidates:", error);
+        throw error;
+    }
+};
+
+export const promoteToModerator = async (userId, groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/moderators/promote`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ userId, groupId })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Failed to promote moderator");
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error("Error promoting moderator:", error);
+        throw error;
+    }
+};
+
+export const removeModerator = async (groupId, userId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/moderators/${groupId}/${userId}`, {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to remove moderator");
+        return await response.json();
+    } catch (error) {
+        console.error("Error removing moderator:", error);
+        throw error;
+    }
+};
+
+export const getGroupMembers = async (groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/members`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch members");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching members:", error);
+        throw error;
+    }
+};

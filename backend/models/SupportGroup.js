@@ -18,8 +18,10 @@ const supportGroupSchema = new Schema({
     },
     icon: {
         type: String,
-        default: "📝" // emoji icon for the group
+        default: "📝"
     },
+
+    // ✅ EXISTING: Members array
     members: [{
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         joinedAt: { type: Date, default: Date.now },
@@ -29,24 +31,69 @@ const supportGroupSchema = new Schema({
             default: "member"
         }
     }],
+
+    // ✅ NEW: Join requests (pending approvals)
+    joinRequests: [{
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+        message: {
+            type: String,
+            maxlength: 500,
+            trim: true
+        },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending"
+        },
+        requestedAt: {
+            type: Date,
+            default: Date.now
+        },
+        reviewedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        },
+        reviewedAt: {
+            type: Date
+        },
+        rejectionReason: {
+            type: String,
+            maxlength: 200
+        }
+    }],
+
+    // ✅ NEW: Moderators (users who can approve join requests)
+    moderators: [{
+        type: Schema.Types.ObjectId,
+        ref: "User"
+    }],
+
     maxMembers: {
         type: Number,
-        default: 50 // small groups
+        default: 50
     },
+
     weeklyTask: {
         task: { type: String, default: "" },
         week: { type: Date },
         completedBy: [{ type: Schema.Types.ObjectId, ref: "User" }]
     },
+
     isActive: {
         type: Boolean,
         default: true
     },
+
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
+
     createdAt: {
         type: Date,
         default: Date.now
@@ -58,6 +105,8 @@ const supportGroupSchema = new Schema({
 // Index for faster queries
 supportGroupSchema.index({ category: 1 });
 supportGroupSchema.index({ isActive: 1 });
+supportGroupSchema.index({ "joinRequests.status": 1 });
+supportGroupSchema.index({ moderators: 1 });
 
 // Virtual for member count
 supportGroupSchema.virtual('memberCount').get(function () {
@@ -67,6 +116,11 @@ supportGroupSchema.virtual('memberCount').get(function () {
 // Virtual to check if group is full
 supportGroupSchema.virtual('isFull').get(function () {
     return this.members.length >= this.maxMembers;
+});
+
+// Virtual for pending request count
+supportGroupSchema.virtual('pendingRequestCount').get(function () {
+    return this.joinRequests.filter(req => req.status === 'pending').length;
 });
 
 supportGroupSchema.set('toJSON', { virtuals: true });

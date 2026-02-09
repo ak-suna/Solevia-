@@ -10,7 +10,12 @@ import {
     createGroup,
     updateGroup,
     deleteGroup,
-    getRecommendedGroups
+    getRecommendedGroups,
+    requestToJoinGroup,
+    getJoinRequests,
+    approveJoinRequest,
+    rejectJoinRequest,
+    getGroupMembers
 } from "../controllers/groupController.js";
 import { authenticate, authorizeRole } from "../middleware/authMiddleware.js";
 
@@ -34,5 +39,11 @@ router.post("/:groupId/complete-task", authenticate, completeWeeklyTask); // Com
 router.post("/", authenticate, authorizeRole("admin"), createGroup); // Create new group
 router.put("/:groupId", authenticate, authorizeRole("admin"), updateGroup); // Update group
 router.delete("/:groupId", authenticate, authorizeRole("admin"), deleteGroup); // Delete group
+
+router.post("/:groupId/request", authenticate, requestToJoinGroup);
+router.get("/:groupId/requests", authenticate, getJoinRequests);
+router.put("/:groupId/requests/:requestId/approve", authenticate, approveJoinRequest);
+router.put("/:groupId/requests/:requestId/reject", authenticate, rejectJoinRequest);
+router.get("/:groupId/members", authenticate, authorizeRole("admin"), getGroupMembers);
 
 export default router;
