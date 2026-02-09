@@ -1,26 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserPlus, Users, Calendar, ArrowLeft } from 'lucide-react';
-import { getAllGroups, joinGroup } from "../services/communityService";
 import Sidebar from "../components/Sidebar";
 import NotificationBell from '../components/NotificationBell';
-import { Menu } from 'lucide-react';
+import { Menu, ArrowLeft, Users, Calendar, Clock } from 'lucide-react';
+import { getAllGroups, requestToJoinGroup } from "../services/communityService";
 
 const BrowseGroupsPage = () => {
     const navigate = useNavigate();
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState("all"); // all, journaling, gratitude, etc.
+    const [categoryFilter, setCategoryFilter] = useState("all");
+    const [requesting, setRequesting] = useState(null);
 
     useEffect(() => {
         fetchGroups();
-    }, [filter]);
+    }, [categoryFilter]);
 
     const fetchGroups = async () => {
         setLoading(true);
         try {
-            const params = filter === "all" ? {} : { category: filter };
-            const data = await getAllGroups({ ...params, limit: 50 });
+            const data = await getAllGroups(categoryFilter);
             setGroups(data.groups || []);
         } catch (error) {
             console.error("Error fetching groups:", error);
@@ -30,26 +29,23 @@ const BrowseGroupsPage = () => {
         }
     };
 
-    const handleJoinGroup = async (groupId) => {
-        try {
-            await joinGroup(groupId);
-            alert("Successfully joined group!");
-            fetchGroups(); // Refresh to show updated member count
-        } catch (error) {
-            console.error("Error joining group:", error);
-            alert(error.response?.data?.error || "Failed to join group");
-        }
-    };
+    const handleRequestToJoin = async (groupId, groupName) => {
+        const message = prompt(
+            `Request to join "${groupName}"?\n\n(Optional) Tell the moderators why you'd like to join:`
+        );
 
-    const categoryIcons = {
-        journaling: "📝",
-        gratitude: "🙏",
-        mindfulness: "🧘",
-        fitness: "💪",
-        habits: "✅",
-        goals: "🎯",
-        wellness: "💚",
-        other: "✨"
+        if (message === null) return; // User cancelled
+
+        setRequesting(groupId);
+        try {
+            await requestToJoinGroup(groupId, message);
+            alert(`✓ Join request submitted for "${groupName}"!\n\nA moderator will review your request soon.`);
+            fetchGroups(); // Refresh to update button states
+        } catch (error) {
+            alert(error.message || "Failed to submit join request");
+        } finally {
+            setRequesting(null);
+        }
     };
 
     const categoryColors = {
@@ -63,17 +59,6 @@ const BrowseGroupsPage = () => {
         other: "from-gray-500 to-gray-600"
     };
 
-    const categories = [
-        { id: "all", label: "All Groups" },
-        { id: "journaling", label: "Journaling" },
-        { id: "gratitude", label: "Gratitude" },
-        { id: "mindfulness", label: "Mindfulness" },
-        { id: "fitness", label: "Fitness" },
-        { id: "habits", label: "Habits" },
-        { id: "goals", label: "Goals" },
-        { id: "wellness", label: "Wellness" }
-    ];
-
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
             {/* LEFT SIDEBAR */}
@@ -85,7 +70,7 @@ const BrowseGroupsPage = () => {
                 {/* Back Button */}
                 <button
                     onClick={() => navigate('/community')}
-                    className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#89beab] mb-6 transition-colors"
+                    className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#f4873e] mb-6 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
                     <span className="font-semibold">Back to Community</span>
@@ -94,31 +79,36 @@ const BrowseGroupsPage = () => {
                 {/* Header */}
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "Brasika" }}>
-                        <span className="text-[#89beab] dark:text-teal-400">Support </span>
+                        <span className="text-[#89beab] dark:text-teal-400">Browse </span>
                         <span className="text-[#f4873e] dark:text-orange-400">Groups</span>
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400">
-                        Join groups to connect with others on similar journeys
+                        Find a supportive community to join your wellness journey!
                     </p>
                 </div>
 
-                {/* Filter Tabs */}
-                <div className="flex gap-3 mb-6 flex-wrap">
-                    {categories.map(category => (
-                        <button
-                            key={category.id}
-                            onClick={() => setFilter(category.id)}
-                            className={`
-                                px-4 py-2 rounded-full font-bold transition-all text-sm
-                                ${filter === category.id
-                                    ? 'bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white shadow-lg'
-                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:shadow-md'
-                                }
-                            `}
-                        >
-                            {category.label}
-                        </button>
-                    ))}
+                {/* Category Filter */}
+                <div className="mb-6">
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                        Category
+                    </label>
+                    <div className="flex gap-3 flex-wrap">
+                        {["all", "journaling", "gratitude", "mindfulness", "fitness", "habits", "goals", "wellness", "other"].map(category => (
+                            <button
+                                key={category}
+                                onClick={() => setCategoryFilter(category)}
+                                className={`
+                                    px-4 py-2 rounded-full text-sm font-semibold transition-all
+                                    ${categoryFilter === category
+                                        ? 'bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white shadow-lg'
+                                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:shadow-md'
+                                    }
+                                `}
+                            >
+                                {category.charAt(0).toUpperCase() + category.slice(1)}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Loading State */}
@@ -129,27 +119,30 @@ const BrowseGroupsPage = () => {
                 ) : groups.length === 0 ? (
                     /* Empty State */
                     <div className="text-center py-12">
-                        <UserPlus className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                        <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                         <p className="text-gray-600 dark:text-gray-400 text-lg">
-                            No groups available yet
-                        </p>
-                        <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
-                            Check back later for new groups!
+                            No groups found. Check back later!
                         </p>
                     </div>
                 ) : (
                     /* Groups Grid */
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {groups.map(group => {
-                            const isFull = group.memberCount >= group.maxMembers;
+                            const isMember = false; // TODO: Check if current user is member
+                            const hasPendingRequest = false; // TODO: Check if user has pending request
+                            const isFull = group.members?.length >= group.maxMembers;
+
                             return (
                                 <div
                                     key={group._id}
-                                    className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all"
+                                    className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl hover:border-[#89beab] dark:hover:border-teal-500 transition-all cursor-pointer"
+                                    onClick={() => navigate(`/community/group/${group._id}`)}
                                 >
                                     {/* Header */}
                                     <div className="flex items-center gap-3 mb-4">
-                                        <span className="text-4xl">{group.icon || categoryIcons[group.category]}</span>
+                                        <div className={`w-14 h-14 bg-gradient-to-br ${categoryColors[group.category] || 'from-gray-500 to-gray-600'} rounded-2xl flex items-center justify-center text-3xl shadow-md`}>
+                                            {group.icon || "📝"}
+                                        </div>
                                         <div className="flex-1">
                                             <h3 className="text-xl font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
                                                 {group.name}
@@ -158,65 +151,87 @@ const BrowseGroupsPage = () => {
                                                 {group.category}
                                             </span>
                                         </div>
-                                        {isFull && (
-                                            <span className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-bold">
-                                                Full
-                                            </span>
-                                        )}
                                     </div>
 
                                     {/* Description */}
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                                         {group.description}
                                     </p>
 
                                     {/* Stats */}
-                                    <div className="grid grid-cols-3 gap-3 mb-4">
+                                    <div className="grid grid-cols-2 gap-3 mb-4">
                                         <div className="bg-white dark:bg-gray-600 rounded-2xl p-3 text-center">
                                             <Users className="w-4 h-4 mx-auto mb-1 text-[#89beab]" />
                                             <p className="text-xs text-gray-600 dark:text-gray-400">Members</p>
-                                            <p className="font-bold text-gray-900 dark:text-white">{group.memberCount || group.members?.length || 0}</p>
+                                            <p className="font-bold text-gray-900 dark:text-white">
+                                                {group.members?.length || 0} / {group.maxMembers}
+                                            </p>
                                         </div>
                                         <div className="bg-white dark:bg-gray-600 rounded-2xl p-3 text-center">
-                                            <Users className="w-4 h-4 mx-auto mb-1 text-gray-400" />
-                                            <p className="text-xs text-gray-600 dark:text-gray-400">Capacity</p>
-                                            <p className="font-bold text-gray-900 dark:text-white">{group.maxMembers}</p>
-                                        </div>
-                                        <div className="bg-white dark:bg-gray-600 rounded-2xl p-3 text-center">
-                                            <div className={`w-4 h-4 mx-auto mb-1 rounded-full ${group.isActive ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                            <p className="text-xs text-gray-600 dark:text-gray-400">Status</p>
-                                            <p className={`font-bold text-xs ${group.isActive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                                                {group.isActive ? "Active" : "Inactive"}
+                                            <Calendar className="w-4 h-4 mx-auto mb-1 text-blue-500" />
+                                            <p className="text-xs text-gray-600 dark:text-gray-400">Weekly Task</p>
+                                            <p className="text-xs font-bold text-gray-900 dark:text-white">
+                                                {group.weeklyTask?.task ? '✓ Active' : 'None'}
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* Weekly Task */}
+                                    {/* Weekly Task Preview */}
                                     {group.weeklyTask?.task && (
-                                        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-2xl p-4 mb-4">
+                                        <div className="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-2xl p-3 mb-4">
                                             <div className="flex items-start gap-2">
-                                                <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-1" />
+                                                <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5" />
                                                 <div className="flex-1">
                                                     <p className="text-xs font-bold text-orange-900 dark:text-orange-300 mb-1">This Week's Task</p>
-                                                    <p className="text-sm text-orange-800 dark:text-orange-200">{group.weeklyTask.task}</p>
+                                                    <p className="text-sm text-orange-800 dark:text-orange-200 line-clamp-1">
+                                                        {group.weeklyTask.task}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* Join Button */}
+                                    {/* ✅ NEW: Request to Join Button */}
                                     <button
-                                        onClick={() => handleJoinGroup(group._id)}
-                                        disabled={isFull || !group.isActive}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent card click
+                                            if (!isMember && !hasPendingRequest && !isFull) {
+                                                handleRequestToJoin(group._id, group.name);
+                                            }
+                                        }}
+                                        disabled={isMember || hasPendingRequest || isFull || requesting === group._id}
                                         className={`
-                                            w-full py-3 rounded-full font-bold transition-all
-                                            ${isFull || !group.isActive
-                                                ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                                                : 'bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white hover:shadow-lg'
+                                            w-full py-3 rounded-full font-bold transition-all flex items-center justify-center gap-2
+                                            ${isMember
+                                                ? 'bg-gray-300 dark:bg-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed'
+                                                : hasPendingRequest
+                                                    ? 'bg-yellow-200 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 cursor-not-allowed'
+                                                    : isFull
+                                                        ? 'bg-red-200 dark:bg-red-900/30 text-red-700 dark:text-red-400 cursor-not-allowed'
+                                                        : 'bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white hover:shadow-lg'
                                             }
                                         `}
                                     >
-                                        {isFull ? "Group Full" : !group.isActive ? "Group Inactive" : "Join Group"}
+                                        {requesting === group._id ? (
+                                            <>
+                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                Sending Request...
+                                            </>
+                                        ) : isMember ? (
+                                            <>✓ Joined</>
+                                        ) : hasPendingRequest ? (
+                                            <>
+                                                <Clock className="w-4 h-4" />
+                                                Request Pending
+                                            </>
+                                        ) : isFull ? (
+                                            <>Full</>
+                                        ) : (
+                                            <>
+                                                <Users className="w-4 h-4" />
+                                                Request to Join
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             );
