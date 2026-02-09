@@ -263,9 +263,10 @@ export const createGroup = async (req, res) => {
             icon: icon || "📝",
             maxMembers: maxMembers || 50,
             createdBy: userId,
+            moderators: [userId], // ✅ Admin is default moderator
             members: [{
                 userId,
-                role: "moderator"
+                role: "moderator" // ✅ Admin is moderator
             }]
         });
 
@@ -368,5 +369,239 @@ export const getRecommendedGroups = async (req, res) => {
     } catch (error) {
         console.error("Error fetching recommended groups:", error);
         res.status(500).json({ error: "Failed to fetch recommendations" });
+    }
+};
+
+export const requestToJoinGroup = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const { message } = req.body;
+        const userId = req.user.id;
+
+        const group = await SupportGroup.findById(groupId);
+
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+        if (!group.isActive) {
+            return res.status(403).json({ error: "This group is not active" });
+        }
+
+        // Check if already a member
+        const isMember = group.members.some(
+            member => member.userId.toString() === userId
+        );
+
+        if (isMember) {
+            return res.status(400).json({ error: "You are already a member of this group" });
+        }
+
+        // Check if group is full
+        if (group.members.length >= group.maxMembers) {
+            return res.status(400).json({ error: "This group is full" });
+        }
+
+        // Check if already requested
+        const existingRequest = group.joinRequests.find(
+            req => req.userId.toString() === userId && req.status === 'pending'
+        );
+
+        if (existingRequest) {
+            return res.status(400).json({ error: "You already have a pending request" });
+        }
+
+        // Add join request
+        group.joinRequests.push({
+            userId,
+            message: message || "",
+            status: 'pending',
+            requestedAt: new Date()
+        });
+
+        await group.save();
+
+        res.status(200).json({
+            message: "Join request submitted successfully. Waiting for approval.",
+            group: { _id: group._id, name: group.name }
+        });
+    } catch (error) {
+        console.error("Error requesting to join group:", error);
+        res.status(500).json({ error: "Failed to submit join request" });
+    }
+};
+
+// Get pending join requests (admin or moderator)
+export const getJoinRequests = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const userId = req.user.id;
+
+        const group = await SupportGroup.findById(groupId)
+            .populate('joinRequests.userId', 'firstName lastName email');
+
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+        // Check if user is admin or moderator of this group
+        const isAdmin = req.user.role === 'admin';
+        const isModerator = group.moderators.some(id => id.toString() === userId);
+
+        if (!isAdmin && !isModerator) {
+            return res.status(403).json({
+                error: "Only admins and moderators can view join requests"
+            });
+        }
+
+        // Get only pending requests
+        const pendingRequests = group.joinRequests.filter(req => req.status === 'pending');
+
+        res.status(200).json({
+            group: { _id: group._id, name: group.name },
+            requests: pendingRequests
+        });
+    } catch (error) {
+        console.error("Error fetching join requests:", error);
+        res.status(500).json({ error: "Failed to fetch join requests" });
+    }
+};
+
+// Approve join request
+export const approveJoinRequest = async (req, res) => {
+    try {
+        const { groupId, requestId } = req.params;
+        const userId = req.user.id;
+
+        const group = await SupportGroup.findById(groupId);
+
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+        // Check if user is admin or moderator
+        const isAdmin = req.user.role === 'admin';
+        const isModerator = group.moderators.some(id => id.toString() === userId);
+
+        if (!isAdmin && !isModerator) {
+            return res.status(403).json({ error: "Unauthorized" });
+        }
+
+        // Find the request
+        const request = group.joinRequests.id(requestId);
+
+        if (!request) {
+            return res.status(404).json({ error: "Request not found" });
+        }
+
+        if (request.status !== 'pending') {
+            return res.status(400).json({ error: "Request already processed" });
+        }
+
+        // Check if group is still not full
+        if (group.members.length >= group.maxMembers) {
+            return res.status(400).json({ error: "Group is now full" });
+        }
+
+        // Add user to members
+        group.members.push({
+            userId: request.userId,
+            joinedAt: new Date(),
+            role: 'member'
+        });
+
+        // Update request status
+        request.status = 'approved';
+        request.reviewedBy = userId;
+        request.reviewedAt = new Date();
+
+        await group.save();
+
+        res.status(200).json({
+            message: "Join request approved successfully",
+            group: { _id: group._id, name: group.name }
+        });
+    } catch (error) {
+        console.error("Error approving request:", error);
+        res.status(500).json({ error: "Failed to approve request" });
+    }
+};
+
+// Reject join request
+export const rejectJoinRequest = async (req, res) => {
+    try {
+        const { groupId, requestId } = req.params;
+        const { reason } = req.body;
+        const userId = req.user.id;
+
+        const group = await SupportGroup.findById(groupId);
+
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+        // Check authorization
+        const isAdmin = req.user.role === 'admin';
+        const isModerator = group.moderators.some(id => id.toString() === userId);
+
+        if (!isAdmin && !isModerator) {
+            return res.status(403).json({ error: "Unauthorized" });
+        }
+
+        // Find request
+        const request = group.joinRequests.id(requestId);
+
+        if (!request) {
+            return res.status(404).json({ error: "Request not found" });
+        }
+
+        if (request.status !== 'pending') {
+            return res.status(400).json({ error: "Request already processed" });
+        }
+
+        // Update request
+        request.status = 'rejected';
+        request.reviewedBy = userId;
+        request.reviewedAt = new Date();
+        request.rejectionReason = reason || "Not specified";
+
+        await group.save();
+
+        res.status(200).json({
+            message: "Join request rejected",
+            group: { _id: group._id, name: group.name }
+        });
+    } catch (error) {
+        console.error("Error rejecting request:", error);
+        res.status(500).json({ error: "Failed to reject request" });
+    }
+};
+
+// ==================== MANUAL MODERATOR SELECTION ====================
+
+// Get all members of a group (for manual selection)
+export const getGroupMembers = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+
+        const group = await SupportGroup.findById(groupId)
+            .populate('members.userId', 'firstName lastName email');
+
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+        // Only admin can view for moderator selection
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: "Unauthorized" });
+        }
+
+        res.status(200).json({
+            group: { _id: group._id, name: group.name },
+            members: group.members
+        });
+    } catch (error) {
+        console.error("Error fetching members:", error);
+        res.status(500).json({ error: "Failed to fetch members" });
     }
 };
