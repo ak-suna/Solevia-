@@ -605,3 +605,25 @@ export const getGroupMembers = async (req, res) => {
         res.status(500).json({ error: "Failed to fetch members" });
     }
 };
+export const getUserJoinRequests = async (req, res) => {
+    const userId = req.user.id;
+
+    const groups = await SupportGroup.find({
+        'joinRequests.userId': userId
+    });
+
+    const requests = groups.map(group => {
+        const userRequest = group.joinRequests.find(
+            r => r.userId.toString() === userId
+        );
+        return {
+            groupId: group._id,
+            groupName: group.name,
+            status: userRequest.status,
+            requestedAt: userRequest.requestedAt,
+            reason: userRequest.rejectionReason
+        };
+    });
+
+    res.json({ requests });
+};

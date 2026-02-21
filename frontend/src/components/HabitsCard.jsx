@@ -112,10 +112,10 @@ const HabitsCard = () => {
 
       <button
         onClick={() => setShowAddForm(!showAddForm)}
-        className="w-full flex items-center justify-center gap-1 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-sm transition-all"
+        className="w-full flex items-center justify-center gap-1 py-1.5 bg-white hover:bg-gray-50 rounded-lg text-grey text-sm transition-all"
       >
         <Plus className="w-4 h-4" />
-        Add
+        Quick Add
       </button>
     </div>
   );

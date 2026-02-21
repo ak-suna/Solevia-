@@ -341,7 +341,7 @@ const GoalsCard = () => {
 
       <button
         onClick={() => setShowAddForm(!showAddForm)}
-        className="w-full flex items-center justify-center gap-2 py-2 bg-white hover:bg-gray-50 rounded-lg text-gray-700 text-sm transition-all mt-3"
+        className="w-full flex items-center justify-center gap-2 py-2 bg-white hover:bg-gray-50 rounded-lg text-gray text-sm transition-all mt-3"
       >
         <Plus className="w-4 h-4" />
         Quick Add

@@ -283,7 +283,9 @@ export const completeWeeklyTask = async (groupId) => {
 
 // ==================== CHALLENGES ====================
 
-export const getAllChallenges = async (category = null, status = "active", page = 1, limit = 10) => {
+// ==================== CHALLENGES ====================
+
+export const getAllChallenges = async ({ category = null, status = "all", page = 1, limit = 10 } = {}) => {
     try {
         let url = `${API_BASE_URL}/challenges?page=${page}&limit=${limit}&status=${status}`;
         if (category && category !== "all") url += `&category=${category}`;
@@ -546,6 +548,19 @@ export const getGroupMembers = async (groupId) => {
         return await response.json();
     } catch (error) {
         console.error("Error fetching members:", error);
+        throw error;
+    }
+};
+export const getUserJoinRequests = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/my-requests`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch requests");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching requests:", error);
         throw error;
     }
 };
