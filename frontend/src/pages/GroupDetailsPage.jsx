@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
 import NotificationBell from '../components/NotificationBell';
 import { Menu, ArrowLeft, Users, CheckCircle, Plus, Calendar } from 'lucide-react';
@@ -16,10 +17,8 @@ import { jwtDecode } from "jwt-decode";
 const GroupDetailsPage = () => {
     const { groupId } = useParams();
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
-    const [group, setGroup] = useState(null);
-    const [posts, setPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [showCreatePost, setShowCreatePost] = useState(false);
     const [taskCompleted, setTaskCompleted] = useState(false);
 
@@ -27,32 +26,37 @@ const GroupDetailsPage = () => {
     const token = localStorage.getItem("token");
     const currentUserId = token ? jwtDecode(token).id : null;
 
+    const { data: groupData, isLoading: loadingGroup, isError: groupError } = useQuery({
+        queryKey: ["community", "group", groupId],
+        queryFn: () => getGroupById(groupId),
+        enabled: !!groupId,
+        refetchInterval: 5000,
+    });
+
+    const { data: postsData } = useQuery({
+        queryKey: ["community", "groupPosts", groupId],
+        queryFn: () => getGroupPosts(groupId),
+        enabled: !!groupId,
+        refetchInterval: 5000,
+    });
+
+    const group = groupData?.group ?? null;
+    const posts = postsData?.posts ?? [];
+    const loading = loadingGroup;
+
+    // Sync task completed from group data
     useEffect(() => {
-        fetchGroupData();
-    }, [groupId]);
+        if (group?.weeklyTask?.completedBy?.some(id => id === currentUserId)) {
+            setTaskCompleted(true);
+        }
+    }, [group, currentUserId]);
 
-    const fetchGroupData = async () => {
-        setLoading(true);
-        try {
-            const groupData = await getGroupById(groupId);
-            setGroup(groupData.group);
-
-            // Check if user completed this week's task
-            const completed = groupData.group.weeklyTask?.completedBy?.some(
-                id => id === currentUserId
-            );
-            setTaskCompleted(completed);
-
-            const postsData = await getGroupPosts(groupId);
-            setPosts(postsData.posts || []);
-        } catch (error) {
-            console.error("Error fetching group data:", error);
+    useEffect(() => {
+        if (groupError) {
             alert("Failed to load group. You may not have access.");
             navigate('/community');
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [groupError, navigate]);
 
     const handleLeaveGroup = async () => {
         if (window.confirm("Are you sure you want to leave this group?")) {
@@ -72,24 +76,28 @@ const GroupDetailsPage = () => {
             await completeWeeklyTask(groupId);
             setTaskCompleted(true);
             alert("Great job! Weekly task completed! 🎉");
-            fetchGroupData();
+            queryClient.invalidateQueries({ queryKey: ["community"] });
         } catch (error) {
             console.error("Error completing task:", error);
             alert(error.response?.data?.error || "Failed to complete task");
         }
     };
 
-    const handlePostCreated = (newPost) => {
-        setPosts([newPost, ...posts]);
+    const handlePostCreated = () => {
         setShowCreatePost(false);
+        queryClient.invalidateQueries({ queryKey: ["community"] });
     };
 
     const handlePostUpdated = (updatedPost) => {
-        setPosts(posts.map(p => p._id === updatedPost._id ? updatedPost : p));
+        queryClient.setQueryData(["community", "groupPosts", groupId], (prev) =>
+            prev ? { ...prev, posts: prev.posts.map(p => p._id === updatedPost._id ? updatedPost : p) } : prev
+        );
     };
 
     const handlePostDeleted = (postId) => {
-        setPosts(posts.filter(p => p._id !== postId));
+        queryClient.setQueryData(["community", "groupPosts", groupId], (prev) =>
+            prev ? { ...prev, posts: prev.posts.filter(p => p._id !== postId) } : prev
+        );
     };
 
     const categoryColors = {

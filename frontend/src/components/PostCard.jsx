@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Heart, MessageCircle, MoreVertical, Flag, Trash2, Edit, Send } from 'lucide-react';
 import { addReaction, addComment, deletePost, deleteComment } from "../services/communityService";
 import { jwtDecode } from "jwt-decode";
 import ReportModal from "./ReportModal";
 
 const PostCard = ({ post, onUpdate, onDelete }) => {
+    const queryClient = useQueryClient();
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState("");
     const [showOptions, setShowOptions] = useState(false);
@@ -44,6 +46,7 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
         setSubmittingComment(true);
         try {
             const result = await addComment(post._id, commentText);
+            queryClient.invalidateQueries({ queryKey: ["community"] });
             onUpdate(result.post);
             setCommentText("");
         } catch (error) {

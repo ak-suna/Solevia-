@@ -1087,8 +1087,9 @@
 
 // export default CommunityPage;
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
 import RightSidebarCards from "../components/RightSidebarCards";
 import { Plus, Users, Trophy, XCircle, ArrowRight, Calendar } from 'lucide-react';
@@ -1097,45 +1098,35 @@ import CreatePostModal from "../components/CreatePostModal";
 
 const CommunityPage = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState("feed"); // feed, groups, challenges
     const [categoryFilter, setCategoryFilter] = useState("all");
-    const [posts, setPosts] = useState([]);
-    const [myGroups, setMyGroups] = useState([]);
-    const [myChallenges, setMyChallenges] = useState([]);
     const [pendingRequests, setPendingRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [showCreatePostModal, setShowCreatePostModal] = useState(false);
 
+    const { data: postsData, isLoading: loadingPosts } = useQuery({
+        queryKey: ["community", "posts", categoryFilter],
+        queryFn: () => getPosts(1, 10, categoryFilter === "all" ? null : categoryFilter),
+        enabled: activeTab === "feed",
+        refetchInterval: 5000,
+    });
 
-    useEffect(() => {
-        fetchData();
-    }, [activeTab, categoryFilter]);
+    const { data: groupsData } = useQuery({
+        queryKey: ["community", "userGroups"],
+        queryFn: getUserGroups,
+        refetchInterval: 5000,
+    });
 
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            // Fetch based on active tab
-            if (activeTab === "feed") {
-                const data = await getPosts(1, 10, categoryFilter === "all" ? null : categoryFilter);
-                setPosts(data.posts || []);
-            }
+    const { data: challengesData } = useQuery({
+        queryKey: ["community", "userChallenges"],
+        queryFn: getUserChallenges,
+        refetchInterval: 5000,
+    });
 
-            // Always fetch user's groups and challenges for right cards
-            const groupsData = await getUserGroups();
-            setMyGroups(groupsData.groups || []);
-
-            const challengesData = await getUserChallenges();
-            setMyChallenges(challengesData.challenges || []);
-
-            // TODO: Fetch pending requests (will need new API endpoint)
-            setPendingRequests([]);
-
-        } catch (error) {
-            console.error("Error fetching data:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const posts = postsData?.posts ?? [];
+    const myGroups = groupsData?.groups ?? [];
+    const myChallenges = challengesData?.challenges ?? [];
+    const loading = activeTab === "feed" ? loadingPosts : false;
 
     const tabs = [
         { id: "feed", label: "Community Feed", icon: "📰" },
@@ -1427,10 +1418,9 @@ const CommunityPage = () => {
             {showCreatePostModal && (
                 <CreatePostModal
                     onClose={() => setShowCreatePostModal(false)}
-                    onPostCreated={(newPost) => {
+                    onPostCreated={() => {
                         setShowCreatePostModal(false);
-                        // Add new post to the beginning of posts array
-                        setPosts([newPost, ...posts]);
+                        queryClient.invalidateQueries({ queryKey: ["community"] });
                     }}
                 />
             )}

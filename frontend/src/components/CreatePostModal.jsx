@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { X } from 'lucide-react';
 import { createPost } from "../services/communityService";
 
 const CreatePostModal = ({ onClose, onPostCreated, groupId = null }) => {
+    const queryClient = useQueryClient();
     const [content, setContent] = useState("");
     const [type, setType] = useState("general");
     const [category, setCategory] = useState("other");
@@ -46,6 +48,7 @@ const CreatePostModal = ({ onClose, onPostCreated, groupId = null }) => {
             };
 
             const result = await createPost(postData);
+            queryClient.invalidateQueries({ queryKey: ["community"] });
             onPostCreated(result.post);
         } catch (error) {
             console.error("Error creating post:", error);
