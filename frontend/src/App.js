@@ -114,6 +114,7 @@
 // export default App;
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Welcome from "./pages/Welcome";
 import SignupForm from "./auth/SignupForm";
 import LoginForm from "./auth/LoginForm";
@@ -150,7 +151,10 @@ function App() {
         return children;
     };
 
+    const queryClient = new QueryClient();
+
     return (
+        <QueryClientProvider client={queryClient}>
         <Router>
             {/* ← WRAP EVERYTHING IN NotificationProvider */}
             <NotificationProvider>
@@ -297,6 +301,7 @@ function App() {
                 </HabitsProvider>
             </NotificationProvider>
         </Router>
+        </QueryClientProvider>
     );
 }
 
