@@ -121,6 +121,20 @@ export const addReaction = async (postId, emoji) => {
     }
 };
 
+export const getCommentsByPost = async (postId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/comments/post/${postId}`, {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch comments");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching comments:", error);
+        throw error;
+    }
+};
+
 export const addComment = async (postId, content) => {
     try {
         const response = await fetch(`${API_BASE_URL}/posts/${postId}/comment`, {

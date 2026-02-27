@@ -1,0 +1,231 @@
+import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { MessageCircle, Send } from "lucide-react";
+import { getCommentsByPost, addComment, addReaction, deleteComment } from "../services/communityService";
+import { jwtDecode } from "jwt-decode";
+
+const REACTION_EMOJIS = ["👍", "❤️", "🎉", "💪", "🙏"];
+
+const CommunityFeed = ({ posts, getCategoryColor }) => {
+    const queryClient = useQueryClient();
+    const [expandedComments, setExpandedComments] = useState({});
+    const [commentText, setCommentText] = useState({});
+    const [submittingComment, setSubmittingComment] = useState({});
+
+    const token = localStorage.getItem("token");
+    const currentUserId = token ? jwtDecode(token).id : null;
+
+    const toggleComments = (postId) => {
+        setExpandedComments((prev) => ({ ...prev, [postId]: !prev[postId] }));
+    };
+
+    const handleReaction = async (postId, emoji) => {
+        try {
+            await addReaction(postId, emoji);
+            queryClient.invalidateQueries({ queryKey: ["community"] });
+        } catch (error) {
+            console.error("Error adding reaction:", error);
+        }
+    };
+
+    const handleAddComment = async (postId) => {
+        const text = (commentText[postId] || "").trim();
+        if (!text) return;
+
+        setSubmittingComment((prev) => ({ ...prev, [postId]: true }));
+        try {
+            await addComment(postId, text);
+            setCommentText((prev) => ({ ...prev, [postId]: "" }));
+            queryClient.invalidateQueries({ queryKey: ["community"] });
+        } catch (error) {
+            console.error("Error adding comment:", error);
+        } finally {
+            setSubmittingComment((prev) => ({ ...prev, [postId]: false }));
+        }
+    };
+
+    const handleDeleteComment = async (postId, commentId) => {
+        if (!window.confirm("Are you sure you want to delete this comment?")) return;
+        try {
+            await deleteComment(postId, commentId);
+            queryClient.invalidateQueries({ queryKey: ["community"] });
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+        }
+    };
+
+    const reactionCounts = (post) => {
+        const counts = {};
+        (post.reactions || []).forEach((r) => {
+            const emoji = r.emoji;
+            counts[emoji] = (counts[emoji] || 0) + 1;
+        });
+        return counts;
+    };
+
+    const userReaction = (post) => {
+        return (post.reactions || []).find((r) => String(r.userId) === String(currentUserId));
+    };
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString();
+    };
+
+    return (
+        <div className="space-y-4">
+            {posts.map((post) => {
+                const counts = reactionCounts(post);
+                const userReact = userReaction(post);
+                const comments = post.comments || [];
+                const isExpanded = expandedComments[post._id];
+                const text = commentText[post._id] || "";
+                const submitting = submittingComment[post._id];
+
+                return (
+                    <div
+                        key={post._id}
+                        className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 hover:border-[#f4873e] transition-all"
+                    >
+                        {/* Post Header */}
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-[#f4873e] to-[#ff9e5e] rounded-full flex items-center justify-center text-white font-bold">
+                                {post.userId?.firstName?.[0]}
+                                {post.userId?.lastName?.[0]}
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-bold text-gray-900 dark:text-white">
+                                    {post.userId?.firstName} {post.userId?.lastName}
+                                </p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                    {new Date(post.createdAt).toLocaleDateString()}
+                                </p>
+                            </div>
+                            <span
+                                className={`px-3 py-1 rounded-full text-xs font-bold ${getCategoryColor(
+                                    post.category
+                                )}`}
+                            >
+                                {post.category}
+                            </span>
+                        </div>
+
+                        {/* Post Content */}
+                        <p className="text-gray-700 dark:text-gray-300 mb-4">{post.content}</p>
+
+                        {/* Reactions */}
+                        <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600 pt-3">
+                            <div className="flex items-center gap-1">
+                                {REACTION_EMOJIS.map((emoji) => (
+                                    <button
+                                        key={emoji}
+                                        onClick={() => handleReaction(post._id, emoji)}
+                                        className={`text-lg hover:scale-125 transition-transform ${
+                                            userReact?.emoji === emoji ? "scale-125" : ""
+                                        }`}
+                                        title={`React with ${emoji}`}
+                                    >
+                                        {emoji}
+                                    </button>
+                                ))}
+                                {Object.keys(counts).length > 0 && (
+                                    <span className="text-xs ml-1 text-gray-500 dark:text-gray-400">
+                                        {Object.entries(counts)
+                                            .map(([e, c]) => `${e} ${c}`)
+                                            .join(" ")}
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => toggleComments(post._id)}
+                                className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#89beab] transition-colors ml-auto"
+                            >
+                                <MessageCircle className="w-5 h-5" />
+                                <span className="text-sm">{comments.length}</span>
+                            </button>
+                        </div>
+
+                        {/* Comment Section */}
+                        {isExpanded && (
+                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                <div className="flex gap-2 mb-4">
+                                    <input
+                                        type="text"
+                                        value={text}
+                                        onChange={(e) =>
+                                            setCommentText((prev) => ({
+                                                ...prev,
+                                                [post._id]: e.target.value
+                                            }))
+                                        }
+                                        placeholder="Write a comment..."
+                                        className="flex-1 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#89beab]"
+                                        onKeyDown={(e) =>
+                                            e.key === "Enter" && handleAddComment(post._id)
+                                        }
+                                    />
+                                    <button
+                                        onClick={() => handleAddComment(post._id)}
+                                        disabled={submitting || !text.trim()}
+                                        className="p-2 rounded-full bg-[#89beab] text-white hover:bg-[#f4873e] transition-colors disabled:opacity-50"
+                                    >
+                                        <Send className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="space-y-3">
+                                    {comments.map((comment) => (
+                                        <div key={comment._id} className="flex gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#89beab] to-[#f4873e] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                                {comment.userId?.firstName?.[0]}
+                                                {comment.userId?.lastName?.[0]}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="bg-gray-100 dark:bg-gray-600 rounded-lg p-3">
+                                                    <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                                                        {comment.userId?.firstName}{" "}
+                                                        {comment.userId?.lastName}
+                                                    </p>
+                                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                                                        {comment.content}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-3 mt-1 px-3">
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {formatDate(comment.createdAt)}
+                                                    </span>
+                                                    {String(comment.userId?._id) === String(currentUserId) && (
+                                                        <button
+                                                            onClick={() =>
+                                                                handleDeleteComment(
+                                                                    post._id,
+                                                                    comment._id
+                                                                )
+                                                            }
+                                                            className="text-xs text-red-600 hover:underline"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+export default CommunityFeed;

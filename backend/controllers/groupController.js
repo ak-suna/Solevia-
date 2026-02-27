@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { SupportGroup } from "../models/SupportGroup.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
@@ -178,17 +179,20 @@ export const getGroupPosts = async (req, res) => {
             return res.status(403).json({ error: "You must be a member to view group posts" });
         }
 
-        const posts = await Post.find({
-            groupId,
-            isHidden: false
-        })
-            .populate('userId', 'firstName lastName')
-            .populate('comments.userId', 'firstName lastName')
-            .sort({ isPinned: -1, createdAt: -1 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .lean();
+        const pipeline = [
+            { $match: { groupId: new mongoose.Types.ObjectId(groupId), isHidden: false } },
+            { $sort: { isPinned: -1, createdAt: -1 } },
+            { $skip: (page - 1) * limit },
+            { $limit: limit * 1 },
+            { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "userIdDoc", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } },
+            { $unwind: { path: "$userIdDoc", preserveNullAndEmptyArrays: true } },
+            { $set: { userId: "$userIdDoc" } },
+            { $lookup: { from: "comments", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }, { $sort: { createdAt: 1 } }, { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "u", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } }, { $unwind: { path: "$u", preserveNullAndEmptyArrays: true } }, { $set: { userId: "$u" } }, { $project: { u: 0 } }], as: "comments" } },
+            { $lookup: { from: "reactions", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }], as: "reactions" } },
+            { $project: { userIdDoc: 0 } }
+        ];
 
+        const posts = await Post.aggregate(pipeline);
         const count = await Post.countDocuments({ groupId, isHidden: false });
 
         res.status(200).json({

@@ -25,6 +25,8 @@ import groupRoutes from "./routes/groupRoutes.js";
 import challengeRoutes from "./routes/challengeRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import capsuleRoutes from './routes/capsuleRoutes.js';
+import commentRoutes from "./routes/commentRoutes.js";
+import reactionRoutes from "./routes/reactionRoutes.js";
 
 dotenv.config();
 
@@ -59,6 +61,8 @@ app.use("/api/posts", postRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/challenges", challengeRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/reactions", reactionRoutes);
 
 app.use("/api/moderators", moderatorRoutes);
 

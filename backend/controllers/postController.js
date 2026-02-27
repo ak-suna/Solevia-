@@ -1,6 +1,9 @@
+import mongoose from "mongoose";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
 import { Report } from "../models/Report.js";
+import { Comment } from "../models/Comment.js";
+import { Reaction } from "../models/Reaction.js";
 
 // Create a new post
 export const createPost = async (req, res) => {
@@ -37,33 +40,39 @@ export const createPost = async (req, res) => {
     }
 };
 
-// Get all posts (public feed)
+// Get all posts (public feed) with comments and reactions from Comment/Reaction collections
 export const getPosts = async (req, res) => {
     try {
         const { page = 1, limit = 10, category, type } = req.query;
 
-        const query = {
+        const matchQuery = {
             isHidden: false,
-            groupId: null // only public posts
+            groupId: null
         };
 
         if (category && category !== "all") {
-            query.category = category;
+            matchQuery.category = category;
         }
 
         if (type && type !== "all") {
-            query.type = type;
+            matchQuery.type = type;
         }
 
-        const posts = await Post.find(query)
-            .populate('userId', 'firstName lastName')
-            .populate('comments.userId', 'firstName lastName')
-            .sort({ isPinned: -1, createdAt: -1 })
-            .limit(limit * 1)
-            .skip((page - 1) * limit)
-            .lean();
+        const pipeline = [
+            { $match: matchQuery },
+            { $sort: { isPinned: -1, createdAt: -1 } },
+            { $skip: (page - 1) * limit },
+            { $limit: limit * 1 },
+            { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "userIdDoc", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } },
+            { $unwind: { path: "$userIdDoc", preserveNullAndEmptyArrays: true } },
+            { $set: { userId: "$userIdDoc" } },
+            { $lookup: { from: "comments", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }, { $sort: { createdAt: 1 } }, { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "u", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } }, { $unwind: { path: "$u", preserveNullAndEmptyArrays: true } }, { $set: { userId: "$u" } }, { $project: { u: 0 } }], as: "comments" } },
+            { $lookup: { from: "reactions", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }], as: "reactions" } },
+            { $project: { userIdDoc: 0 } }
+        ];
 
-        const count = await Post.countDocuments(query);
+        const posts = await Post.aggregate(pipeline);
+        const count = await Post.countDocuments(matchQuery);
 
         res.status(200).json({
             posts,
@@ -77,16 +86,22 @@ export const getPosts = async (req, res) => {
     }
 };
 
-// Get single post by ID
+// Get single post by ID with comments and reactions
 export const getPostById = async (req, res) => {
     try {
         const { postId } = req.params;
 
-        const post = await Post.findById(postId)
-            .populate('userId', 'firstName lastName')
-            .populate('comments.userId', 'firstName lastName')
-            .lean();
+        const result = await Post.aggregate([
+            { $match: { _id: new mongoose.Types.ObjectId(postId) } },
+            { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "userIdDoc", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } },
+            { $unwind: { path: "$userIdDoc", preserveNullAndEmptyArrays: true } },
+            { $set: { userId: "$userIdDoc" } },
+            { $lookup: { from: "comments", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }, { $sort: { createdAt: 1 } }, { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "u", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } }, { $unwind: { path: "$u", preserveNullAndEmptyArrays: true } }, { $set: { userId: "$u" } }, { $project: { u: 0 } }], as: "comments" } },
+            { $lookup: { from: "reactions", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }], as: "reactions" } },
+            { $project: { userIdDoc: 0 } }
+        ]);
 
+        const post = result[0];
         if (!post) {
             return res.status(404).json({ error: "Post not found" });
         }
@@ -192,7 +207,7 @@ export const deletePost = async (req, res) => {
     }
 };
 
-// Add reaction to post
+// Toggle reaction on post (uses Reaction model)
 export const addReaction = async (req, res) => {
     try {
         const { postId } = req.params;
@@ -204,38 +219,28 @@ export const addReaction = async (req, res) => {
         }
 
         const post = await Post.findById(postId);
-
         if (!post) {
             return res.status(404).json({ error: "Post not found" });
         }
 
-        // Check if user already reacted
-        const existingReaction = post.reactions.find(
-            r => r.userId.toString() === userId
-        );
+        const existingReaction = await Reaction.findOne({ postId, userId });
 
         if (existingReaction) {
-            // Update emoji if different
-            if (existingReaction.emoji !== emoji) {
+            if (existingReaction.emoji === emoji) {
+                await Reaction.findByIdAndDelete(existingReaction._id);
+            } else {
                 existingReaction.emoji = emoji;
                 existingReaction.createdAt = Date.now();
-            } else {
-                // Remove reaction if same emoji
-                post.reactions = post.reactions.filter(
-                    r => r.userId.toString() !== userId
-                );
+                await existingReaction.save();
             }
         } else {
-            // Add new reaction
-            post.reactions.push({ userId, emoji });
+            await Reaction.create({ postId, userId, emoji });
         }
 
-        await post.save();
-        await post.populate('userId', 'firstName lastName');
-
+        const updatedPost = await getPostByIdForResponse(postId);
         res.status(200).json({
             message: "Reaction updated",
-            post
+            post: updatedPost
         });
     } catch (error) {
         console.error("Error adding reaction:", error);
@@ -243,7 +248,20 @@ export const addReaction = async (req, res) => {
     }
 };
 
-// Add comment to post
+async function getPostByIdForResponse(postId) {
+    const result = await Post.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(postId) } },
+        { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "userIdDoc", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } },
+        { $unwind: { path: "$userIdDoc", preserveNullAndEmptyArrays: true } },
+        { $set: { userId: "$userIdDoc" } },
+        { $lookup: { from: "comments", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }, { $sort: { createdAt: 1 } }, { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "u", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } }, { $unwind: { path: "$u", preserveNullAndEmptyArrays: true } }, { $set: { userId: "$u" } }, { $project: { u: 0 } }], as: "comments" } },
+        { $lookup: { from: "reactions", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }], as: "reactions" } },
+        { $project: { userIdDoc: 0 } }
+    ]);
+    return result[0] || null;
+}
+
+// Add comment to post (uses Comment model)
 export const addComment = async (req, res) => {
     try {
         const { postId } = req.params;
@@ -255,23 +273,21 @@ export const addComment = async (req, res) => {
         }
 
         const post = await Post.findById(postId);
-
         if (!post) {
             return res.status(404).json({ error: "Post not found" });
         }
 
-        post.comments.push({
+        const newComment = await Comment.create({
+            postId,
             userId,
             content: content.trim()
         });
+        await newComment.populate("userId", "firstName lastName");
 
-        await post.save();
-        await post.populate('userId', 'firstName lastName');
-        await post.populate('comments.userId', 'firstName lastName');
-
+        const updatedPost = await getPostByIdForResponse(postId);
         res.status(200).json({
             message: "Comment added successfully",
-            post
+            post: updatedPost
         });
     } catch (error) {
         console.error("Error adding comment:", error);
@@ -279,38 +295,29 @@ export const addComment = async (req, res) => {
     }
 };
 
-// Delete comment
+// Delete comment (uses Comment model; own comment only or admin)
 export const deleteComment = async (req, res) => {
     try {
         const { postId, commentId } = req.params;
         const userId = req.user.id;
         const userRole = req.user.role;
 
-        const post = await Post.findById(postId);
-
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
-
-        const comment = post.comments.id(commentId);
-
+        const comment = await Comment.findById(commentId);
         if (!comment) {
             return res.status(404).json({ error: "Comment not found" });
         }
+        if (comment.postId.toString() !== postId) {
+            return res.status(400).json({ error: "Comment does not belong to this post" });
+        }
 
-        // Allow deletion if user owns the comment, owns the post, OR is admin
-        if (
-            comment.userId.toString() !== userId &&
-            post.userId.toString() !== userId &&
-            userRole !== "admin"
-        ) {
+        const canDelete = comment.userId.toString() === userId || userRole === "admin";
+        if (!canDelete) {
             return res.status(403).json({ error: "Not authorized to delete this comment" });
         }
 
-        post.comments.pull(commentId);
-        await post.save();
-
-        res.status(200).json({ message: "Comment deleted successfully" });
+        await Comment.findByIdAndDelete(commentId);
+        const updatedPost = await getPostByIdForResponse(postId);
+        res.status(200).json({ message: "Comment deleted successfully", post: updatedPost });
     } catch (error) {
         console.error("Error deleting comment:", error);
         res.status(500).json({ error: "Failed to delete comment" });

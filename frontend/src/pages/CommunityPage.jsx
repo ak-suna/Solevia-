@@ -1095,6 +1095,7 @@ import RightSidebarCards from "../components/RightSidebarCards";
 import { Plus, Users, Trophy, XCircle, ArrowRight, Calendar } from 'lucide-react';
 import { getPosts, getUserGroups, getUserChallenges } from "../services/communityService";
 import CreatePostModal from "../components/CreatePostModal";
+import CommunityFeed from "../components/CommunityFeed";
 
 const CommunityPage = () => {
     const navigate = useNavigate();
@@ -1234,42 +1235,7 @@ const CommunityPage = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
-                                    {posts.map(post => (
-                                        <div key={post._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 hover:border-[#f4873e] transition-all">
-                                            {/* Post Header */}
-                                            <div className="flex items-center gap-3 mb-3">
-                                                <div className="w-10 h-10 bg-gradient-to-br from-[#f4873e] to-[#ff9e5e] rounded-full flex items-center justify-center text-white font-bold">
-                                                    {post.userId?.firstName?.[0]}{post.userId?.lastName?.[0]}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="font-bold text-gray-900 dark:text-white">
-                                                        {post.userId?.firstName} {post.userId?.lastName}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                                                        {new Date(post.createdAt).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${getCategoryColor(post.category)}`}>
-                                                    {post.category}
-                                                </span>
-                                            </div>
-
-                                            {/* Post Content */}
-                                            <p className="text-gray-700 dark:text-gray-300 mb-4">{post.content}</p>
-
-                                            {/* Reactions */}
-                                            <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400">
-                                                <button className="hover:text-[#f4873e] transition-colors">👍 {post.reactions?.length || 0}</button>
-                                                <button className="hover:text-[#f4873e] transition-colors">❤️</button>
-                                                <button className="hover:text-[#f4873e] transition-colors">🎉</button>
-                                                <button className="hover:text-[#f4873e] transition-colors">💪</button>
-                                                <button className="hover:text-[#f4873e] transition-colors">🙏</button>
-                                                <button className="hover:text-[#f4873e] transition-colors ml-auto">💬 {post.comments?.length || 0}</button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                <CommunityFeed posts={posts} getCategoryColor={getCategoryColor} />
                             )}
                         </div>
                     )}
