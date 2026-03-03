@@ -121,6 +121,11 @@ import LoginForm from "./auth/LoginForm";
 import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminHome from "./pages/AdminHome";
+import AdminUsersPage from "./pages/AdminUsersPage";
+import AdminReportsPage from "./pages/AdminReportsPage";
+import AdminChallengesPage from "./pages/AdminChallengesPage";
+import AdminGroupsPage from "./pages/AdminGroupsPage";
 import VerifyEmail from "./auth/VerifyEmail";
 import { isAuthenticated, isAdmin } from "./services/auth";
 import ForgotPasswordPage from "./components/ForgotPasswordPage";
@@ -155,152 +160,147 @@ function App() {
 
     return (
         <QueryClientProvider client={queryClient}>
-        <Router>
-            {/* ← WRAP EVERYTHING IN NotificationProvider */}
-            <NotificationProvider>
-                <HabitsProvider>
-                    <GoalsProvider>
-                        <div className="App">
-                            <Routes>
-                                {/* PUBLIC ROUTES - NO DARK MODE */}
-                                <Route path="/" element={<Welcome />} />
-                                <Route path="/signup" element={<SignupForm />} />
-                                <Route path="/login" element={<LoginForm />} />
-                                <Route path="/verify-email/:code" element={<VerifyEmail />} />
-                                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            <Router>
+                {/* ← WRAP EVERYTHING IN NotificationProvider */}
+                <NotificationProvider>
+                    <HabitsProvider>
+                        <GoalsProvider>
+                            <div className="App">
+                                <Routes>
+                                    {/* PUBLIC ROUTES - NO DARK MODE */}
+                                    <Route path="/" element={<Welcome />} />
+                                    <Route path="/signup" element={<SignupForm />} />
+                                    <Route path="/login" element={<LoginForm />} />
+                                    <Route path="/verify-email/:code" element={<VerifyEmail />} />
+                                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                                    <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
-                                {/* REDIRECT DASHBOARD */}
-                                <Route
-                                    path="/dashboard"
-                                    element={
-                                        <ProtectedRoute>
-                                            <Dashboard />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    {/* REDIRECT DASHBOARD */}
+                                    <Route
+                                        path="/dashboard"
+                                        element={
+                                            <ProtectedRoute>
+                                                <Dashboard />
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                {/* PROTECTED ROUTES WITH DARK MODE */}
-                                <Route
-                                    path="/user/dashboard"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <UserDashboard />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    {/* PROTECTED ROUTES WITH DARK MODE */}
+                                    <Route
+                                        path="/user/dashboard"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <UserDashboard />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path="/journal"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <Journal />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    <Route
+                                        path="/journal"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <Journal />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path="/settings"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <SettingsPage />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    <Route
+                                        path="/settings"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <SettingsPage />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path="/admin/dashboard"
-                                    element={
-                                        <AdminRoute>
-                                            <ThemedLayout>
-                                                <AdminDashboard />
-                                            </ThemedLayout>
-                                        </AdminRoute>
-                                    }
-                                />
+                                    <Route path="/admin/dashboard" element={<AdminHome />} />
+                                    <Route path="/admin/users" element={<AdminUsersPage />} />
+                                    <Route path="/admin/reports" element={<AdminReportsPage />} />
+                                    <Route path="/admin/challenges" element={<AdminChallengesPage />} />
+                                    <Route path="/admin/groups" element={<AdminGroupsPage />} />
 
-                                <Route
-                                    path="/tasks"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <HabitsPage />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    <Route
+                                        path="/tasks"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <HabitsPage />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path="/goals"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <GoalsPage />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/capsules"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <MemoryCapsule />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
-                                <Route
-                                    path="/community"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <CommunityPage />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    <Route
+                                        path="/goals"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <GoalsPage />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/capsules"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <MemoryCapsule />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/community"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <CommunityPage />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path="/community/challenges/browse"
-                                    element={
-                                        <ProtectedRoute>
-                                            <BrowseChallengesPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    <Route
+                                        path="/community/challenges/browse"
+                                        element={
+                                            <ProtectedRoute>
+                                                <BrowseChallengesPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path="/community/groups/browse"
-                                    element={
-                                        <ProtectedRoute>
-                                            <BrowseGroupsPage />
-                                        </ProtectedRoute>
-                                    }
-                                />
+                                    <Route
+                                        path="/community/groups/browse"
+                                        element={
+                                            <ProtectedRoute>
+                                                <BrowseGroupsPage />
+                                            </ProtectedRoute>
+                                        }
+                                    />
 
-                                <Route
-                                    path="/community/group/:groupId"
-                                    element={
-                                        <ProtectedRoute>
-                                            <ThemedLayout>
-                                                <GroupDetailsPage />
-                                            </ThemedLayout>
-                                        </ProtectedRoute>
-                                    }
-                                />
-                            </Routes>
-                        </div>
-                    </GoalsProvider>
-                </HabitsProvider>
-            </NotificationProvider>
-        </Router>
+                                    <Route
+                                        path="/community/group/:groupId"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <GroupDetailsPage />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                </Routes>
+                            </div>
+                        </GoalsProvider>
+                    </HabitsProvider>
+                </NotificationProvider>
+            </Router>
         </QueryClientProvider>
     );
 }
