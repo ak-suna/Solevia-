@@ -1,18 +1,18 @@
 import { Schema, model } from "mongoose";
 
 const postSchema = new Schema({
-    userId: { 
-        type: Schema.Types.ObjectId, 
-        ref: "User", 
-        required: true 
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     },
-    content: { 
-        type: String, 
-        required: true, 
-        maxlength: 2000 
+    content: {
+        type: String,
+        required: true,
+        maxlength: 2000
     },
-    type: { 
-        type: String, 
+    type: {
+        type: String,
         enum: ["general", "tip", "reflection", "motivation", "story"],
         default: "general"
     },
@@ -21,21 +21,25 @@ const postSchema = new Schema({
         enum: ["wellbeing", "habits", "journaling", "gratitude", "mindfulness", "fitness", "other"],
         default: "other"
     },
-    image: { 
-        type: String, // URL to image if user uploads one
-        default: null 
+    image: {
+        type: String, // Cloudinary URL
+        default: null
     },
-    isReported: { 
-        type: Boolean, 
-        default: false 
+    imagePublicId: {
+        type: String, // Cloudinary public ID for deletion
+        default: null
     },
-    reportCount: { 
-        type: Number, 
-        default: 0 
+    isReported: {
+        type: Boolean,
+        default: false
     },
-    isHidden: { 
-        type: Boolean, 
-        default: false 
+    reportCount: {
+        type: Number,
+        default: 0
+    },
+    isHidden: {
+        type: Boolean,
+        default: false
     },
     groupId: {
         type: Schema.Types.ObjectId,
@@ -46,17 +50,17 @@ const postSchema = new Schema({
         type: Boolean,
         default: false
     },
-    tags: [{ 
-        type: String, 
-        trim: true 
+    tags: [{
+        type: String,
+        trim: true
     }],
-    createdAt: { 
-        type: Date, 
-        default: Date.now 
+    createdAt: {
+        type: Date,
+        default: Date.now
     },
-    updatedAt: { 
-        type: Date, 
-        default: Date.now 
+    updatedAt: {
+        type: Date,
+        default: Date.now
     }
 }, {
     timestamps: true

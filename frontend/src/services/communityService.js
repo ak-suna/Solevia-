@@ -60,16 +60,36 @@ export const getUserPosts = async (page = 1, limit = 10) => {
 
 export const createPost = async (postData) => {
     try {
+        const formData = new FormData();
+        formData.append('content', postData.content);
+        formData.append('type', postData.type);
+        formData.append('category', postData.category);
+
+        // Handle tags: If your backend expects a string, just send postData.tags
+        // If it expects an array, split it here:
+        const tagArray = postData.tags.split(',').map(t => t.trim()).filter(Boolean);
+        formData.append('tags', JSON.stringify(tagArray));
+
+        if (postData.groupId) formData.append('groupId', postData.groupId);
+        if (postData.image) formData.append('image', postData.image);
+
+        const token = localStorage.getItem("token");
         const response = await fetch(`${API_BASE_URL}/posts`, {
             method: "POST",
-            headers: getAuthHeaders(),
-            body: JSON.stringify(postData)
+            headers: {
+                Authorization: `Bearer ${token}`
+                // Leave Content-Type out!
+            },
+            body: formData
         });
 
-        if (!response.ok) throw new Error("Failed to create post");
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to create post");
+        }
         return await response.json();
     } catch (error) {
-        console.error("Error creating post:", error);
+        console.error("Service Error:", error);
         throw error;
     }
 };

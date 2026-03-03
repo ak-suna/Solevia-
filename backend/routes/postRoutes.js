@@ -13,6 +13,7 @@ import {
     getPostsByCategory
 } from "../controllers/postController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ router.get("/", authenticate, getPosts); // Get all posts with pagination
 router.get("/user", authenticate, getUserPosts); // Get current user's posts
 router.get("/category/:category", authenticate, getPostsByCategory); // Get posts by category
 router.get("/:postId", authenticate, getPostById); // Get single post
-router.post("/", authenticate, createPost); // Create new post
+router.post("/", authenticate, upload.single('image'), createPost); // Create new post with optional image
 router.put("/:postId", authenticate, updatePost); // Update post
 router.delete("/:postId", authenticate, deletePost); // Delete post
 

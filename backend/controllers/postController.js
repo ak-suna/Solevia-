@@ -4,15 +4,26 @@ import { User } from "../models/User.js";
 import { Report } from "../models/Report.js";
 import { Comment } from "../models/Comment.js";
 import { Reaction } from "../models/Reaction.js";
+import cloudinary from '../config/cloudinaryConfig.js';
 
+// Create a new post
 // Create a new post
 export const createPost = async (req, res) => {
     try {
-        const { content, type, category, image, tags, groupId } = req.body;
+        const { content, type, category, tags, groupId } = req.body;
         const userId = req.user.id;
 
         if (!content || content.trim().length === 0) {
             return res.status(400).json({ error: "Content is required" });
+        }
+
+        // Get image data from multer/cloudinary (if uploaded)
+        let imageUrl = null;
+        let imagePublicId = null;
+
+        if (req.file) {
+            imageUrl = req.file.path; // Cloudinary URL
+            imagePublicId = req.file.filename; // Cloudinary public ID
         }
 
         const newPost = new Post({
@@ -20,8 +31,9 @@ export const createPost = async (req, res) => {
             content: content.trim(),
             type: type || "general",
             category: category || "other",
-            image,
-            tags: tags || [],
+            image: imageUrl,
+            imagePublicId: imagePublicId,
+            tags: tags ? JSON.parse(tags) : [], // Parse tags from FormData
             groupId: groupId || null
         });
 
@@ -181,6 +193,7 @@ export const updatePost = async (req, res) => {
 };
 
 // Delete post
+// Delete post
 export const deletePost = async (req, res) => {
     try {
         const { postId } = req.params;
@@ -196,6 +209,17 @@ export const deletePost = async (req, res) => {
         // Allow deletion if user owns the post OR if user is admin
         if (post.userId.toString() !== userId && userRole !== "admin") {
             return res.status(403).json({ error: "Not authorized to delete this post" });
+        }
+
+        // Delete image from Cloudinary if exists
+        if (post.imagePublicId) {
+            try {
+                await cloudinary.uploader.destroy(post.imagePublicId);
+                console.log("Image deleted from Cloudinary:", post.imagePublicId);
+            } catch (error) {
+                console.error("Error deleting image from Cloudinary:", error);
+                // Continue with post deletion even if image deletion fails
+            }
         }
 
         await Post.findByIdAndDelete(postId);
