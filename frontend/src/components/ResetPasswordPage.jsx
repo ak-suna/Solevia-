@@ -145,9 +145,9 @@ const ResetPasswordPage = () => {
 
                 {/* Right Side - Image */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-                    <img 
+                    <img
                         src='/okay.png'
-                        alt="Reset Password" 
+                        alt="Reset Password"
                         className="w-full h-full object-cover animate-fade-in"
                     />
                 </div>
