@@ -73,7 +73,8 @@ export const getMemberScore = async (userId, groupId) => {
             userId,
             score,
             metrics,
-            eligible: score >= 50 && daysInGroup >= 30 && violations === 0
+            // CHANGED: from 50 to 25
+            eligible: score >= 25 && daysInGroup >= 30 && violations === 0
         };
     } catch (error) {
         throw error;
@@ -213,11 +214,11 @@ export const promoteToModerator = async (req, res) => {
         if (!scoreData.eligible) {
             return res.status(400).json({
                 error: "User does not meet minimum requirements",
-                details: `Score: ${scoreData.score}/50 required, Days in group: ${scoreData.metrics.daysInGroup}/30 required`,
+                // CHANGED: from 50 to 25
+                details: `Score: ${scoreData.score}/25 required, Days in group: ${scoreData.metrics.daysInGroup}/30 required`,
                 scoreData
             });
         }
-
         // Promote to moderator
         member.role = 'moderator';
 
