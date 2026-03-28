@@ -8,7 +8,7 @@ const AchievementBadges = ({ achievements }) => {
             <div className="flex items-center gap-2 mb-6">
                 <Trophy className="w-5 h-5 text-[#f4873e] dark:text-orange-400" />
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
-                    🏆 Your Achievements
+                     Your Achievements
                 </h3>
             </div>
 

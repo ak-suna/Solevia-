@@ -139,7 +139,7 @@ const ActivityCharts = ({ journalFrequency, habitCompletion }) => {
             <div className="flex items-center gap-2 mb-6">
                 <Activity className="w-5 h-5 text-[#89beab] dark:text-teal-400" />
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
-                    📈 Activity Overview
+                     Activity Overview
                 </h3>
             </div>
 

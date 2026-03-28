@@ -148,7 +148,7 @@ const MoodTrendChart = ({ data }) => {
             <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-5 h-5 text-[#89beab] dark:text-teal-400" />
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
-                    🌡️ Mood Trends (Last 30 Days)
+                    Mood Trends (Last 30 Days)
                 </h3>
             </div>
 

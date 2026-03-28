@@ -84,7 +84,7 @@ const MoodDistribution = ({ data }) => {
             <div className="flex items-center gap-2 mb-4">
                 <Smile className="w-5 h-5 text-[#f4873e] dark:text-orange-400" />
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
-                    😊 Mood Distribution
+                    Mood Distribution
                 </h3>
             </div>
 
