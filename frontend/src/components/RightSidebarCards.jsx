@@ -29,7 +29,7 @@ const RightSidebarCards = ({
             <div className="bg-[#f8ba90] dark:from-blue-900/20 dark:to-gray-800 rounded-[40px] p-6 border-2 border-[#f8ba90] dark:border-blue-800 shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                     <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    <h3 className="font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
+                    <h3 className="font-bold text-gray-700 dark:text-white" style={{ fontFamily: "Brasika" }}>
                         Quick Stats
                     </h3>
                 </div>

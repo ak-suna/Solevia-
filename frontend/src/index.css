@@ -65,3 +65,15 @@ body {
   font-weight: normal;
   font-style: normal;
 }
+@font-face {
+  font-family: "Flothab";
+  src: url("./assets/fonts/Flothab.ttf");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Bm";
+  src: url("./assets/fonts/BeautyMountain.ttf");
+  font-weight: normal;
+  font-style: normal;
+}

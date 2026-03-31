@@ -1,15 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Trophy, Lock } from 'lucide-react';
+import { Trophy, Lock, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AchievementBadges = ({ achievements }) => {
+    const navigate = useNavigate();
+
     return (
         <div className="bg-gray-50 dark:bg-gray-700 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600">
             <div className="flex items-center gap-2 mb-6">
                 <Trophy className="w-5 h-5 text-[#f4873e] dark:text-orange-400" />
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
-                     Your Achievements
+                    Your Achievements
                 </h3>
+
+                {/* What's Next widget */}
+                <div className="ml-auto flex gap-2">
+                    <button
+                        onClick={() => navigate('/journal')}
+                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-[#89beab]/20 hover:bg-[#89beab]/30 text-[#089171] dark:text-teal-400 rounded-full transition-all font-medium"
+                    >
+                        Journal now
+                        <ArrowRight className="w-3 h-3" />
+                    </button>
+                    <button
+                        onClick={() => navigate('/tasks')}
+                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-[#f4873e]/20 hover:bg-[#f4873e]/30 text-[#c96a20] dark:text-orange-400 rounded-full transition-all font-medium"
+                    >
+                        Check habits
+                        <ArrowRight className="w-3 h-3" />
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-5 gap-4">
@@ -49,13 +70,13 @@ const AchievementBadges = ({ achievements }) => {
                             {achievement.name}
                         </h4>
 
-                        {/* Progress Bar */}
+                        {/* Progress Bar — shown for locked items */}
                         {!achievement.unlocked && (
                             <div className="mt-2">
                                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                                     <div
                                         className="bg-gradient-to-r from-[#89beab] to-[#6fa893] h-1.5 rounded-full transition-all duration-500"
-                                        style={{ width: `${(achievement.progress / achievement.target) * 100}%` }}
+                                        style={{ width: `${Math.min(100, (achievement.progress / achievement.target) * 100)}%` }}
                                     />
                                 </div>
                                 <p className="text-[10px] text-center text-gray-500 dark:text-gray-400 mt-1">
@@ -64,7 +85,7 @@ const AchievementBadges = ({ achievements }) => {
                             </div>
                         )}
 
-                        {/* Unlocked Badge */}
+                        {/* Unlocked check */}
                         {achievement.unlocked && (
                             <div className="absolute top-2 right-2">
                                 <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
@@ -73,7 +94,7 @@ const AchievementBadges = ({ achievements }) => {
                             </div>
                         )}
 
-                        {/* Locked Badge */}
+                        {/* Locked icon */}
                         {!achievement.unlocked && (
                             <div className="absolute top-2 right-2">
                                 <Lock className="w-4 h-4 text-gray-400" />
@@ -89,7 +110,6 @@ const AchievementBadges = ({ achievements }) => {
                                     Progress: {achievement.progress}/{achievement.target}
                                 </p>
                             )}
-                            {/* Arrow */}
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
                                 <div className="border-4 border-transparent border-t-gray-900"></div>
                             </div>
