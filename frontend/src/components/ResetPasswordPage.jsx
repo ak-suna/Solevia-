@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PasswordStrength, { checkPasswordStrength } from "./PasswordStrength";
 import { resetPassword } from "../services/auth";
 import { useNavigate, useParams, Link } from "react-router-dom";
 
@@ -27,9 +28,10 @@ const ResetPasswordPage = () => {
             return;
         }
 
-        // Validate password length
-        if (formData.password.length < 6) {
-            setError("Password must be at least 6 characters long");
+        // Validate password requirements
+        const checks = checkPasswordStrength(formData.password);
+        if (checks.some((v) => !v)) {
+            setError("Password does not meet all requirements.");
             return;
         }
 
@@ -93,9 +95,10 @@ const ResetPasswordPage = () => {
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
-                                    minLength={6}
+                                    minLength={8}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
                                 />
+                                <PasswordStrength password={formData.password} />
 
                                 <input
                                     type="password"
@@ -116,7 +119,7 @@ const ResetPasswordPage = () => {
 
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={loading || checkPasswordStrength(formData.password).some((v) => !v)}
                                     className="w-full px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl"
                                 >
                                     {loading ? (
