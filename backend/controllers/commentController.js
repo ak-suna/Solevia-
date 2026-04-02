@@ -34,6 +34,7 @@ export const addComment = async (req, res) => {
             return res.status(400).json({ error: "Post ID and comment content are required" });
         }
 
+
         const post = await Post.findById(postId);
         if (!post) {
             return res.status(404).json({ error: "Post not found" });
@@ -45,6 +46,11 @@ export const addComment = async (req, res) => {
             content: content.trim()
         });
         await newComment.populate("userId", "firstName lastName");
+
+        // Award points for commenting in a group post
+        if (post.groupId) {
+            await User.findByIdAndUpdate(userId, { $inc: { points: 2 } });
+        }
 
         res.status(201).json({
             message: "Comment added successfully",

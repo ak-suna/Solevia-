@@ -39,6 +39,11 @@ export const createPost = async (req, res) => {
 
         await newPost.save();
 
+        // Award points if post is in a group
+        if (groupId) {
+            await User.findByIdAndUpdate(userId, { $inc: { points: 5 } });
+        }
+
         // Populate user info
         await newPost.populate('userId', 'firstName lastName');
 
@@ -249,6 +254,8 @@ export const addReaction = async (req, res) => {
 
         const existingReaction = await Reaction.findOne({ postId, userId });
 
+
+        let awardedPoints = false;
         if (existingReaction) {
             if (existingReaction.emoji === emoji) {
                 await Reaction.findByIdAndDelete(existingReaction._id);
@@ -259,6 +266,12 @@ export const addReaction = async (req, res) => {
             }
         } else {
             await Reaction.create({ postId, userId, emoji });
+            awardedPoints = true;
+        }
+
+        // Award points for new reaction (not for toggling off)
+        if (awardedPoints) {
+            await User.findByIdAndUpdate(userId, { $inc: { points: 2 } });
         }
 
         const updatedPost = await getPostByIdForResponse(postId);
