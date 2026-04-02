@@ -1,3 +1,59 @@
+// ==================== GROUP MODERATOR TOOLS ====================
+export const getGroupReports = async (groupId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/moderator-tools/${groupId}/reports`, {
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error("Failed to fetch group reports");
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching group reports:", error);
+        throw error;
+    }
+};
+
+export const resolveGroupReport = async (groupId, reportId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/moderator-tools/${groupId}/reports/${reportId}/resolve`, {
+            method: "PUT",
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error("Failed to resolve report");
+        return await response.json();
+    } catch (error) {
+        console.error("Error resolving report:", error);
+        throw error;
+    }
+};
+
+export const removeGroupMember = async (groupId, userId) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/moderator-tools/${groupId}/members/${userId}`, {
+            method: "DELETE",
+            headers: getAuthHeaders()
+        });
+        if (!response.ok) throw new Error("Failed to remove member");
+        return await response.json();
+    } catch (error) {
+        console.error("Error removing member:", error);
+        throw error;
+    }
+};
+
+export const disableGroupMember = async (groupId, userId, disabled, reason) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/members/${userId}/disable`, {
+            method: "PUT",
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ disabled, reason })
+        });
+        if (!response.ok) throw new Error("Failed to update member status");
+        return await response.json();
+    } catch (error) {
+        console.error("Error updating member status:", error);
+        throw error;
+    }
+};
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
 // Helper to get auth headers
@@ -537,22 +593,21 @@ export const getModeratorCandidates = async (groupId) => {
     }
 };
 
-export const promoteToModerator = async (userId, groupId) => {
+
+export const assignModerator = async (groupId, userId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/moderators/promote`, {
+        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/assign-moderator`, {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ userId, groupId })
+            body: JSON.stringify({ userId })
         });
-
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || "Failed to promote moderator");
+            throw new Error(error.error || "Failed to assign moderator");
         }
-
         return await response.json();
     } catch (error) {
-        console.error("Error promoting moderator:", error);
+        console.error("Error assigning moderator:", error);
         throw error;
     }
 };
