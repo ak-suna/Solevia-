@@ -203,10 +203,12 @@ export const loginUser = async (req, res) => {
     try {
         const loginUser = await verifyUser(req.body);
         
+
         // ✅ CHECK IF USER IS DISABLED
         if (loginUser.disabled) {
-            return res.status(403).json({ 
-                error: "Your account has been disabled. Please contact support for assistance." 
+            return res.status(403).json({
+                error: `Your account has been disabled. Please contact support at anuskagc100@gmail.com.`,
+                reason: loginUser.disabledReason || undefined
             });
         }
         
