@@ -1,3 +1,5 @@
+// Points for eligibility (used for moderator selection)
+
 import { Schema, model } from "mongoose";
 
 const userSchema = new Schema({
@@ -19,6 +21,10 @@ const userSchema = new Schema({
         type: String,
         enum: ["user", "moderator", "admin"],
         default: "user"
+    },
+    points: {
+        type: Number,
+        default: 0
     },
 
     // ✅ NEW: Track which groups user moderates
