@@ -98,18 +98,25 @@ router.patch("/users/:id/role", authenticate, authorizeRole("admin"), async (req
 });
 
 // ✅ NEW: Toggle user disabled status (Admin only)
+
+import { sendUserDisabledEmail } from "../utils/sendEmail.js";
+
 router.patch("/users/:id/status", authenticate, authorizeRole("admin"), async (req, res) => {
     try {
-        const { disabled } = req.body;
-        
+        const { disabled, reason } = req.body;
+
         // Prevent admin from disabling themselves
         if (req.user.userId === req.params.id || req.user.id === req.params.id) {
             return res.status(400).json({ error: "You cannot disable your own account" });
         }
-        
+
+        if (disabled && (!reason || reason.trim() === "")) {
+            return res.status(400).json({ error: "A reason is required to disable a user." });
+        }
+
         const user = await User.findByIdAndUpdate(
             req.params.id,
-            { disabled },
+            { disabled, disabledReason: disabled ? reason : "" },
             { new: true }
         ).select("-password");
 
@@ -117,13 +124,23 @@ router.patch("/users/:id/status", authenticate, authorizeRole("admin"), async (r
             return res.status(404).json({ error: "User not found" });
         }
 
-        res.status(200).json({ 
-            success: true, 
+        // Send email if user is disabled
+        if (disabled) {
+            try {
+                await sendUserDisabledEmail(user, reason);
+            } catch (e) {
+                console.error("Failed to send disabled email:", e);
+            }
+        }
+
+        res.status(200).json({
+            success: true,
             message: `User ${disabled ? 'disabled' : 'enabled'} successfully`,
-            user 
+            user
         });
     } catch (error) {
-        res.status(500).json({ error: "Failed to update user status" });
+        console.error("[ADMIN_DISABLE] Failed to update user status:", error);
+        res.status(500).json({ error: "Failed to update user status", details: error?.message || error });
     }
 });
 
