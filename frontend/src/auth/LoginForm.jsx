@@ -1,89 +1,15 @@
 // import React, { useState } from "react";
 // import { login, isVerified } from "../services/auth";
 // import { useNavigate, Link } from "react-router-dom";
-
-// const LoginForm = () => {
-//     const navigate = useNavigate();
-//     const [formData, setFormData] = useState({
-//         email: "",
-//         password: "",
-//     });
-//     const [error, setError] = useState("");
-//     const [warning, setWarning] = useState("");
-//     const [loading, setLoading] = useState(false);
-//     const [success, setSuccess] = useState(false);
-
-//     const handleChange = (e) => {
-//         setFormData({ ...formData, [e.target.name]: e.target.value });
-//     };
-
-//     const handleSubmit = async (e) => {
-//         e.preventDefault();
-//         setError("");
-//         setWarning("");
-//         setLoading(true);
-
-//         try {
-//             const response = await login(formData);
-//             console.log("Login successful:", response);
-
-//             if (!isVerified()) {
-//                 setWarning("⚠️ Please verify your email. Check your inbox for the verification link.");
-//             }
-
-//             setSuccess(true);
-
-//             // Redirect after 2 seconds
-//             setTimeout(() => {
-//                 navigate("/dashboard");
-//             }, 2000);
-//         } catch (err) {
-//             setError(err.message);
-//         } finally {
-//             setLoading(false);
-//         }
-//     };
-
-//     if (success) {
-//         return (
-//             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-//                 <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 animate-fade-in">
-//                     <h2 className="text-3xl font-bold text-green-600 mb-4">✅ Login Successful!</h2>
-//                     {warning && (
-//                         <p className="text-orange-600 bg-orange-50 py-2 px-4 rounded-lg mb-4">
-//                             {warning}
-//                         </p>
-//                     )}
-//                     <p className="text-gray-600">
-//                         Redirecting to dashboard...
-//                     </p>
-//                     <div className="mt-6">
-//                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-//                     </div>
-//                 </div>
-//             </div>
-//         );
-//     }
-
-//     return (
-// <div className="min-h-screen bg-gradient-to-br from-[#f1bdcd] via-[#f5d9c9] to-[#A7D5C4]">
-
-//             <div className="flex min-h-screen">
-//                 {/* Left Side - Form */}
-//                 <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-//                     <div className="max-w-md w-full animate-fade-in-left">
-//                         <div className="bg-white rounded-2xl shadow-2xl p-8 backdrop-blur-sm bg-opacity-95">
-//                             <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Welcome Back!</h2>
-//                             <p className="text-gray-600 text-center mb-6">Login to access your account</p>
-
-//                             <form onSubmit={handleSubmit} className="space-y-6">
-//                                 <input
-//                                     type="email"
-//                                     name="email"
-//                                     placeholder="Email"
-//                                     value={formData.email}
-//                                     onChange={handleChange}
-//                                     required
+// export default LoginForm;
+        //     } else if (err.reason) {
+        //         setError(`${err.message}\nReason: ${err.reason}`);
+        //     } else {
+        //         setError(err.message || "Login failed");
+        //     }
+        // } finally {
+        //     setLoading(false);
+        // }
 //                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 hover:border-indigo-300"
 //                                 />
 
@@ -404,9 +330,9 @@ const LoginForm = () => {
                                 </div>
 
                                 {error && (
-                                    <p className="text-red-500 text-sm text-center bg-red-50 py-2 px-4 rounded-lg animate-shake">
+                                    <div className="text-red-500 text-sm text-center bg-red-50 py-2 px-4 rounded-lg animate-shake whitespace-pre-line">
                                         {error}
-                                    </p>
+                                    </div>
                                 )}
 
                                 {warning && (
