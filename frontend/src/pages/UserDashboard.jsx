@@ -326,7 +326,7 @@ import { shouldShowMoodCheck, saveMood, getMoodHistory, getStreaks } from "../se
 import Sidebar from "../components/Sidebar";
 import HabitsCard from "../components/HabitsCard";
 import GoalsCard from "../components/GoalsCard";
-import { Bell, Menu, Flame, Plus } from 'lucide-react';
+import { Menu, Flame, Plus } from 'lucide-react';
 import NotificationBell from '../components/NotificationBell';
 import { getJournals } from "../services/journalService";
 import { getHabitHistory } from "../services/habitService";
@@ -348,6 +348,8 @@ const UserDashboard = () => {
   const [journals, setJournals] = useState([]);
   const [habitHistory, setHabitHistory] = useState([]);
 
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     checkMoodStatus();
     fetchMoodHistory();

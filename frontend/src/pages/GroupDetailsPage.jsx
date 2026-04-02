@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import Toast from "../components/Toast";
+import Modal from "../components/Modal";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
@@ -12,6 +14,8 @@ import {
 } from "../services/communityService";
 import PostCard from "../components/PostCard";
 import CreatePostModal from "../components/CreatePostModal";
+import ModeratorCandidatesModal from "../components/ModeratorCandidatesModal";
+import WeeklyTaskModal from "../components/WeeklyTaskModal";
 import { jwtDecode } from "jwt-decode";
 
 const GroupDetailsPage = () => {
@@ -44,42 +48,93 @@ const GroupDetailsPage = () => {
     const posts = postsData?.posts ?? [];
     const loading = loadingGroup;
 
-    // Sync task completed from group data
+    // Modal/Toast state
+    const [modal, setModal] = useState({ open: false, type: '', message: '', onConfirm: null });
+    const [toast, setToast] = useState(null);
+
+    // Weekly Task Modal state
+    const [showWeeklyTaskModal, setShowWeeklyTaskModal] = useState(false);
+
+    // Block disabled users from accessing the group
     useEffect(() => {
-        if (group?.weeklyTask?.completedBy?.some(id => id === currentUserId)) {
+        if (groupError && groupData === undefined && groupError.response && groupError.response.data && groupError.response.data.error) {
+            setModal({ open: true, type: 'error', message: groupError.response.data.error, onConfirm: () => window.location.href = '/' });
+        }
+    }, [groupError, groupData]);
+
+    // Sync task completed from group data (must match userId as string)
+    useEffect(() => {
+        if (group?.weeklyTask?.completedBy?.some(id => id === currentUserId || id?._id === currentUserId)) {
             setTaskCompleted(true);
+        } else {
+            setTaskCompleted(false);
         }
     }, [group, currentUserId]);
 
+    // Modal for assigning moderator
+    const [showModeratorModal, setShowModeratorModal] = useState(false);
+
     useEffect(() => {
         if (groupError) {
-            alert("Failed to load group. You may not have access.");
-            navigate('/community');
+            setModal({ open: true, type: 'error', message: 'Failed to load group. You may not have access.', onConfirm: () => { setModal({ ...modal, open: false }); navigate('/community'); } });
         }
+        // eslint-disable-next-line
     }, [groupError, navigate]);
 
-    const handleLeaveGroup = async () => {
-        if (window.confirm("Are you sure you want to leave this group?")) {
-            try {
-                await leaveGroup(groupId);
-                alert("You have left the group");
-                navigate('/community');
-            } catch (error) {
-                console.error("Error leaving group:", error);
-                alert("Failed to leave group");
-            }
+    // Helper: is current user a member and not disabled?
+    const memberObj = group?.members?.find(m => m.userId === currentUserId || m.userId?._id === currentUserId);
+    const isMember = !!memberObj && !memberObj.disabled;
+    const isDisabled = !!memberObj && memberObj.disabled;
+    // Helper: is current user a moderator (by moderatorId or member role)
+    const isModerator = (group?.moderatorId && (group.moderatorId === currentUserId || group.moderatorId?._id === currentUserId)) ||
+        group?.members?.some(m => (m.userId === currentUserId || m.userId?._id === currentUserId) && m.role === "moderator");
+    // Save weekly task handler
+    const handleSaveWeeklyTask = async (task) => {
+        try {
+            // Call backend API to update weekly task
+            await fetch(`/api/groups/${groupId}/weekly-task`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ task })
+            });
+            // Invalidate and refetch group data to ensure latest task is shown
+            await queryClient.invalidateQueries({ queryKey: ["community", "group", groupId] });
+            setShowWeeklyTaskModal(false);
+            setToast({ message: 'Weekly task updated!', type: 'success' });
+        } catch (error) {
+            setToast({ message: 'Failed to update weekly task', type: 'error' });
         }
+    };
+
+    const handleLeaveGroup = () => {
+        setModal({
+            open: true,
+            type: 'confirm',
+            message: 'Are you sure you want to leave this group?',
+            onConfirm: async () => {
+                setModal({ ...modal, open: false });
+                try {
+                    await leaveGroup(groupId);
+                    setToast({ message: 'You have left the group', type: 'success' });
+                    navigate('/community');
+                } catch (error) {
+                    setToast({ message: 'Failed to leave group', type: 'error' });
+                }
+            }
+        });
     };
 
     const handleCompleteTask = async () => {
         try {
             await completeWeeklyTask(groupId);
             setTaskCompleted(true);
-            alert("Great job! Weekly task completed! 🎉");
+            setToast({ message: 'Great job! Weekly task completed! 🎉', type: 'success' });
             queryClient.invalidateQueries({ queryKey: ["community"] });
         } catch (error) {
-            console.error("Error completing task:", error);
-            alert(error.response?.data?.error || "Failed to complete task");
+            setToast({ message: error.response?.data?.error || 'Failed to complete task', type: 'error' });
         }
     };
 
@@ -121,10 +176,79 @@ const GroupDetailsPage = () => {
         );
     }
 
+
     if (!group) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
                 <p className="text-gray-600 dark:text-gray-400">Group not found</p>
+                {/* Toast notification */}
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]">
+                    {toast && (
+                        <Toast
+                            message={toast.message}
+                            type={toast.type === "error" ? "error" : "success"}
+                            onClose={() => setToast(null)}
+                            duration={3000}
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // If not a member, show access denied
+    if (!isMember && !isDisabled) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-10 shadow-xl text-center max-w-lg">
+                    <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Access Denied</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">You must be a member of this group to view its content.</p>
+                    <button
+                        onClick={() => navigate('/community')}
+                        className="px-6 py-3 bg-[#f4873e] text-white rounded-full font-bold hover:bg-[#ffa669] transition-colors"
+                    >
+                        Back to Community
+                    </button>
+                </div>
+                {/* Toast notification */}
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]">
+                    {toast && (
+                        <Toast
+                            message={toast.message}
+                            type={toast.type === "error" ? "error" : "success"}
+                            onClose={() => setToast(null)}
+                            duration={3000}
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    }
+    // If disabled, show disabled message
+    if (isDisabled) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-10 shadow-xl text-center max-w-lg">
+                    <h2 className="text-2xl font-bold mb-4 text-red-600 dark:text-red-400">You are disabled from this group</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{memberObj.disabledReason || 'You have been disabled by a moderator and cannot access this group.'}</p>
+                    <button
+                        onClick={() => navigate('/community')}
+                        className="px-6 py-3 bg-[#f4873e] text-white rounded-full font-bold hover:bg-[#ffa669] transition-colors"
+                    >
+                        Back to Community
+                    </button>
+                </div>
+                {/* Toast notification */}
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]">
+                    {toast && (
+                        <Toast
+                            message={toast.message}
+                            type={toast.type === "error" ? "error" : "success"}
+                            onClose={() => setToast(null)}
+                            duration={3000}
+                        />
+                    )}
+                </div>
             </div>
         );
     }
@@ -136,6 +260,17 @@ const GroupDetailsPage = () => {
                     onClose={() => setShowCreatePost(false)}
                     onPostCreated={handlePostCreated}
                     groupId={groupId}
+                />
+            )}
+            {showModeratorModal && (
+                <ModeratorCandidatesModal
+                    groupId={groupId}
+                    groupName={group?.name}
+                    onClose={() => setShowModeratorModal(false)}
+                    onSuccess={() => {
+                        setShowModeratorModal(false);
+                        queryClient.invalidateQueries({ queryKey: ["community", "group", groupId] });
+                    }}
                 />
             )}
 
@@ -161,8 +296,12 @@ const GroupDetailsPage = () => {
                             <div className="flex items-center gap-4">
                                 <div className="text-5xl">{group.icon || "📝"}</div>
                                 <div>
-                                    <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "Brasika" }}>
+                                    <h1 className="text-3xl font-bold mb-2 flex items-center gap-2" style={{ fontFamily: "Brasika" }}>
                                         {group.name}
+                                        {/* 👑 badge for moderator */}
+                                        {group.moderatorId && (group.moderatorId === currentUserId || group.moderatorId?._id === currentUserId) && (
+                                            <span title="You are the moderator" className="ml-2 text-yellow-400 text-2xl">👑</span>
+                                        )}
                                     </h1>
                                     <p className="text-white/90 mb-3">
                                         {group.description}
@@ -178,12 +317,48 @@ const GroupDetailsPage = () => {
                                     </div>
                                 </div>
                             </div>
-                            <button
-                                onClick={handleLeaveGroup}
-                                className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-semibold transition-colors"
-                            >
-                                Leave Group
-                            </button>
+                            <div className="flex flex-col gap-2 items-end">
+                                <button
+                                    onClick={handleLeaveGroup}
+                                    className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-full text-sm font-semibold transition-colors"
+                                >
+                                    Leave Group
+                                </button>
+                                {/* Show Assign Moderator button for admin only */}
+                                {group && group.adminId === currentUserId && (
+                                    <button
+                                        onClick={() => setShowModeratorModal(true)}
+                                        className="px-4 py-2 bg-[#89beab] hover:bg-[#6fa893] text-white rounded-full text-sm font-semibold transition-colors mt-2"
+                                    >
+                                        Assign Moderator
+                                    </button>
+                                )}
+                                {/* Show Set Weekly Task button for admin or moderator */}
+                                {group && (group.adminId === currentUserId || isModerator) && (
+                                    <button
+                                        onClick={() => setShowWeeklyTaskModal(true)}
+                                        className="px-4 py-2 bg-[#f4873e] hover:bg-[#f8ba90] text-white rounded-full text-sm font-semibold transition-colors mt-2"
+                                    >
+                                        Set Weekly Task
+                                    </button>
+                                )}
+                                {/* Show Moderator Tools button for admin or moderator */}
+                                {group && (group.adminId === currentUserId || isModerator) && (
+                                    <button
+                                        onClick={() => navigate(`/groups/${group._id}/moderator/dashboard`)}
+                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-semibold transition-colors mt-2"
+                                    >
+                                        Moderator Tools
+                                    </button>
+                                )}
+                            </div>
+                            {/* Weekly Task Modal */}
+                            <WeeklyTaskModal
+                                isOpen={showWeeklyTaskModal}
+                                onClose={() => setShowWeeklyTaskModal(false)}
+                                onSave={handleSaveWeeklyTask}
+                                initialTask={group?.weeklyTask?.task || ''}
+                            />
                         </div>
                     </div>
 
@@ -271,6 +446,51 @@ const GroupDetailsPage = () => {
                         New Post
                     </span>
                 </button>
+            </div>
+
+            {/* Modal Dialogs */}
+            <Modal
+                isOpen={modal.open}
+                onClose={() => setModal({ ...modal, open: false })}
+                title={modal.type === 'confirm' ? 'Confirm' : modal.type === 'error' ? 'Error' : ''}
+            >
+                <p className="mb-4">{modal.message}</p>
+                <div className="flex justify-end gap-2">
+                    <button
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-500"
+                        onClick={() => setModal({ ...modal, open: false })}
+                    >
+                        Cancel
+                    </button>
+                    {modal.type === 'confirm' && (
+                        <button
+                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white font-bold hover:shadow-lg"
+                            onClick={modal.onConfirm}
+                        >
+                            Confirm
+                        </button>
+                    )}
+                    {modal.type === 'error' && (
+                        <button
+                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold hover:shadow-lg"
+                            onClick={modal.onConfirm}
+                        >
+                            OK
+                        </button>
+                    )}
+                </div>
+            </Modal>
+
+            {/* Toast notification */}
+            <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]">
+                {toast && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type === "error" ? "error" : "success"}
+                        onClose={() => setToast(null)}
+                        duration={3000}
+                    />
+                )}
             </div>
         </>
     );

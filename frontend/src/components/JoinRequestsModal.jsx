@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { X, UserPlus, Check, XCircle, Clock } from 'lucide-react';
 import { getGroupJoinRequests, approveJoinRequest, rejectJoinRequest } from '../services/communityService';
+import Modal from './Modal';
+import Toast from './Toast';
 
 const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(null);
+    const [showApproveModal, setShowApproveModal] = useState(false);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [selectedRequest, setSelectedRequest] = useState(null); // { id, userName }
+    const [rejectReason, setRejectReason] = useState("");
+    const [toast, setToast] = useState(null); // { message, type }
 
     useEffect(() => {
         fetchRequests();
@@ -17,42 +24,54 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
             const data = await getGroupJoinRequests(groupId);
             setRequests(data.requests || []);
         } catch (error) {
-            alert(error.message);
+            setToast({ message: error.message, type: 'error' });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleApprove = async (requestId, userName) => {
-        if (!window.confirm(`Approve ${userName}'s request to join?`)) return;
+    const handleApproveClick = (requestId, userName) => {
+        setSelectedRequest({ id: requestId, userName });
+        setShowApproveModal(true);
+    };
 
-        setProcessing(requestId);
+    const handleApprove = async () => {
+        if (!selectedRequest) return;
+        setProcessing(selectedRequest.id);
+        setShowApproveModal(false);
         try {
-            await approveJoinRequest(groupId, requestId);
-            alert(`${userName} has been added to the group!`);
+            await approveJoinRequest(groupId, selectedRequest.id);
+            setToast({ message: `${selectedRequest.userName} has been added to the group!`, type: 'success' });
             fetchRequests(); // Refresh list
             onSuccess();
         } catch (error) {
-            alert(error.message);
+            setToast({ message: error.message, type: 'error' });
         } finally {
             setProcessing(null);
+            setSelectedRequest(null);
         }
     };
 
-    const handleReject = async (requestId, userName) => {
-        const reason = prompt(`Reject ${userName}'s request?\n\nOptional reason for rejection:`);
-        if (reason === null) return; // User cancelled
+    const handleRejectClick = (requestId, userName) => {
+        setSelectedRequest({ id: requestId, userName });
+        setRejectReason("");
+        setShowRejectModal(true);
+    };
 
-        setProcessing(requestId);
+    const handleReject = async () => {
+        if (!selectedRequest) return;
+        setProcessing(selectedRequest.id);
+        setShowRejectModal(false);
         try {
-            await rejectJoinRequest(groupId, requestId, reason);
-            alert(`${userName}'s request has been rejected.`);
+            await rejectJoinRequest(groupId, selectedRequest.id, rejectReason);
+            setToast({ message: `${selectedRequest.userName}'s request has been rejected.`, type: 'success' });
             fetchRequests(); // Refresh list
             onSuccess();
         } catch (error) {
-            alert(error.message);
+            setToast({ message: error.message, type: 'error' });
         } finally {
             setProcessing(null);
+            setSelectedRequest(null);
         }
     };
 
@@ -157,7 +176,7 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
                                 {/* Action Buttons */}
                                 <div className="flex gap-3">
                                     <button
-                                        onClick={() => handleApprove(request._id, `${request.userId.firstName} ${request.userId.lastName}`)}
+                                        onClick={() => handleApproveClick(request._id, `${request.userId.firstName} ${request.userId.lastName}`)}
                                         disabled={processing === request._id}
                                         className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-full font-bold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -175,7 +194,7 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
                                     </button>
 
                                     <button
-                                        onClick={() => handleReject(request._id, `${request.userId.firstName} ${request.userId.lastName}`)}
+                                        onClick={() => handleRejectClick(request._id, `${request.userId.firstName} ${request.userId.lastName}`)}
                                         disabled={processing === request._id}
                                         className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full font-bold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -197,6 +216,71 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
                         Close
                     </button>
                 </div>
+            </div>
+            {/* Approve Modal */}
+            <Modal
+                isOpen={showApproveModal}
+                onClose={() => setShowApproveModal(false)}
+                title="Approve Join Request"
+            >
+                <p className="mb-4">Approve <span className="font-semibold">{selectedRequest?.userName}</span>'s request to join?</p>
+                <div className="flex justify-end gap-2">
+                    <button
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-500"
+                        onClick={() => setShowApproveModal(false)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white font-bold hover:shadow-lg"
+                        onClick={handleApprove}
+                        disabled={processing}
+                    >
+                        {processing ? "Processing..." : "Approve"}
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Reject Modal */}
+            <Modal
+                isOpen={showRejectModal}
+                onClose={() => setShowRejectModal(false)}
+                title="Reject Join Request"
+            >
+                <label className="block text-sm font-semibold mb-2">Reason for rejection (optional)</label>
+                <textarea
+                    className="w-full min-h-[80px] rounded-lg border border-gray-300 dark:border-gray-600 p-2 mb-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    value={rejectReason}
+                    onChange={e => setRejectReason(e.target.value)}
+                    placeholder="Let the user know why their request was rejected..."
+                />
+                <div className="flex justify-end gap-2">
+                    <button
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-500"
+                        onClick={() => setShowRejectModal(false)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-red-500 to-red-600 text-white font-bold hover:shadow-lg"
+                        onClick={handleReject}
+                        disabled={processing}
+                    >
+                        {processing ? "Processing..." : "Reject"}
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Toast Notification */}
+            <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]">
+                {toast && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type === "error" ? "error" : "success"}
+                        onClose={() => setToast(null)}
+                        duration={3000}
+                    />
+                )}
             </div>
         </div>
     );

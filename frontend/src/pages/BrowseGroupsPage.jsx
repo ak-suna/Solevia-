@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import RightSidebarCards from "../components/RightSidebarCards";
+import Modal from "../components/Modal";
+import Toast from "../components/Toast";
 import { ArrowLeft, Users, Calendar } from 'lucide-react';
 import { getAllGroups, requestToJoinGroup, getUserGroups, getUserChallenges } from "../services/communityService";
 
@@ -13,6 +15,10 @@ const BrowseGroupsPage = () => {
     const [loading, setLoading] = useState(true);
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [requesting, setRequesting] = useState(null);
+    const [showJoinModal, setShowJoinModal] = useState(false);
+    const [joinReason, setJoinReason] = useState("");
+    const [pendingGroup, setPendingGroup] = useState(null); // { id, name }
+    const [toast, setToast] = useState(null); // { message, type }
 
     useEffect(() => {
         fetchData();
@@ -32,28 +38,31 @@ const BrowseGroupsPage = () => {
             setMyChallenges(challengesData.challenges || []);
         } catch (error) {
             console.error("Error fetching groups:", error);
-            alert("Failed to load groups");
+            setToast({ message: "Failed to load groups", type: "error" });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleRequestToJoin = async (groupId, groupName) => {
-        const message = prompt(
-            `Request to join "${groupName}"?\n\n(Optional) Tell the moderators why you'd like to join:`
-        );
+    const openJoinModal = (groupId, groupName) => {
+        setPendingGroup({ id: groupId, name: groupName });
+        setJoinReason("");
+        setShowJoinModal(true);
+    };
 
-        if (message === null) return;
-
-        setRequesting(groupId);
+    const handleSubmitJoinRequest = async () => {
+        if (!pendingGroup) return;
+        setRequesting(pendingGroup.id);
+        setShowJoinModal(false);
         try {
-            await requestToJoinGroup(groupId, message);
-            alert(`✓ Join request submitted for "${groupName}"!\n\nA moderator will review your request soon.`);
+            await requestToJoinGroup(pendingGroup.id, joinReason);
+            setToast({ message: `✓ Join request submitted for "${pendingGroup.name}"! A moderator will review your request soon.`, type: "success" });
             fetchData();
         } catch (error) {
-            alert(error.message || "Failed to submit join request");
+            setToast({ message: error.message || "Failed to submit join request", type: "error" });
         } finally {
             setRequesting(null);
+            setPendingGroup(null);
         }
     };
 
@@ -82,7 +91,7 @@ const BrowseGroupsPage = () => {
                     className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#f4873e] mb-6 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    <span className="font-semibold">Back to Community</span>
+                    <span className="font-semibold">Back to Group</span>
                 </button>
 
                 {/* Header */}
@@ -197,7 +206,7 @@ const BrowseGroupsPage = () => {
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             if (!isMember && !isFull) {
-                                                handleRequestToJoin(group._id, group.name);
+                                                openJoinModal(group._id, group.name);
                                             }
                                         }}
                                         disabled={isMember || isFull || requesting === group._id}
@@ -231,6 +240,48 @@ const BrowseGroupsPage = () => {
                             );
                         })}
                     </div>
+                )}
+            </div>
+
+            {/* Join Request Modal */}
+            <Modal
+                isOpen={showJoinModal}
+                onClose={() => setShowJoinModal(false)}
+                title={`Request to join "${pendingGroup?.name || ''}"`}
+            >
+                <label className="block text-sm font-semibold mb-2">Why do you want to join? (optional)</label>
+                <textarea
+                    className="w-full min-h-[80px] rounded-lg border border-gray-300 dark:border-gray-600 p-2 mb-4 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    value={joinReason}
+                    onChange={e => setJoinReason(e.target.value)}
+                    placeholder="Tell the moderators why you'd like to join..."
+                />
+                <div className="flex justify-end gap-2">
+                    <button
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-500"
+                        onClick={() => setShowJoinModal(false)}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className="px-4 py-2 rounded-lg bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white font-bold hover:shadow-lg"
+                        onClick={handleSubmitJoinRequest}
+                        disabled={requesting}
+                    >
+                        {requesting ? "Sending..." : "Submit Request"}
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Toast Notification */}
+            <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]">
+                {toast && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type === "error" ? "error" : "success"}
+                        onClose={() => setToast(null)}
+                        duration={3000}
+                    />
                 )}
             </div>
 

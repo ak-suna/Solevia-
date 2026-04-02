@@ -1131,10 +1131,13 @@ function NotificationSettingsContent() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState(null);
 
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchPreferences();
     }, []);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const fetchPreferences = async () => {
         try {
             const token = localStorage.getItem("token");
