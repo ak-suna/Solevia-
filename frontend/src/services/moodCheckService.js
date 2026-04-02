@@ -1,4 +1,5 @@
 // const API_BASE_URL = "http://localhost:5000/api"; // Change to your backend URL
+import { fetchWithAuth } from "./fetchWithAuth";
 
 // // Check if user needs to log mood
 // export const shouldShowMoodCheck = async () => {
@@ -246,41 +247,33 @@
 
 const API_BASE_URL = "http://localhost:5000/api"; // Matches your auth service
 
-// Check if user needs to log mood
+// // Check if user needs to log mood
 export const shouldShowMoodCheck = async () => {
   try {
     const token = localStorage.getItem("token");
-    
     if (!token) {
       return { show: false, period: null };
     }
-    
-    // Check backend for today's moods
-    const response = await fetch(`${API_BASE_URL}/mood/today`, {
+    // Use fetchWithAuth so disabled users are logged out
+    const response = await fetchWithAuth(`${API_BASE_URL}/mood/today`, {
       headers: {
         "Authorization": `Bearer ${token}`
       }
     });
-    
     if (!response.ok) {
       throw new Error("Failed to fetch mood status");
     }
-    
     const data = await response.json();
     const currentHour = new Date().getHours();
-    
     // Morning check: 5 AM - 12 PM
     if (currentHour >= 5 && currentHour < 12 && !data.morning) {
       return { show: true, period: "morning" };
     }
-    
     // Evening check: 5 PM - 11 PM
     if (currentHour >= 17 && currentHour < 23 && !data.evening) {
       return { show: true, period: "evening" };
     }
-    
     return { show: false, period: null };
-    
   } catch (error) {
     console.error("Error checking mood status:", error);
     return { show: false, period: null };
@@ -342,28 +335,22 @@ export const saveMood = async (mood, period) => {
 export const getMoodHistory = async (startDate, endDate) => {
   try {
     const token = localStorage.getItem("token");
-    
     if (!token) {
       throw new Error("No authentication token");
     }
-    
     const params = new URLSearchParams();
     if (startDate) params.append("startDate", startDate);
     if (endDate) params.append("endDate", endDate);
-    
-    const response = await fetch(`${API_BASE_URL}/mood/history?${params}`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/mood/history?${params}`, {
       headers: {
         "Authorization": `Bearer ${token}`
       }
     });
-    
     if (!response.ok) {
       throw new Error("Failed to fetch mood history");
     }
-    
     const data = await response.json();
     return data;
-    
   } catch (error) {
     console.error("Error fetching mood history:", error);
     return [];
@@ -372,24 +359,19 @@ export const getMoodHistory = async (startDate, endDate) => {
 export const getStreaks = async () => {
   try {
     const token = localStorage.getItem("token");
-    
     if (!token) {
       return { moodStreak: { current: 0, best: 0 }, habitStreak: { current: 0, best: 0 } };
     }
-    
-    const response = await fetch(`${API_BASE_URL}/mood/streaks`, {
+    const response = await fetchWithAuth(`${API_BASE_URL}/mood/streaks`, {
       headers: {
         "Authorization": `Bearer ${token}`
       }
     });
-    
     if (!response.ok) {
       throw new Error("Failed to fetch streaks");
     }
-    
     const data = await response.json();
     return data;
-    
   } catch (error) {
     console.error("Error fetching streaks:", error);
     return { moodStreak: { current: 0, best: 0 }, habitStreak: { current: 0, best: 0 } };
