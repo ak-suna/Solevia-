@@ -1,3 +1,4 @@
+
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
@@ -140,5 +141,31 @@ export const sendNotificationEmail = async (user, notification) => {
     } catch (error) {
         console.error("❌ Error sending notification email:", error);
         throw new Error("Failed to send notification email");
+    }
+};
+// Send email to user when disabled by admin
+export const sendUserDisabledEmail = async (user, reason) => {
+    try {
+        const transporter = getTransporter();
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Your Account Has Been Disabled - SOLEVIA",
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #d9534f;">Account Disabled</h2>
+                    <p>Hi ${user.firstName},</p>
+                    <p>Your account has been disabled by an administrator for the following reason:</p>
+                    <blockquote style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px;">${reason}</blockquote>
+                    <p>If you believe this is a mistake or need further assistance, please contact support at <a href="mailto:anuskagc100@gmail.com">anuskagc100@gmail.com</a>.</p>
+                    <p style="color: #999; font-size: 12px;">You will not be able to log in until your account is re-enabled.</p>
+                </div>
+            `,
+        };
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Disabled account email sent to: ${user.email}`);
+    } catch (error) {
+        console.error("❌ Error sending disabled account email:", error);
+        throw new Error("Failed to send disabled account email");
     }
 };
