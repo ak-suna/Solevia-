@@ -58,9 +58,15 @@ const userSchema = new Schema({
         lastCompletionDate: { type: Date, default: null }
     },
 
+
     disabled: {
         type: Boolean,
         default: false
+    },
+    // Reason for disabling (admin action)
+    disabledReason: {
+        type: String,
+        default: ""
     },
 
     socketId: {
