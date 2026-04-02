@@ -25,11 +25,14 @@ const supportGroupSchema = new Schema({
     members: [{
         userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
         joinedAt: { type: Date, default: Date.now },
+        points: { type: Number, default: 0 }, // Per-group points
         role: {
             type: String,
-            enum: ["member", "moderator"],
+            enum: ["member", "moderator", "admin"],
             default: "member"
-        }
+        },
+        disabled: { type: Boolean, default: false },
+        disabledReason: { type: String, default: "" }
     }],
 
     // ✅ NEW: Join requests (pending approvals)
@@ -66,11 +69,19 @@ const supportGroupSchema = new Schema({
         }
     }],
 
-    // ✅ NEW: Moderators (users who can approve join requests)
-    moderators: [{
+    // ✅ NEW: Single moderator per group
+    moderatorId: {
         type: Schema.Types.ObjectId,
-        ref: "User"
-    }],
+        ref: "User",
+        default: null
+    },
+
+
+    // Points required to be eligible for moderator
+    requiredPoints: {
+        type: Number,
+        default: 20
+    },
 
     maxMembers: {
         type: Number,
