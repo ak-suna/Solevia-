@@ -5,12 +5,18 @@ import { Users, Menu } from 'lucide-react';
 import AdminSidebar from "../components/AdminSidebar";
 import NotificationBell from '../components/NotificationBell';
 import DataTable from "../components/DataTable";
+import Modal from "../components/Modal";
 
 const AdminUsersPage = () => {
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    // Modal state for disabling user
+    const [disableModal, setDisableModal] = useState({ open: false, userId: null, currentStatus: false });
+    const [disableReason, setDisableReason] = useState("");
+    // Notification state
+    const [notification, setNotification] = useState({ open: false, message: "", type: "success" });
 
     useEffect(() => {
         fetchUsers();
@@ -32,10 +38,21 @@ const AdminUsersPage = () => {
         }
     };
 
-    const toggleUserStatus = async (userId, currentStatus) => {
+    const toggleUserStatus = (userId, currentStatus) => {
         const action = currentStatus ? "enable" : "disable";
-        if (!window.confirm(`Are you sure you want to ${action} this user?`)) return;
+        if (currentStatus) {
+            // Enable directly with confirm modal
+            setDisableModal({ open: true, userId, currentStatus });
+            setDisableReason("");
+        } else {
+            // Open modal for reason
+            setDisableModal({ open: true, userId, currentStatus });
+            setDisableReason("");
+        }
+    };
 
+    const handleDisableUser = async (userId, currentStatus, reason) => {
+        const action = currentStatus ? "enable" : "disable";
         try {
             const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/status`, {
                 method: "PATCH",
@@ -43,15 +60,16 @@ const AdminUsersPage = () => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${getToken()}`,
                 },
-                body: JSON.stringify({ disabled: !currentStatus }),
+                body: JSON.stringify({ disabled: !currentStatus, reason }),
             });
-
             if (!response.ok) throw new Error(`Failed to ${action} user`);
             fetchUsers();
-            alert(`User ${action}d successfully`);
+            setNotification({ open: true, message: `User ${action === "enable" ? "enabled" : "disabled"} successfully.`, type: "success" });
         } catch (err) {
-            alert(err.message);
+            setNotification({ open: true, message: err.message, type: "error" });
         }
+        setDisableModal({ open: false, userId: null, currentStatus: false });
+        setDisableReason("");
     };
 
     const changeRole = async (userId, newRole) => {
@@ -67,9 +85,9 @@ const AdminUsersPage = () => {
 
             if (!response.ok) throw new Error("Failed to update role");
             fetchUsers();
-            alert("Role updated successfully");
+            setNotification({ open: true, message: "Role updated successfully.", type: "success" });
         } catch (err) {
-            alert(err.message);
+            setNotification({ open: true, message: err.message, type: "error" });
         }
     };
 
@@ -166,6 +184,22 @@ const AdminUsersPage = () => {
     ];
 
     return (
+        <>
+        {/* Notification Snackbar */}
+        {notification.open && (
+            <div
+                className={`fixed top-8 left-1/2 z-50 transform -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg font-semibold text-lg transition-all
+                    ${notification.type === "success"
+                        ? "bg-green-500 text-white"
+                        : "bg-red-500 text-white"
+                    }
+                `}
+                style={{ minWidth: 280, textAlign: "center" }}
+                onClick={() => setNotification({ ...notification, open: false })}
+            >
+                {notification.message}
+            </div>
+        )}
         <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
             {/* LEFT SIDEBAR */}
             <AdminSidebar />
@@ -197,15 +231,58 @@ const AdminUsersPage = () => {
 
             {/* Top Right Navigation */}
             {/* <div className="absolute top-6 right-6 flex items-center gap-6">
-                <NotificationBell />
-                <button
-                    onClick={() => navigate('/settings')}
-                    className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg"
-                >
-                    <Menu className="w-7 h-7 text-gray-600 dark:text-gray-300" />
-                </button>
-            </div> */}
+                    <NotificationBell />
+                    <button
+                        onClick={() => navigate('/settings')}
+                        className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg"
+                    >
+                        <Menu className="w-7 h-7 text-gray-600 dark:text-gray-300" />
+                    </button>
+                </div> */}
         </div>
+        {/* Disable Reason Modal */}
+        <Modal
+            isOpen={disableModal.open}
+            onClose={() => setDisableModal({ open: false, userId: null, currentStatus: false })}
+            title={disableModal.currentStatus ? "Enable User" : "Disable User"}
+        >
+            <form
+                onSubmit={e => {
+                    e.preventDefault();
+                    if (!disableModal.currentStatus && !disableReason.trim()) {
+                        setNotification({ open: true, message: "A reason is required to disable a user.", type: "error" });
+                        return;
+                    }
+                    handleDisableUser(disableModal.userId, disableModal.currentStatus, disableReason);
+                }}
+            >
+                {!disableModal.currentStatus && (
+                    <>
+                        <label className="block mb-2 font-semibold text-gray-700 dark:text-gray-200">Reason for disabling:</label>
+                        <textarea
+                            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
+                            rows={3}
+                            value={disableReason}
+                            onChange={e => setDisableReason(e.target.value)}
+                            placeholder="Enter reason..."
+                            required
+                        />
+                    </>
+                )}
+                <div className="flex justify-end gap-2 mt-4">
+                    <button
+                        type="button"
+                        className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-300 dark:hover:bg-gray-600"
+                        onClick={() => setDisableModal({ open: false, userId: null, currentStatus: false })}
+                    >Cancel</button>
+                    <button
+                        type="submit"
+                        className={`px-6 py-2 rounded-lg font-bold text-white ${disableModal.currentStatus ? "bg-green-500 hover:bg-green-600" : "bg-[#f4873e] hover:bg-[#f8ba90]"}`}
+                    >{disableModal.currentStatus ? "Enable" : "Disable"}</button>
+                </div>
+            </form>
+        </Modal>
+        </>
     );
 };
 
