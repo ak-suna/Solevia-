@@ -30,7 +30,10 @@ import BrowseGroupsPage from "./pages/BrowseGroupsPage";
 import GroupDetailsPage from "./pages/GroupDetailsPage";
 import MemoryCapsule from './pages/MemoryCapsule';
 import AnalyticsPage from "./pages/AnalyticsPage";
-
+import GroupModeratorDashboard from "./pages/GroupModeratorDashboard";
+import GroupModeratorMembers from "./pages/GroupModeratorMembers";
+import GroupModeratorReports from "./pages/GroupModeratorReports";
+import GroupModeratorRequests from "./pages/GroupModeratorRequests";
 
 function App() {
     const ProtectedRoute = ({ children }) => {
@@ -189,6 +192,39 @@ function App() {
                                                 <ThemedLayout>
                                                     <GroupDetailsPage />
                                                 </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    {/* Removed old ModeratorToolsPage route, now handled by new dashboard and sidebar */}
+                                    <Route
+                                        path="/groups/:groupId/moderator/dashboard"
+                                        element={
+                                            <ProtectedRoute>
+                                                <GroupModeratorDashboard />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/groups/:groupId/moderator/members"
+                                        element={
+                                            <ProtectedRoute>
+                                                <GroupModeratorMembers />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/groups/:groupId/moderator/reports"
+                                        element={
+                                            <ProtectedRoute>
+                                                <GroupModeratorReports />
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/groups/:groupId/moderator/requests"
+                                        element={
+                                            <ProtectedRoute>
+                                                <GroupModeratorRequests />
                                             </ProtectedRoute>
                                         }
                                     />
