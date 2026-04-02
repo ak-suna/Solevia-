@@ -113,7 +113,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http";
 import connectDB from "./config/db.js";
+
 import moderatorRoutes from "./routes/moderatorRoutes.js";
+import moderatorToolsRoutes from "./routes/moderatorToolsRoutes.js";
 
 // Existing routes
 import userRoutes from "./routes/auth.js";
@@ -169,6 +171,7 @@ app.use("/api/notifications", notificationRoutes);
 // ============ ANALYTICS ROUTE ============
 app.use('/api/analytics', analyticsRoutes); // ← ANALYTICS ROUTE ADDED HERE
 
+
 // Community routes
 app.use("/api/posts", postRoutes);
 app.use("/api/groups", groupRoutes);
@@ -178,6 +181,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/reactions", reactionRoutes);
 
 app.use("/api/moderators", moderatorRoutes);
+app.use("/api/moderator-tools", moderatorToolsRoutes);
 
 // Test route
 app.get("/", (req, res) => {
