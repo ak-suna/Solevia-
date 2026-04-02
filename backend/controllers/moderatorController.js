@@ -1,3 +1,4 @@
+
 import { SupportGroup } from "../models/SupportGroup.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
@@ -7,77 +8,137 @@ import { Report } from "../models/Report.js";
 
 // Calculate member score for moderator candidacy
 export const getMemberScore = async (userId, groupId) => {
+    console.log('getMemberScore called', { userId, groupId });
+    // Step 1: Find group
+    const group = await SupportGroup.findById(groupId);
+    if (!group) {
+        console.log('getMemberScore: group not found', { groupId });
+        throw new Error("Group not found");
+    }
+    // Step 2: Find member
+    const member = group.members.find(m => m.userId.toString() === userId.toString());
+    if (!member) {
+        console.log('getMemberScore: member not found in group', { userId, groupId });
+        throw new Error("User is not a member of this group");
+    }
+    console.log('getMemberScore: found member', { member });
+    const metrics = {};
+
+    // 1. Time in group (longer = more trustworthy)
+    const daysInGroup = Math.floor((Date.now() - member.joinedAt) / (1000 * 60 * 60 * 24));
+    metrics.daysInGroup = daysInGroup;
+
+    // 2. Weekly task completion
+    const tasksCompleted = await countTasksCompleted(userId, groupId);
+    metrics.tasksCompleted = tasksCompleted;
+
+    // 3. Active participation (posts in group)
+    const groupPosts = await Post.countDocuments({
+        userId,
+        groupId,
+        isHidden: false
+    });
+    metrics.posts = groupPosts;
+
+    // 4. Helpful comments/reactions
+    const helpfulComments = await countHelpfulComments(userId, groupId);
+    metrics.helpfulComments = helpfulComments;
+
+    // 5. No violations (negative score)
+    const violations = await Report.countDocuments({
+        targetId: userId,
+        targetType: 'user',
+        status: 'resolved',
+        action: { $in: ['warning', 'content-removed', 'user-suspended'] }
+    });
+    metrics.violations = violations;
+
+    // 6. Reports filed (helping moderate)
+    const reportsFiledCount = await Report.countDocuments({
+        reportedBy: userId,
+        status: 'resolved'
+    });
+    metrics.reportsFiled = reportsFiledCount;
+
+    // Debug log after violations and before return
+    const memberPoints = member.points || 0;
+    const requiredPoints = group.requiredPoints || 20;
+    const eligible = memberPoints >= requiredPoints && daysInGroup >= 30 && violations === 0;
+    console.log('getMemberScore: eligibility check', {
+        userId,
+        memberPoints,
+        requiredPoints,
+        daysInGroup,
+        violations,
+        eligible
+    });
+
+    return {
+        userId,
+        points: memberPoints,
+        requiredPoints,
+        metrics,
+        violations, // Show violation count in debug
+        eligible
+    };
+}
+// ==================== MODERATION ACTIONS ====================
+import notificationService from "../services/notificationService.js";
+
+// Get all reported posts for a group
+export const getReportedPostsForGroup = async (req, res) => {
     try {
-        const group = await SupportGroup.findById(groupId);
-        if (!group) {
-            throw new Error("Group not found");
+        const { groupId } = req.params;
+        // Find posts in group that are reported
+        const posts = await Post.find({ groupId, isReported: true })
+            .populate("userId", "firstName lastName")
+            .lean();
+        // Attach report info
+        for (let post of posts) {
+            post.reports = await Report.find({ targetId: post._id, reportType: "post", status: { $in: ["pending", "under-review"] } }).lean();
         }
-
-        const member = group.members.find(m => m.userId.toString() === userId.toString());
-        if (!member) {
-            throw new Error("User is not a member of this group");
-        }
-
-        let score = 0;
-        const metrics = {};
-
-        // 1. Time in group (longer = more trustworthy)
-        const daysInGroup = Math.floor((Date.now() - member.joinedAt) / (1000 * 60 * 60 * 24));
-        metrics.daysInGroup = daysInGroup;
-
-        if (daysInGroup > 30) score += 20;  // 1 month
-        if (daysInGroup > 60) score += 20;  // 2 months
-        if (daysInGroup > 90) score += 10;  // 3 months
-
-        // 2. Weekly task completion
-        const tasksCompleted = await countTasksCompleted(userId, groupId);
-        metrics.tasksCompleted = tasksCompleted;
-        score += tasksCompleted * 5; // 5 points per task
-
-        // 3. Active participation (posts in group)
-        const groupPosts = await Post.countDocuments({
-            userId,
-            groupId,
-            isHidden: false
-        });
-        metrics.posts = groupPosts;
-        score += Math.min(groupPosts * 3, 45); // Cap at 45 points (15 posts)
-
-        // 4. Helpful comments/reactions
-        const helpfulComments = await countHelpfulComments(userId, groupId);
-        metrics.helpfulComments = helpfulComments;
-        score += Math.min(helpfulComments * 2, 30); // Cap at 30 points
-
-        // 5. No violations (negative score)
-        const violations = await Report.countDocuments({
-            targetId: userId,
-            targetType: 'user',
-            status: 'resolved',
-            action: { $in: ['warning', 'content-removed', 'user-suspended'] }
-        });
-        metrics.violations = violations;
-        score -= violations * 30; // Severe penalty
-
-        // 6. Reports filed (helping moderate)
-        const reportsFiledCount = await Report.countDocuments({
-            reportedBy: userId,
-            status: 'resolved'
-        });
-        metrics.reportsFiled = reportsFiledCount;
-        score += Math.min(reportsFiledCount * 3, 15); // Cap at 15 points
-
-        // Ensure score doesn't go negative
-        score = Math.max(score, 0);
-
-        return {
-            userId,
-            score,
-            metrics,
-            // CHANGED: from 50 to 25
-            eligible: score >= 25 && daysInGroup >= 30 && violations === 0
-        };
+        res.status(200).json({ posts });
     } catch (error) {
-        throw error;
+        console.error("Error fetching reported posts:", error);
+        res.status(500).json({ error: "Failed to fetch reported posts" });
+    }
+};
+
+// Remove a post (moderator/admin)
+export const moderatorRemovePost = async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { reason } = req.body;
+        const post = await Post.findById(postId);
+        if (!post) return res.status(404).json({ error: "Post not found" });
+        const user = await User.findById(post.userId);
+        await Post.findByIdAndDelete(postId);
+        // Mark related reports as resolved
+        await Report.updateMany({ targetId: postId, reportType: "post" }, { status: "resolved", action: "content-removed", reviewedBy: req.user._id, reviewedAt: new Date(), adminNotes: reason });
+        // Notify user
+        if (user) {
+            await notificationService.sendNotification({
+                userId: user._id,
+                type: "post-removed",
+                message: `Your post was removed by a moderator. Reason: ${reason || "Violation of group rules"}`
+            });
+        }
+        res.status(200).json({ message: "Post removed and user notified" });
+    } catch (error) {
+        console.error("Error removing post:", error);
+        res.status(500).json({ error: "Failed to remove post" });
+    }
+};
+
+// Dismiss a report (moderator/admin)
+export const moderatorDismissReport = async (req, res) => {
+    try {
+        const { reportId } = req.params;
+        await Report.findByIdAndUpdate(reportId, { status: "dismissed", reviewedBy: req.user._id, reviewedAt: new Date(), action: "none" });
+        res.status(200).json({ message: "Report dismissed" });
+    } catch (error) {
+        console.error("Error dismissing report:", error);
+        res.status(500).json({ error: "Failed to dismiss report" });
     }
 };
 
@@ -143,7 +204,6 @@ export const getModeratorCandidates = async (req, res) => {
 
             try {
                 const scoreData = await getMemberScore(member.userId._id, groupId);
-
                 candidates.push({
                     ...scoreData,
                     user: {
@@ -159,8 +219,8 @@ export const getModeratorCandidates = async (req, res) => {
             }
         }
 
-        // Sort by score (highest first)
-        candidates.sort((a, b) => b.score - a.score);
+        // Sort by points (highest first)
+        candidates.sort((a, b) => b.points - a.points);
 
         res.status(200).json({
             group: {
@@ -209,28 +269,48 @@ export const promoteToModerator = async (req, res) => {
             return res.status(400).json({ error: "User is already a moderator" });
         }
 
-        // Check score eligibility
+
+        // Check eligibility
         const scoreData = await getMemberScore(userId, groupId);
+        console.log('DEBUG promoteToModerator:', { userId, groupId, scoreData });
         if (!scoreData.eligible) {
             return res.status(400).json({
                 error: "User does not meet minimum requirements",
-                // CHANGED: from 50 to 25
-                details: `Score: ${scoreData.score}/25 required, Days in group: ${scoreData.metrics.daysInGroup}/30 required`,
+                details: `Points: ${scoreData.points}/${scoreData.requiredPoints} required, Days in group: ${scoreData.metrics.daysInGroup}/30 required`,
                 scoreData
             });
         }
-        // Promote to moderator
-        member.role = 'moderator';
 
-        // Add to group moderators array
-        if (!group.moderators.includes(userId)) {
-            group.moderators.push(userId);
+
+
+        // Always set admin's member role to 'admin'
+        group.members.forEach(m => {
+            if (m.userId.toString() === group.adminId.toString()) {
+                m.role = 'admin';
+            }
+        });
+
+        // Demote previous moderator (not admin) to 'member'
+        if (group.moderatorId && group.moderatorId.toString() !== userId) {
+            const prevMod = group.members.find(m => m.userId.toString() === group.moderatorId.toString());
+            if (prevMod && prevMod.userId.toString() !== group.adminId.toString()) {
+                prevMod.role = 'member';
+            }
         }
+
+
+        // Promote selected user to moderator (robust ObjectId comparison)
+        group.members.forEach(m => {
+            if (m.userId.toString() === userId.toString()) {
+                m.role = 'moderator';
+            }
+        });
+        group.moderatorId = userId;
 
         await group.save();
 
-        // Update user record
-        user.role = 'moderator';
+
+        // Update user record: only update moderatedGroups, not global role
         if (!user.moderatedGroups.includes(groupId)) {
             user.moderatedGroups.push(groupId);
         }
