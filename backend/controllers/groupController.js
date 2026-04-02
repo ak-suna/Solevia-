@@ -1,7 +1,107 @@
+// Disable or enable a group member (group-scoped)
+export const setGroupMemberDisabled = async (req, res) => {
+    try {
+        const { groupId, userId } = req.params;
+        const { disabled, reason } = req.body;
+        const actingUserId = req.user.id;
+        const actingUserRole = req.user.role;
+
+        const group = await SupportGroup.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+        // Only group admin or moderator can disable/enable
+        const actingMember = group.members.find(m => m.userId.toString() === actingUserId);
+        if (!actingMember || (actingMember.role !== "admin" && actingMember.role !== "moderator" && actingUserRole !== "admin")) {
+            return res.status(403).json({ error: "Not authorized" });
+        }
+
+        // Cannot disable admin
+        const targetMember = group.members.find(m => m.userId.toString() === userId);
+        if (!targetMember) {
+            return res.status(404).json({ error: "User is not a member of this group" });
+        }
+        if (targetMember.role === "admin") {
+            return res.status(403).json({ error: "Cannot disable the group admin" });
+        }
+
+        targetMember.disabled = !!disabled;
+        targetMember.disabledReason = disabled ? (reason || "No reason provided.") : "";
+        await group.save();
+
+        // Send notification if disabling
+        if (disabled) {
+            try {
+                await notificationService.createNotification({
+                    userId,
+                    type: "GROUP_MEMBER_DISABLED",
+                    title: `You have been disabled in group: ${group.name}`,
+                    message: `You have been disabled from participating in the group. Reason: ${reason || "No reason provided."}`,
+                    data: { groupId, groupName: group.name, reason },
+                });
+            } catch (err) {
+                console.error("Failed to send disable notification:", err);
+            }
+        }
+
+        res.status(200).json({ message: `Member ${disabled ? "disabled" : "enabled"} successfully`, member: targetMember });
+    } catch (error) {
+        console.error("Error disabling/enabling group member:", error);
+        res.status(500).json({ error: "Failed to update member status" });
+    }
+};
+// Helper: Check if user is disabled in group
+export const isUserDisabledInGroup = (group, userId) => {
+    const member = group.members.find(m => m.userId.toString() === userId);
+    return member && member.disabled ? member.disabledReason || true : false;
+};
+// Set weekly group task (admin/moderator only)
+export const setWeeklyTask = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const { task } = req.body;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        const group = await SupportGroup.findById(groupId);
+
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+
+        // Check if user is group admin or moderator (by member role or userRole)
+        const member = group.members.find(m => (m.userId && m.userId.toString() === userId.toString()));
+        const isModerator = member && member.role === "moderator";
+        const isAdmin = member && member.role === "admin";
+        if (!(isModerator || isAdmin || userRole === "admin")) {
+            return res.status(403).json({ error: "Not authorized to set weekly task" });
+        }
+
+        group.weeklyTask = {
+            task: task,
+            week: Date.now(),
+            completedBy: []
+        };
+
+        await group.save();
+        await group.populate('createdBy', 'firstName lastName');
+
+        res.status(200).json({
+            message: "Weekly task updated successfully",
+            group
+        });
+    } catch (error) {
+        console.error("Error setting weekly task:", error);
+        res.status(500).json({ error: "Failed to set weekly task" });
+    }
+};
 import mongoose from "mongoose";
 import { SupportGroup } from "../models/SupportGroup.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
+import notificationService from "../services/notificationService.js";
 
 // Get all support groups
 export const getAllGroups = async (req, res) => {
@@ -53,6 +153,12 @@ export const getGroupById = async (req, res) => {
             return res.status(403).json({ error: "This group is not active" });
         }
 
+        // Block disabled members
+        const userId = req.user.id;
+        const member = group.members.find(m => m.userId.toString() === userId);
+        if (member && member.disabled) {
+            return res.status(403).json({ error: `You are disabled from this group. Reason: ${member.disabledReason || "No reason provided."}` });
+        }
         res.status(200).json({ group });
     } catch (error) {
         console.error("Error fetching group:", error);
@@ -171,12 +277,12 @@ export const getGroupPosts = async (req, res) => {
             return res.status(404).json({ error: "Group not found" });
         }
 
-        const isMember = group.members.some(
-            member => member.userId.toString() === userId
-        );
-
-        if (!isMember) {
+        const member = group.members.find(m => m.userId.toString() === userId);
+        if (!member) {
             return res.status(403).json({ error: "You must be a member to view group posts" });
+        }
+        if (member.disabled) {
+            return res.status(403).json({ error: `You are disabled from this group. Reason: ${member.disabledReason || "No reason provided."}` });
         }
 
         const pipeline = [
@@ -220,12 +326,12 @@ export const completeWeeklyTask = async (req, res) => {
         }
 
         // Check if user is a member
-        const isMember = group.members.some(
-            member => member.userId.toString() === userId
-        );
-
-        if (!isMember) {
+        const member = group.members.find(m => m.userId.toString() === userId);
+        if (!member) {
             return res.status(403).json({ error: "You must be a member to complete tasks" });
+        }
+        if (member.disabled) {
+            return res.status(403).json({ error: `You are disabled from this group. Reason: ${member.disabledReason || "No reason provided."}` });
         }
 
         // Check if already completed
@@ -239,6 +345,9 @@ export const completeWeeklyTask = async (req, res) => {
 
         group.weeklyTask.completedBy.push(userId);
         await group.save();
+
+        // Award points to user (+10 per task)
+        await User.findByIdAndUpdate(userId, { $inc: { points: 10 } });
 
         res.status(200).json({
             message: "Weekly task completed!",
@@ -267,10 +376,10 @@ export const createGroup = async (req, res) => {
             icon: icon || "📝",
             maxMembers: maxMembers || 50,
             createdBy: userId,
-            moderators: [userId], // ✅ Admin is default moderator
+            moderators: [userId], // Admin is default moderator (legacy, can be removed if unused)
             members: [{
                 userId,
-                role: "moderator" // ✅ Admin is moderator
+                role: "admin" // ✅ Admin is admin
             }]
         });
 
@@ -450,9 +559,14 @@ export const getJoinRequests = async (req, res) => {
 
         // Check if user is admin or moderator of this group
         const isAdmin = req.user.role === 'admin';
-        const isModerator = group.moderators.some(id => id.toString() === userId);
+        // Moderator by moderatorId
+        const isModeratorId = group.moderatorId && group.moderatorId.toString() === userId;
+        // Moderator by member role
+        const isModeratorRole = Array.isArray(group.members) && group.members.some(
+            m => m.userId && m.userId.toString() === userId && m.role === "moderator"
+        );
 
-        if (!isAdmin && !isModerator) {
+        if (!isAdmin && !isModeratorId && !isModeratorRole) {
             return res.status(403).json({
                 error: "Only admins and moderators can view join requests"
             });
@@ -485,9 +599,14 @@ export const approveJoinRequest = async (req, res) => {
 
         // Check if user is admin or moderator
         const isAdmin = req.user.role === 'admin';
-        const isModerator = group.moderators.some(id => id.toString() === userId);
+        // Moderator by moderatorId
+        const isModeratorId = group.moderatorId && group.moderatorId.toString() === userId;
+        // Moderator by member role
+        const isModeratorRole = Array.isArray(group.members) && group.members.some(
+            m => m.userId && m.userId.toString() === userId && m.role === "moderator"
+        );
 
-        if (!isAdmin && !isModerator) {
+        if (!isAdmin && !isModeratorId && !isModeratorRole) {
             return res.status(403).json({ error: "Unauthorized" });
         }
 
@@ -520,6 +639,19 @@ export const approveJoinRequest = async (req, res) => {
         request.reviewedAt = new Date();
 
         await group.save();
+
+        // Notify the user (in-app notification)
+        await notificationService.createNotification({
+            userId: request.userId,
+            type: "SYSTEM_ALERT",
+            title: `Group Join Request Approved`,
+            message: `Your request to join group '${group.name}' was approved! You are now a member.`,
+            data: {
+                groupId: group._id,
+                groupName: group.name,
+                status: "approved"
+            }
+        });
 
         res.status(200).json({
             message: "Join request approved successfully",
@@ -571,6 +703,20 @@ export const rejectJoinRequest = async (req, res) => {
 
         await group.save();
 
+        // Notify the user (in-app notification)
+        await notificationService.createNotification({
+            userId: request.userId,
+            type: "SYSTEM_ALERT",
+            title: `Group Join Request Rejected`,
+            message: `Your request to join group '${group.name}' was rejected.${reason ? ` Reason: ${reason}` : ""}`,
+            data: {
+                groupId: group._id,
+                groupName: group.name,
+                status: "rejected",
+                reason: reason || "Not specified"
+            }
+        });
+
         res.status(200).json({
             message: "Join request rejected",
             group: { _id: group._id, name: group.name }
@@ -587,26 +733,65 @@ export const rejectJoinRequest = async (req, res) => {
 export const getGroupMembers = async (req, res) => {
     try {
         const { groupId } = req.params;
-
         const group = await SupportGroup.findById(groupId)
-            .populate('members.userId', 'firstName lastName email');
-
+            .populate('members.userId', 'firstName lastName email points');
         if (!group) {
             return res.status(404).json({ error: "Group not found" });
         }
-
         // Only admin can view for moderator selection
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: "Unauthorized" });
         }
-
+        // Attach eligibility info, exclude admin
+        const adminId = group.createdBy?.toString?.() || group.createdBy;
+        const members = group.members
+            .filter(m => m.userId && m.userId._id?.toString() !== adminId && m.userId.toString() !== adminId)
+            .map(m => ({
+                ...m.toObject(),
+                points: m.userId.points,
+                eligible: m.userId.points >= (group.requiredPoints || 100)
+            }));
         res.status(200).json({
-            group: { _id: group._id, name: group.name },
-            members: group.members
+            group: { _id: group._id, name: group.name, requiredPoints: group.requiredPoints },
+            members
         });
     } catch (error) {
         console.error("Error fetching members:", error);
         res.status(500).json({ error: "Failed to fetch members" });
+    }
+};
+
+// Assign moderator (admin only)
+export const assignModerator = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const { userId } = req.body;
+        const group = await SupportGroup.findById(groupId);
+        if (!group) return res.status(404).json({ error: "Group not found" });
+        if (req.user.role !== 'admin') return res.status(403).json({ error: "Unauthorized" });
+        // Check eligibility
+        const member = group.members.find(m => m.userId.toString() === userId);
+        if (!member) return res.status(400).json({ error: "User is not a group member" });
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: "User not found" });
+        if ((member.points || 0) < (group.requiredPoints || 100)) {
+            return res.status(400).json({ error: "User does not meet required points" });
+        }
+        member.role = "moderator";
+        group.moderatorId = userId;
+        await group.save();
+        // Notify user
+        await notificationService.createNotification({
+            userId,
+            type: "SYSTEM_ALERT",
+            title: `You are now a group moderator!`,
+            message: `You have been promoted to moderator for group '${group.name}'.`,
+            data: { groupId: group._id, groupName: group.name, status: "promoted" }
+        });
+        res.status(200).json({ message: "Moderator assigned", groupId: group._id, moderatorId: userId });
+    } catch (error) {
+        console.error("Error assigning moderator:", error);
+        res.status(500).json({ error: "Failed to assign moderator" });
     }
 };
 export const getUserJoinRequests = async (req, res) => {
