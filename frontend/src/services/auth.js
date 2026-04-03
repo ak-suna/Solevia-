@@ -26,6 +26,9 @@ export const signup = async (userData) => {
         throw err; // rethrow so frontend form can handle it
     }
 };
+export const setToken = (token) => {
+    localStorage.setItem("token", token);
+};
 
 // export const signup = async (userData) => {
 //     const response = await fetch(`${API_URL}/signup`, {
@@ -125,8 +128,11 @@ export const resetPassword = async (token, password) => {
 
 export const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("role"); // NEW
+    localStorage.removeItem("role");
     localStorage.removeItem("isVerified");
+    localStorage.removeItem("username");
+    // Optional: redirect to login
+    window.location.href = "/login";
 };
 
 export const getToken = () => {
@@ -153,7 +159,7 @@ export const isAdmin = () => {
 };
 
 export const getUsername = () => {
-  return localStorage.getItem("username");
+    return localStorage.getItem("username");
 };
 
 

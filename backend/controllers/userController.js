@@ -44,7 +44,7 @@
 //             lastName: loginUser.lastName,
 //             role: loginUser.role,
 //             isVerified: loginUser.isVerified
-            
+
 //         });
 //         res.status(200).json({ message: "Login Successful", token: token,role: loginUser.role, isVerified: loginUser.isVerified});
 //     } catch (err) {
@@ -143,7 +143,7 @@
 // // export const verifyEmail = async (req, res) => {
 // //     try {
 // //         const { code } = req.params;
-        
+
 // //         const user = await User.findOne({
 // //             verificationCode: code,
 // //             verificationCodeExpires: { $gt: Date.now() }
@@ -168,6 +168,63 @@ import { addUsers, verifyUser, requestPasswordReset, resetPassword } from "../se
 import { generateToken } from "../utils/generateToken.js";
 import { sendVerificationEmail, sendPasswordResetEmail } from "../utils/sendEmail.js";
 import { User } from "../models/User.js";
+import jwt from "jsonwebtoken";
+
+export const refreshToken = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+
+        // Decode the expired token to get user ID
+        let decoded;
+        try {
+            decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        } catch (error) {
+            if (error.name === 'TokenExpiredError') {
+                // Token is expired, decode it to get user info
+                decoded = jwt.decode(token);
+                if (!decoded || !decoded.userId) {
+                    return res.status(401).json({ error: 'Invalid token' });
+                }
+            } else {
+                return res.status(401).json({ error: 'Invalid token' });
+            }
+        }
+
+        const userId = decoded.userId || decoded.id;
+
+        // Verify user still exists in database
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        // Generate new token
+        const newToken = jwt.sign(
+            {
+                userId: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                role: user.role
+            },
+            process.env.JWT_SECRET_KEY,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            token: newToken,
+            role: user.role,
+            isVerified: user.isVerified
+        });
+    } catch (error) {
+        console.error('Refresh token error:', error);
+        res.status(500).json({ error: 'Failed to refresh token' });
+    }
+};
 
 export const registerUser = async (req, res) => {
     try {
@@ -202,7 +259,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
     try {
         const loginUser = await verifyUser(req.body);
-        
+
 
         // ✅ CHECK IF USER IS DISABLED
         if (loginUser.disabled) {
@@ -211,20 +268,20 @@ export const loginUser = async (req, res) => {
                 reason: loginUser.disabledReason || undefined
             });
         }
-        
+
         const token = generateToken({
-            id: loginUser._id,  
+            id: loginUser._id,
             email: loginUser.email,
             firstName: loginUser.firstName,
             lastName: loginUser.lastName,
             role: loginUser.role,
             isVerified: loginUser.isVerified
         });
-        
-        res.status(200).json({ 
-            message: "Login Successful", 
+
+        res.status(200).json({
+            message: "Login Successful",
             token: token,
-            role: loginUser.role, 
+            role: loginUser.role,
             isVerified: loginUser.isVerified
         });
     } catch (err) {
@@ -256,9 +313,9 @@ export const verifyEmail = async (req, res) => {
 
         if (user.isVerified) {
             // Already verified → return 200 with proper message
-            return res.status(200).json({ 
-                success: true, 
-                message: "Email already verified. You can log in." 
+            return res.status(200).json({
+                success: true,
+                message: "Email already verified. You can log in."
             });
         }
 
@@ -268,9 +325,9 @@ export const verifyEmail = async (req, res) => {
         user.verificationCodeExpires = undefined;
         await user.save();
 
-        res.status(200).json({ 
-            success: true, 
-            message: "Email verified successfully! You can now log in." 
+        res.status(200).json({
+            success: true,
+            message: "Email verified successfully! You can now log in."
         });
     } catch (err) {
         console.error("❌ Error verifying email: ", err);
@@ -291,8 +348,8 @@ export const forgotPassword = async (req, res) => {
         }
 
         // Always return success (security best practice)
-        res.status(200).json({ 
-            message: "If an account with that email exists, a password reset link has been sent." 
+        res.status(200).json({
+            message: "If an account with that email exists, a password reset link has been sent."
         });
     } catch (err) {
         console.error("❌ Error in forgot password: ", err);
@@ -307,16 +364,16 @@ export const resetPasswordController = async (req, res) => {
         const { password } = req.body;
 
         if (!password || password.length < 6) {
-            return res.status(400).json({ 
-                error: "Password must be at least 6 characters long" 
+            return res.status(400).json({
+                error: "Password must be at least 6 characters long"
             });
         }
 
         await resetPassword(token, password);
 
-        res.status(200).json({ 
+        res.status(200).json({
             success: true,
-            message: "Password reset successful! You can now log in with your new password." 
+            message: "Password reset successful! You can now log in with your new password."
         });
     } catch (err) {
         console.error("❌ Error resetting password: ", err);

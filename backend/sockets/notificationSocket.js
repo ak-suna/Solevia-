@@ -22,7 +22,7 @@ export function initializeSocket(server) {
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET || process.env.JWT_SECRET_KEY);
-      
+
       socket.userId = decoded.userId || decoded.id;
       socket.userEmail = decoded.email;
 
@@ -37,8 +37,8 @@ export function initializeSocket(server) {
     console.log(`✅ User connected: ${socket.userId} (Socket ID: ${socket.id})`);
 
     try {
-      await User.findByIdAndUpdate(socket.userId, { 
-        socketId: socket.id 
+      await User.findByIdAndUpdate(socket.userId, {
+        socketId: socket.id
       });
 
       socket.join(`user:${socket.userId}`);
@@ -55,7 +55,7 @@ export function initializeSocket(server) {
         try {
           const notificationService = (await import("../services/notificationService.js")).default;
           await notificationService.markAsRead(notificationId, socket.userId);
-          
+
           const newUnreadCount = await Notification.getUnreadCount(socket.userId);
           socket.emit("unread-count", newUnreadCount);
         } catch (error) {
@@ -65,10 +65,10 @@ export function initializeSocket(server) {
 
       socket.on("disconnect", async () => {
         console.log(`❌ User disconnected: ${socket.userId}`);
-        
+
         try {
-          await User.findByIdAndUpdate(socket.userId, { 
-            socketId: null 
+          await User.findByIdAndUpdate(socket.userId, {
+            socketId: null
           });
         } catch (error) {
           console.error("❌ Error updating user on disconnect:", error);
