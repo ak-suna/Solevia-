@@ -231,7 +231,7 @@
 // export default CommunityFeed;
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, Trash2} from "lucide-react";
 import { getCommentsByPost, addComment, addReaction, deleteComment } from "../services/communityService";
 import { jwtDecode } from "jwt-decode";
 
@@ -329,31 +329,55 @@ const CommunityFeed = ({ posts, getCategoryColor }) => {
                         key={post._id}
                         className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 hover:border-[#f4873e] transition-all"
                     >
-                        {/* Post Header */}
-                        <div className="flex items-center gap-3 mb-3">
+                        {/* Post Header + Caption */}
+                        <div className="flex items-start gap-3 mb-3">
                             <div className="w-10 h-10 bg-gradient-to-br from-[#f4873e] to-[#ff9e5e] rounded-full flex items-center justify-center text-white font-bold">
                                 {post.userId?.firstName?.[0]}
                                 {post.userId?.lastName?.[0]}
                             </div>
                             <div className="flex-1">
-                                <p className="font-bold text-gray-900 dark:text-white">
-                                    {post.userId?.firstName} {post.userId?.lastName}
-                                </p>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    {formatDate(post.createdAt)}
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-bold text-gray-900 dark:text-white text-left">
+                                            {post.userId?.firstName} {post.userId?.lastName}
+                                        </p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 text-left">
+                                            {formatDate(post.createdAt)}
+                                        </p>
+                                    </div>
+                                    <span
+                                        className={`px-3 py-1 rounded-full text-xs font-bold ${getCategoryColor(
+                                            post.category
+                                        )}`}
+                                    >
+                                        {post.category}
+                                    </span>
+                                    {/* Delete Post Button (owner only) */}
+{String(post.userId?._id) === String(currentUserId) && (
+    <button
+        onClick={async () => {
+            if (window.confirm("Are you sure you want to delete this post?")) {
+                try {
+                    const { deletePost } = await import("../services/communityService");
+                    await deletePost(post._id);
+                    queryClient.invalidateQueries({ queryKey: ["community"] });
+                } catch (err) {
+                    alert("Failed to delete post");
+                }
+            }
+        }}
+        className="ml-auto p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+        title="Delete Post"
+    >
+        <Trash2 size={16} />
+    </button>
+)}
+                                </div>
+                                <p className="text-gray-700 dark:text-gray-300 mb-4 text-left mt-1">
+                                    {post.content}
                                 </p>
                             </div>
-                            <span
-                                className={`px-3 py-1 rounded-full text-xs font-bold ${getCategoryColor(
-                                    post.category
-                                )}`}
-                            >
-                                {post.category}
-                            </span>
                         </div>
-
-                        {/* Post Content */}
-                        <p className="text-gray-700 dark:text-gray-300 mb-4">{post.content}</p>
 
                         {/* --- IMAGE SECTION START --- */}
                         {post.image && (

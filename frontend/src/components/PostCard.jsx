@@ -435,18 +435,10 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                         <div className="text-left">
-                            <p className="font-semibold text-gray-900 dark:text-white">
+                            <p className="font-semibold text-gray-900 dark:text-white text-left">
                                 {post.userId?.firstName} {post.userId?.lastName}
                             </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {formatDate(post.createdAt)}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-gray-900 dark:text-white">
-                                {post.userId?.firstName} {post.userId?.lastName}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 text-left">
                                 {formatDate(post.createdAt)}
                             </p>
                         </div>
@@ -496,7 +488,8 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
                 </div>
 
                 {/* Text Content */}
-                <p className="text-left w-full text-gray-800 dark:text-gray-200 mb-4 whitespace-pre-wrap leading-relaxed">                    {post.content}
+                <p className="text-gray-800 dark:text-gray-200 mb-4 whitespace-pre-wrap text-left">
+                    {post.content}
                 </p>
 
                 {/* Post Image Render */}
