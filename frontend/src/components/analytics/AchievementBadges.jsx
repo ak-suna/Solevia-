@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import * as LucideIcons from 'lucide-react';
 import { Trophy, Lock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -41,31 +42,36 @@ const AchievementBadges = ({ achievements }) => {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.1 }}
                         className={`relative group cursor-pointer ${achievement.unlocked
-                                ? 'bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 border-2 border-yellow-400 dark:border-yellow-600'
-                                : 'bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600'
+                            ? 'bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 border-2 border-yellow-400 dark:border-yellow-600'
+                            : 'bg-gray-100 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600'
                             } rounded-2xl p-4 transition-all hover:shadow-lg`}
                     >
-                        {/* Badge Icon */}
+                        {/* Badge Icon (Lucide) */}
                         <div className="text-center mb-2">
-                            {achievement.unlocked ? (
-                                <motion.div
-                                    animate={{ rotate: [0, -10, 10, -10, 0] }}
-                                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
-                                    className="text-4xl"
-                                >
-                                    {achievement.icon}
-                                </motion.div>
-                            ) : (
-                                <div className="text-4xl grayscale opacity-40">
-                                    {achievement.icon}
-                                </div>
-                            )}
+                            {(() => {
+                                // Convert kebab-case to PascalCase for Lucide
+                                const toPascal = (str) => str.replace(/(^\w|-(\w))/g, (_, c, d) => (c || d).toUpperCase());
+                                const IconComponent = LucideIcons[toPascal(achievement.icon)] || Trophy;
+                                return achievement.unlocked ? (
+                                    <motion.div
+                                        animate={{ rotate: [0, -10, 10, -10, 0] }}
+                                        transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+                                        className="inline-block"
+                                    >
+                                        <IconComponent size={40} className="mx-auto text-yellow-500 dark:text-yellow-400" />
+                                    </motion.div>
+                                ) : (
+                                    <div className="inline-block grayscale opacity-40">
+                                        <IconComponent size={40} className="mx-auto" />
+                                    </div>
+                                );
+                            })()}
                         </div>
 
                         {/* Badge Name */}
                         <h4 className={`text-xs font-bold text-center mb-1 ${achievement.unlocked
-                                ? 'text-gray-900 dark:text-white'
-                                : 'text-gray-500 dark:text-gray-400'
+                            ? 'text-gray-900 dark:text-white'
+                            : 'text-gray-500 dark:text-gray-400'
                             }`}>
                             {achievement.name}
                         </h4>

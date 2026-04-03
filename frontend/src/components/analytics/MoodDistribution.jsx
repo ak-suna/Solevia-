@@ -112,30 +112,30 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const MoodDistribution = ({ data, selectedMood, onMoodSelect }) => {
     const chartRef = useRef(null);
 
-    const moodEmojis = {
-        happy: '😊',
-        excited: '🤩',
-        neutral: '😐',
-        sad: '😢',
-        angry: '😠',
-        anxious: '😰',
-        tired: '😴'
+    const moodImages = {
+        happy: '/emojis/happy.png',
+        excited: '/emojis/excited.png',
+        neutral: '/emojis/neutral.png',
+        sad: '/emojis/sad.png',
+        angry: '/emojis/angry.png',
+        anxious: '/emojis/anxious.png',
+        tired: '/emojis/tired.png',
     };
 
     const moodColors = {
-        happy: '#10b981',
-        excited: '#f59e0b',
-        neutral: '#6b7280',
-        sad: '#3b82f6',
-        angry: '#ef4444',
-        anxious: '#8b5cf6',
-        tired: '#06b6d4'
+        happy: '#fda9dd',
+        excited: '#fac3c7',
+        neutral: '#d5e6e5',
+        sad: '#92b1e7',
+        angry: '#eb6577',
+        anxious: '#bfa8e6',
+        tired: '#94a6d1'
     };
 
     const moodKeys = Object.keys(data);
 
     const chartData = {
-        labels: moodKeys.map(mood => `${moodEmojis[mood]} ${mood.charAt(0).toUpperCase() + mood.slice(1)}`),
+        labels: moodKeys.map(mood => `${mood.charAt(0).toUpperCase() + mood.slice(1)}`),
         datasets: [
             {
                 data: Object.values(data),
@@ -208,7 +208,12 @@ const MoodDistribution = ({ data, selectedMood, onMoodSelect }) => {
                 <Doughnut ref={chartRef} data={chartData} options={options} />
                 {/* Center text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-4xl">{selectedMood ? moodEmojis[selectedMood] : moodEmojis[maxMood[0]]}</span>
+                    <img
+                        src={selectedMood ? moodImages[selectedMood] : moodImages[maxMood[0]]}
+                        alt={selectedMood ? selectedMood : maxMood[0]}
+                        className="w-10 h-10 mb-1"
+                        draggable="false"
+                    />
                     <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {selectedMood ? selectedMood.charAt(0).toUpperCase() + selectedMood.slice(1) : 'Most Common'}
                     </span>
@@ -221,15 +226,20 @@ const MoodDistribution = ({ data, selectedMood, onMoodSelect }) => {
                     <button
                         key={mood}
                         onClick={() => onMoodSelect && onMoodSelect(selectedMood === mood ? null : mood)}
-                        className={`flex items-center gap-2 text-left transition-opacity ${selectedMood && selectedMood !== mood ? 'opacity-40' : 'opacity-100'
-                            }`}
+                        className={`flex items-center gap-2 text-left transition-opacity ${selectedMood && selectedMood !== mood ? 'opacity-40' : 'opacity-100'}`}
                     >
                         <span
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                             style={{ background: moodColors[mood] }}
                         />
+                        <img
+                            src={moodImages[mood]}
+                            alt={mood}
+                            className="w-5 h-5"
+                            draggable="false"
+                        />
                         <span className="text-xs text-gray-600 dark:text-gray-300">
-                            {moodEmojis[mood]} {mood.charAt(0).toUpperCase() + mood.slice(1)}
+                            {mood.charAt(0).toUpperCase() + mood.slice(1)}
                         </span>
                         <span className="text-xs text-gray-400 ml-auto">{data[mood]}%</span>
                     </button>

@@ -471,11 +471,11 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
         const goalPercentage = ((effortAllocation.goalLinked / effortAllocation.total) * 100).toFixed(1);
         
         if (goalPercentage < 20) {
-            return "⚠️ Only 20% of your habits are linked to goals. Link habits to goals to make faster progress!";
+            return " Only 20% of your habits are linked to goals. Link habits to goals to make faster progress!";
         } else if (goalPercentage < 50) {
-            return "📊 About half of your habits are goal-linked. Consider linking more habits to accelerate goal achievement!";
+            return " About half of your habits are goal-linked. Consider linking more habits to accelerate goal achievement!";
         } else if (goalPercentage >= 80) {
-            return "🎯 Great job! Most of your habits are driving your goals forward!";
+            return " Great job! Most of your habits are driving your goals forward!";
         }
         return null;
     }, [effortAllocation]);
