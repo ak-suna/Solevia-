@@ -1487,7 +1487,7 @@ export const getAnalyticsSummary = async (req, res) => {
                 id: '7-day-streak',
                 name: '7-Day Streak',
                 description: 'Check in for 7 consecutive days',
-                icon: '🔥',
+                icon: 'flame', // Lucide Flame icon
                 unlocked: streaks.moodStreak.current >= 7,
                 progress: Math.min(streaks.moodStreak.current, 7),
                 target: 7
@@ -1496,7 +1496,7 @@ export const getAnalyticsSummary = async (req, res) => {
                 id: 'journal-pro',
                 name: 'Journal Pro',
                 description: 'Write 30 journal entries',
-                icon: '📝',
+                icon: 'notebook-pen', // Lucide NotebookPen icon
                 unlocked: allJournals.length >= 30,
                 progress: Math.min(allJournals.length, 30),
                 target: 30
@@ -1505,7 +1505,7 @@ export const getAnalyticsSummary = async (req, res) => {
                 id: 'goal-master',
                 name: 'Goal Master',
                 description: 'Complete 5 goals',
-                icon: '🎯',
+                icon: 'target', // Lucide Target icon
                 unlocked: allGoalsCompleted.length >= 5,
                 progress: Math.min(allGoalsCompleted.length, 5),
                 target: 5
@@ -1514,7 +1514,7 @@ export const getAnalyticsSummary = async (req, res) => {
                 id: 'habit-hero',
                 name: 'Habit Hero',
                 description: '100% habit completion for a week',
-                icon: '💪',
+                icon: 'dumbbell', // Lucide Dumbbell icon
                 unlocked: habitCompletionTrend.some(w => w.percentage === 100),
                 progress: Math.max(...habitCompletionTrend.map(w => w.percentage), 0),
                 target: 100
@@ -1523,7 +1523,7 @@ export const getAnalyticsSummary = async (req, res) => {
                 id: 'consistency-king',
                 name: 'Consistency King',
                 description: '30-day mood check-in streak',
-                icon: '👑',
+                icon: 'crown', // Lucide Crown icon
                 unlocked: streaks.moodStreak.best >= 30,
                 progress: Math.min(streaks.moodStreak.best, 30),
                 target: 30
@@ -1537,13 +1537,13 @@ export const getAnalyticsSummary = async (req, res) => {
         const sadPercentage = moodDistribution.sad || 0;
 
         if (happyPercentage > 50) {
-            insights.push("You've been feeling great lately! Keep it up! 😊");
+            insights.push("You've been feeling great lately! Keep it up! ");
         } else if (sadPercentage > 30) {
-            insights.push("Consider talking to someone if you're feeling down. 💙");
+            insights.push("Consider talking to someone if you're feeling down. ");
         }
 
         if (streaks.moodStreak.current > 0) {
-            insights.push(`Amazing! You're on a ${streaks.moodStreak.current}-day check-in streak! 🔥`);
+            insights.push(`Amazing! You're on a ${streaks.moodStreak.current}-day check-in streak! `);
         }
 
         const thisWeekCompletion = habitsTotal > 0
@@ -1551,17 +1551,17 @@ export const getAnalyticsSummary = async (req, res) => {
             : 0;
 
         if (thisWeekCompletion >= 80) {
-            insights.push("You're crushing your habits this week! 💪");
+            insights.push("You're crushing your habits this week! ");
         } else if (thisWeekCompletion < 50) {
-            insights.push("Don't give up! Small steps lead to big changes. 🌱");
+            insights.push("Don't give up! Small steps lead to big changes. ");
         }
 
         if (thisWeekJournals >= 5) {
-            insights.push("You've been journaling consistently! Great for reflection! 📝");
+            insights.push("You've been journaling consistently! Great for reflection! ");
         }
 
         if (insights.length === 0) {
-            insights.push("Keep tracking your progress. Every day is a new opportunity! ✨");
+            insights.push("Keep tracking your progress. Every day is a new opportunity! ");
         }
 
         // ===== RESPONSE =====
