@@ -109,11 +109,46 @@ function App() {
                                         }
                                     />
 
-                                    <Route path="/admin/dashboard" element={<AdminHome />} />
-                                    <Route path="/admin/users" element={<AdminUsersPage />} />
-                                    <Route path="/admin/reports" element={<AdminReportsPage />} />
-                                    <Route path="/admin/challenges" element={<AdminChallengesPage />} />
-                                    <Route path="/admin/groups" element={<AdminGroupsPage />} />
+                                    <Route
+                                        path="/admin/dashboard"
+                                        element={
+                                            <AdminRoute>
+                                                <AdminHome />
+                                            </AdminRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/admin/users"
+                                        element={
+                                            <AdminRoute>
+                                                <AdminUsersPage />
+                                            </AdminRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/admin/reports"
+                                        element={
+                                            <AdminRoute>
+                                                <AdminReportsPage />
+                                            </AdminRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/admin/challenges"
+                                        element={
+                                            <AdminRoute>
+                                                <AdminChallengesPage />
+                                            </AdminRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/admin/groups"
+                                        element={
+                                            <AdminRoute>
+                                                <AdminGroupsPage />
+                                            </AdminRoute>
+                                        }
+                                    />
 
                                     <Route
                                         path="/tasks"
