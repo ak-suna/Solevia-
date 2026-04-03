@@ -21,7 +21,11 @@ const notificationSchema = new mongoose.Schema({
       "WEEKLY_INSIGHTS",
       "COMMUNITY_LIKE",
       "COMMUNITY_COMMENT",
-      "SYSTEM_ALERT"
+      "SYSTEM_ALERT",
+      "CHALLENGE_STARTED",
+      "CHALLENGE_COMPLETED",
+      "CHALLENGE_POOL_LOW",
+      "GROUP_MEMBER_DISABLED"
     ]
   },
   priority: {
@@ -79,19 +83,19 @@ notificationSchema.index({ type: 1, createdAt: -1 });
 notificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL index
 
 // Static method to get unread count
-notificationSchema.statics.getUnreadCount = async function(userId) {
+notificationSchema.statics.getUnreadCount = async function (userId) {
   return await this.countDocuments({ userId, read: false });
 };
 
 // Instance method to mark as read
-notificationSchema.methods.markAsRead = async function() {
+notificationSchema.methods.markAsRead = async function () {
   this.read = true;
   this.readAt = new Date();
   return await this.save();
 };
 
 // Instance method to mark as delivered
-notificationSchema.methods.markAsDelivered = async function(channel) {
+notificationSchema.methods.markAsDelivered = async function (channel) {
   if (channel === "inApp") {
     this.delivered.inApp = true;
     this.delivered.inAppAt = new Date();

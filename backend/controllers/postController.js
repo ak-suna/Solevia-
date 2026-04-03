@@ -64,7 +64,8 @@ export const getPosts = async (req, res) => {
 
         const matchQuery = {
             isHidden: false,
-            groupId: null
+            groupId: null,
+            challengeId: null
         };
 
         if (category && category !== "all") {
@@ -424,6 +425,7 @@ export const getPostsByCategory = async (req, res) => {
         const query = {
             isHidden: false,
             groupId: null,
+            challengeId: null,
             category
         };
 

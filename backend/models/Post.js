@@ -13,7 +13,7 @@ const postSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ["general", "tip", "reflection", "motivation", "story"],
+        enum: ["general", "tip", "reflection", "motivation", "story", "community", "group", "challenge"],
         default: "general"
     },
     category: {
@@ -22,11 +22,11 @@ const postSchema = new Schema({
         default: "other"
     },
     image: {
-        type: String, // Cloudinary URL
+        type: String,
         default: null
     },
     imagePublicId: {
-        type: String, // Cloudinary public ID for deletion
+        type: String,
         default: null
     },
     isReported: {
@@ -44,7 +44,12 @@ const postSchema = new Schema({
     groupId: {
         type: Schema.Types.ObjectId,
         ref: "SupportGroup",
-        default: null // null means it's a public post
+        default: null
+    },
+    challengeId: {
+        type: Schema.Types.ObjectId,
+        ref: "Challenge",
+        default: null
     },
     isPinned: {
         type: Boolean,
@@ -54,21 +59,18 @@ const postSchema = new Schema({
         type: String,
         trim: true
     }],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    }
+    reactions: [{
+        emoji: { type: String },
+        count: { type: Number, default: 0 },
+        userIds: [{ type: Schema.Types.ObjectId, ref: "User" }]
+    }]
 }, {
     timestamps: true
 });
 
-// Index for faster queries
 postSchema.index({ userId: 1, createdAt: -1 });
 postSchema.index({ groupId: 1, createdAt: -1 });
+postSchema.index({ challengeId: 1, createdAt: -1 });
 postSchema.index({ isHidden: 1, createdAt: -1 });
 
 export const Post = model("Post", postSchema);

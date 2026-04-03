@@ -4,6 +4,13 @@ import notificationService from "../services/notificationService.js";
 import { User } from "../models/User.js";
 import Habit from "../models/Habit.js";
 import { Mood } from "../models/Mood.js";
+import { Challenge } from "../models/Challenge.js";
+import { ChallengeTemplate } from "../models/ChallengeTemplate.js";
+import { ChallengeParticipant } from "../models/ChallengeParticipant.js";
+import Journal from "../models/Journal.js";
+import HabitDay from "../models/HabitDay.js";
+// import Journal from "../models/Journal.js";
+// import HabitDay from "../models/HabitDay.js";
 
 dotenv.config();
 
@@ -29,7 +36,7 @@ agenda.define("send-habit-reminders", async (job) => {
 
       if (habits.length > 0) {
         const habitNames = habits.map(h => h.name).join(", ");
-        
+
         await notificationService.createNotification({
           userId: user._id,
           type: "HABIT_REMINDER",
@@ -249,6 +256,216 @@ agenda.define("cleanup-old-notifications", async (job) => {
     console.error("❌ Error in cleanup-old-notifications:", error);
   }
 });
+agenda.define("activate-challenge-from-template", async (job) => {
+  console.log("[Agenda] Activating challenge from template...");
+  try {
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const eligible = await ChallengeTemplate.find({
+      status: "active",
+      $or: [
+        { lastUsedAt: null },
+        { lastUsedAt: { $lt: sixtyDaysAgo } }
+      ]
+    });
+
+    if (eligible.length === 0) {
+      console.log("[Agenda] No eligible templates. Notifying admins.");
+      const admins = await User.find({ role: "admin" });
+      for (const admin of admins) {
+        try {
+          await notificationService.createNotification({
+            userId: admin._id,
+            type: "CHALLENGE_POOL_LOW",
+            title: "⚠️ Challenge Pool Empty",
+            message: "No eligible challenge templates available this week. All templates used within 60 days.",
+            data: { actionUrl: "/admin/challenges" }
+          });
+        } catch (err) {
+          console.error("[Agenda] Failed to notify admin:", admin._id, err.message);
+        }
+      }
+      return;
+    }
+
+    const template = eligible[Math.floor(Math.random() * eligible.length)];
+
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + template.duration);
+
+    const challenge = await Challenge.create({
+      templateId: template._id,
+      title: template.title,
+      description: template.description,
+      trackingType: template.trackingType,
+      duration: template.duration,
+      difficulty: template.difficulty,
+      status: "active",
+      startDate,
+      endDate,
+      participantCount: 0
+    });
+
+    template.lastUsedAt = new Date();
+    await template.save();
+
+    console.log(`[Agenda] Challenge created: ${challenge.title}`);
+  } catch (error) {
+    console.error("[Agenda] Error activating challenge from template:", error);
+  }
+});
+
+agenda.define("nightly-challenge-tracking", async (job) => {
+  console.log("[Agenda] Running nightly challenge tracking...");
+  try {
+    const todayStr = new Date().toISOString().split("T")[0];
+    const today = new Date(`${todayStr}T00:00:00.000Z`);
+    const tomorrow = new Date(`${todayStr}T23:59:59.999Z`);
+
+    const activeChallenges = await Challenge.find({
+      status: "active",
+      trackingType: { $ne: "manual" }
+    });
+
+    for (const challenge of activeChallenges) {
+      const participants = await ChallengeParticipant.find({
+        challengeId: challenge._id
+      });
+
+      for (const participant of participants) {
+        const dayEntry = participant.days.find(d => d.date === todayStr);
+        if (!dayEntry || dayEntry.completed) continue;
+
+        let hasActivity = false;
+
+        if (challenge.trackingType === "mood") {
+          const mood = await Mood.findOne({
+            userId: participant.userId,
+            date: { $gte: today, $lt: tomorrow }
+          });
+          hasActivity = !!mood;
+
+        } else if (challenge.trackingType === "habit") {
+          const habitDay = await HabitDay.findOne({
+            user: participant.userId,
+            date: { $gte: today, $lt: tomorrow },
+            "habits.completed": true
+          });
+          hasActivity = !!habitDay;
+
+        } else if (challenge.trackingType === "journal") {
+          const journal = await Journal.findOne({
+            user: participant.userId,
+            createdAt: { $gte: today, $lt: tomorrow }
+          });
+          hasActivity = !!journal;
+        }
+
+        if (hasActivity) {
+          dayEntry.completed = true;
+          const completedCount = participant.days.filter(d => d.completed).length;
+          participant.completionPercentage = Math.round(
+            (completedCount / participant.days.length) * 100
+          );
+          await participant.save();
+          console.log(`[Agenda] Marked day complete for user ${participant.userId}`);
+        }
+      }
+    }
+
+    console.log("[Agenda] Nightly challenge tracking complete.");
+  } catch (error) {
+    console.error("[Agenda] Error in nightly challenge tracking:", error);
+  }
+});
+
+agenda.define("expire-challenges", async (job) => {
+  console.log("[Agenda] Running expire challenges...");
+  try {
+    const now = new Date();
+
+    const expiredChallenges = await Challenge.find({
+      status: "active",
+      endDate: { $lt: now }
+    });
+
+    for (const challenge of expiredChallenges) {
+      challenge.status = "expired";
+      await challenge.save();
+
+      const participants = await ChallengeParticipant.find({ challengeId: challenge._id });
+
+      for (const participant of participants) {
+        const completedCount = participant.days.filter(d => d.completed).length;
+        participant.completionPercentage = Math.round((completedCount / participant.days.length) * 100);
+
+        if (participant.completionPercentage >= 80) {
+          participant.isCompleted = true;
+          participant.badgeAwarded = true;
+        }
+
+        await participant.save();
+
+        if (participant.isCompleted) {
+          try {
+            await notificationService.createNotification({
+              userId: participant.userId,
+              type: "CHALLENGE_COMPLETED",
+              title: "🏆 Challenge Complete!",
+              message: `You completed the "${challenge.title}" challenge! Badge awarded.`,
+              data: { challengeId: challenge._id, actionUrl: "/challenges" }
+            });
+          } catch (err) {
+            console.error("[Agenda] Failed to notify participant:", participant.userId, err.message);
+          }
+        }
+      }
+    }
+
+    console.log(`[Agenda] Expired ${expiredChallenges.length} challenges.`);
+  } catch (error) {
+    console.error("[Agenda] Error expiring challenges:", error);
+  }
+});
+
+agenda.define("challenge-pool-check", async (job) => {
+  console.log("[Agenda] Running challenge pool check...");
+  try {
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const eligibleCount = await ChallengeTemplate.countDocuments({
+      status: "active",
+      $or: [
+        { lastUsedAt: null },
+        { lastUsedAt: { $lt: sixtyDaysAgo } }
+      ]
+    });
+
+    if (eligibleCount <= 2) {
+      const admins = await User.find({ role: "admin" });
+      for (const admin of admins) {
+        try {
+          await notificationService.createNotification({
+            userId: admin._id,
+            type: "CHALLENGE_POOL_LOW",
+            title: "⚠️ Challenge Pool Running Low",
+            message: `Only ${eligibleCount} eligible challenge template(s) remaining. Please add more templates.`,
+            data: { eligibleCount, actionUrl: "/admin/challenges" }
+          });
+        } catch (err) {
+          console.error("[Agenda] Failed to notify admin:", admin._id, err.message);
+        }
+      }
+    }
+
+    console.log(`[Agenda] Pool check done. Eligible: ${eligibleCount}`);
+  } catch (error) {
+    console.error("[Agenda] Error in challenge pool check:", error);
+  }
+});
 
 export async function startNotificationJobs() {
   try {
@@ -261,6 +478,10 @@ export async function startNotificationJobs() {
     await agenda.every("0 22 * * *", "check-streak-achievements");
     await agenda.every("0 21 * * *", "check-streaks-at-risk");
     await agenda.every("0 2 * * *", "cleanup-old-notifications");
+    await agenda.every("0 8 * * 0", "activate-challenge-from-template");
+    await agenda.every("0 0 * * *", "nightly-challenge-tracking");
+    await agenda.every("0 1 * * *", "expire-challenges");
+    await agenda.every("0 20 * * 0", "challenge-pool-check");
 
     console.log("✅ All notification jobs scheduled");
   } catch (error) {
