@@ -278,11 +278,11 @@ const AdminHome = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-8" style={{ fontFamily: "Brasika" }}>
                     <div>
-                        <h1 className="text-3xl font-bold">
+                        <h1 className="text-4xl font-bold">
                             <span className="text-[#f4873e] dark:text-orange-400">Admin </span>
                             <span className="text-[#89beab] dark:text-teal-400">Dashboard</span>
                         </h1>
-                        <p className="text-gray-600 dark:text-gray-400 mt-2">Welcome back! Here's what's happening today.</p>
+                        {/* <p className="text-gray-600 dark:text-gray-400 mt-2">Welcome back! Here's what's happening today.</p> */}
                     </div>
                 </div>
 
