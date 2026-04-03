@@ -86,12 +86,13 @@ const BrowseGroupsPage = () => {
             <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 {/* Back Button */}
+                // In your groups browse page:
                 <button
-                    onClick={() => navigate('/community')}
-                    className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#f4873e] mb-6 transition-colors"
+                    onClick={() => navigate('/community', { state: { activeTab: 'groups' } })}
+                    className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#89beab] mb-6 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    <span className="font-semibold">Back to Group</span>
+                    <span className="font-semibold">Back to Community</span>
                 </button>
 
                 {/* Header */}

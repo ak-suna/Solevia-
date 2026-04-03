@@ -34,6 +34,11 @@ import GroupModeratorDashboard from "./pages/GroupModeratorDashboard";
 import GroupModeratorMembers from "./pages/GroupModeratorMembers";
 import GroupModeratorReports from "./pages/GroupModeratorReports";
 import GroupModeratorRequests from "./pages/GroupModeratorRequests";
+import ChallengeDetailPage from "./pages/ChallengeDetailPage";
+import ChallengesPage from "./pages/ChallengesPage";
+import { useEffect } from 'react';
+import { initializeSocket, disconnectSocket } from './services/socketService';
+// import { isAuthenticated } from './services/auth';
 
 function App() {
     const ProtectedRoute = ({ children }) => {
@@ -219,6 +224,9 @@ function App() {
                                             </ProtectedRoute>
                                         }
                                     />
+                                    <Route path="/community" element={<CommunityPage />} />
+                                    <Route path="/community/challenges/browse" element={<BrowseChallengesPage />} />
+                                    <Route path="/community/challenges/:id" element={<ChallengeDetailPage />} />
 
                                     <Route
                                         path="/community/group/:groupId"
