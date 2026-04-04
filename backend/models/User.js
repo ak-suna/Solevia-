@@ -1,5 +1,3 @@
-// Points for eligibility (used for moderator selection)
-
 import { Schema, model } from "mongoose";
 
 const userSchema = new Schema({
@@ -16,7 +14,7 @@ const userSchema = new Schema({
     resetPasswordExpires: { type: Date },
     date: { type: Date, default: Date.now },
 
-    // ✅ UPDATED: Add moderator role
+    // moderator role
     role: {
         type: String,
         enum: ["user", "moderator", "admin"],
@@ -27,13 +25,13 @@ const userSchema = new Schema({
         default: 0
     },
 
-    // ✅ NEW: Track which groups user moderates
+    // Track which groups user moderates
     moderatedGroups: [{
         type: Schema.Types.ObjectId,
         ref: "SupportGroup"
     }],
 
-    // ✅ NEW: Moderator promotion tracking
+    // Moderator promotion tracking
     promotedBy: {
         type: Schema.Types.ObjectId,
         ref: "User",

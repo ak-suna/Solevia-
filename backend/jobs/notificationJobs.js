@@ -9,8 +9,7 @@ import { ChallengeTemplate } from "../models/ChallengeTemplate.js";
 import { ChallengeParticipant } from "../models/ChallengeParticipant.js";
 import Journal from "../models/Journal.js";
 import HabitDay from "../models/HabitDay.js";
-// import Journal from "../models/Journal.js";
-// import HabitDay from "../models/HabitDay.js";
+
 
 dotenv.config();
 

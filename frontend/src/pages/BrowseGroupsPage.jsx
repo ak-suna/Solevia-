@@ -86,7 +86,7 @@ const BrowseGroupsPage = () => {
             <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 {/* Back Button */}
-                // In your groups browse page:
+
                 <button
                     onClick={() => navigate('/community', { state: { activeTab: 'groups' } })}
                     className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#89beab] mb-6 transition-colors"

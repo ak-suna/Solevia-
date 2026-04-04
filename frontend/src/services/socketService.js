@@ -8,6 +8,7 @@ let refreshInterval = null;
 
 export const initializeSocket = () => {
     if (socket && socket.connected) {
+        console.log('Socket already connected');
         return socket;
     }
 
@@ -16,14 +17,17 @@ export const initializeSocket = () => {
         console.log('No token, skipping socket initialization');
         return null;
     }
+    console.log('Initializing socket connection...');
+    console.log('Token exists, length:', token.length);
 
-    socket = io('http://localhost:5000', {
+    socket = io('http://localhost:3000', {
         auth: { token },
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'],
         reconnection: true,
         reconnectionAttempts: 10,
         reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000
+        timeout: 20000, // Increase timeout
+        forceNew: true
     });
 
     // Handle successful connection

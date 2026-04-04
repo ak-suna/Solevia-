@@ -396,8 +396,8 @@ const UserDashboard = () => {
         getJournals(),
         getHabitHistory(1, 100)
       ]);
-      console.log("journals sample:", journals[0]);
-      console.log("habitHistory sample:", habitHistory[0]);
+      // console.log("journals sample:", journals[0]);
+      // console.log("habitHistory sample:", habitHistory[0]);
 
       setJournals(journalData);
       setHabitHistory(historyData.data || []);
