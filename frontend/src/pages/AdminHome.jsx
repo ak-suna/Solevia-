@@ -6,7 +6,7 @@ import AdminSidebar from "../components/AdminSidebar";
 
 const AdminHome = () => {
     const navigate = useNavigate();
-    const [stats, setStats] = useState({
+    const [stats] = useState({
         activeUsers: 142,
     });
 

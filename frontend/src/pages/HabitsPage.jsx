@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { CheckCircle2, Circle, Plus, Trash2, Calendar, X, Repeat, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
@@ -19,18 +19,19 @@ const HabitsPage = () => {
   const [frequency, setFrequency] = useState('daily');
   const [daysOfWeek, setDaysOfWeek] = useState([]);
   const [linkedGoalId, setLinkedGoalId] = useState('');
+  const [setLinkedGoalsMap] = useState({}); // Fixed typo
   const [goalContribution, setGoalContribution] = useState(10);
   const [habitDate, setHabitDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const categoryColors = {
-    Fitness: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700',
-    Health: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700',
-    Learning: 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-300 dark:border-purple-700',
-    Career: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-700',
-    Finance: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700',
-    Personal: 'bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 border-pink-300 dark:border-pink-700',
-    Other: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600'
-  };
+  // const categoryColors = {
+  //   Fitness: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700',
+  //   Health: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700',
+  //   Learning: 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border-purple-300 dark:border-purple-700',
+  //   Career: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-700',
+  //   Finance: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700',
+  //   Personal: 'bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 border-pink-300 dark:border-pink-700',
+  //   Other: 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 border-gray-300 dark:border-gray-600'
+  // };
 
   const [showHistory, setShowHistory] = useState(false);
   const [habitHistory, setHabitHistory] = useState([]);
@@ -38,8 +39,8 @@ const HabitsPage = () => {
   const [loadingMore, setLoadingMore] = useState(false);       // NEW
   const [historyPage, setHistoryPage] = useState(1);           // NEW
   const [hasMoreHistory, setHasMoreHistory] = useState(false); // NEW
-  const [linkedGoalsMap, setLinkedGoalsMap] = useState({});
-  const [pastHabits, setPastHabits] = useState([]);
+  // const [setLinkedGoalsMap] = useState({});
+  const [setPastHabits] = useState([]); // Fixed typo
 
   const handleAddHabit = async () => {
     if (newHabitName.trim()) {
@@ -137,12 +138,31 @@ const HabitsPage = () => {
 
   useEffect(() => {
     if (showHistory) {
+      const loadHistory = async () => {
+        try {
+          setLoadingHistory(true);
+          setHistoryPage(1);
+          const [result, past] = await Promise.all([
+            getHabitHistory(1, 7),
+            getPastHabits()
+          ]);
+          setHabitHistory(result.data);
+          setHasMoreHistory(result.hasMore);
+          setPastHabits(past);
+        } catch (error) {
+          console.error('Error loading habit history:', error);
+        } finally {
+          setLoadingHistory(false);
+        }
+      };
+
       loadHistory();
     }
   }, [showHistory]);
 
   useEffect(() => {
-    // Load linked goals for all habits
+    let isMounted = true;
+
     const loadLinkedGoals = async () => {
       const goalsMap = {};
       for (const habit of habits) {
@@ -154,12 +174,18 @@ const HabitsPage = () => {
           goalsMap[habit.id] = [];
         }
       }
-      setLinkedGoalsMap(goalsMap);
+      if (isMounted) {
+        setLinkedGoalsMap(goalsMap);
+      }
     };
 
     if (habits.length > 0) {
       loadLinkedGoals();
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [habits]);
 
   const formatDate = (dateInput) => {

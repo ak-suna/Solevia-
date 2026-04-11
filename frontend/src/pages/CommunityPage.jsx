@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
 import RightSidebarCards from "../components/RightSidebarCards";
-import { Plus, Users, Trophy, XCircle, ArrowRight } from 'lucide-react';
+import { Plus, Users, Trophy, ArrowRight } from 'lucide-react';
 import { getPosts, getUserGroups, getUserChallenges } from "../services/communityService";
 import CreatePostModal from "../components/CreatePostModal";
 import CommunityFeed from "../components/CommunityFeed";
@@ -14,7 +14,7 @@ const CommunityPage = () => {
     const location = useLocation();
     const [activeTab, setActiveTab] = useState("feed"); // feed, groups, challenges
     const [categoryFilter, setCategoryFilter] = useState("all");
-    const [pendingRequests, setPendingRequests] = useState([]);
+    const [pendingRequests] = useState([]);
     const [showCreatePostModal, setShowCreatePostModal] = useState(false);
 
     // Listen for navigation state to set active tab
