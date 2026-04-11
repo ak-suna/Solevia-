@@ -8,14 +8,14 @@ import CalendarHeatmap from '../components/analytics/CalendarHeatmap';
 import MoodDistribution from '../components/analytics/MoodDistribution';
 import ActivityCharts from '../components/analytics/ActivityCharts';
 import AchievementBadges from '../components/analytics/AchievementBadges';
-import { BarChart2, Lightbulb, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { BarChart2, Lightbulb } from 'lucide-react';
+// import { useNavigate } from 'react-router-dom';
 
 const AnalyticsPage = () => {
     const [analyticsData, setAnalyticsData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selectedMood, setSelectedMood] = useState(null);
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
 
     useEffect(() => {
         fetchAnalytics();

@@ -429,14 +429,26 @@ router.post('/check-day', authenticate, async (req, res) => {
 
           // Only create snapshot if we have habits
           if (totalYesterday > 0) {
-            yesterdaySnapshot = await HabitDay.create({
-              user: req.user.id,
-              date: yesterday,
-              habits: yesterdayHabits,
-              completionPercentage,
-              completedCount,
-              totalCount: totalYesterday
-            });
+            try {
+              yesterdaySnapshot = await HabitDay.create({
+                user: req.user.id,
+                date: yesterday,
+                habits: yesterdayHabits,
+                completionPercentage,
+                completedCount,
+                totalCount: totalYesterday
+              });
+            } catch (err) {
+              // If duplicate key error, fetch the existing document
+              if (err.code === 11000) {
+                yesterdaySnapshot = await HabitDay.findOne({
+                  user: req.user.id,
+                  date: yesterday
+                });
+              } else {
+                throw err;
+              }
+            }
           }
         }
 

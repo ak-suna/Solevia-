@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+// import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/auth";
-import { AlertTriangle, Eye, X, CheckCircle, AlertCircle, Menu } from 'lucide-react';
+import { AlertTriangle, Eye, X, CheckCircle } from 'lucide-react';
 import DataTable from "../components/DataTable";
 import AdminSidebar from "../components/AdminSidebar";
-import NotificationBell from '../components/NotificationBell';
+// import NotificationBell from '../components/NotificationBell';
 
 const AdminReportsPage = () => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("pending");
     const [selectedReport, setSelectedReport] = useState(null);
 
-    useEffect(() => {
-        fetchReports();
-    }, [filter]);
 
-    const fetchReports = async () => {
+
+    const fetchReports = useCallback(async () => {
         setLoading(true);
         try {
             const response = await fetch(
@@ -32,7 +30,11 @@ const AdminReportsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
+
+    useEffect(() => {
+        fetchReports();
+    }, [fetchReports]);
 
     const updateReportStatus = async (reportId, status, action, notes) => {
         try {

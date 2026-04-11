@@ -10,7 +10,7 @@ import {
     Legend,
     ArcElement
 } from 'chart.js';
-import { Activity, Trophy, PieChart } from 'lucide-react';
+import { Activity, Trophy } from 'lucide-react';
 
 ChartJS.register(
     CategoryScale,
@@ -23,7 +23,7 @@ ChartJS.register(
 );
 
 const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown, effortAllocation }) => {
-    
+
     // Prepare stacked bar chart data
     const stackedBarData = useMemo(() => {
         if (!dailyHabitBreakdown || dailyHabitBreakdown.length === 0) {
@@ -32,15 +32,15 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
 
         // Get last 7 days for better visibility
         const last7Days = dailyHabitBreakdown.slice(-7);
-        
+
         const labels = last7Days.map(day => {
             const date = new Date(day.date);
             return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         });
-        
+
         const goalLinkedData = last7Days.map(day => day.goalLinkedCount);
         const standaloneData = last7Days.map(day => day.standaloneCount);
-        
+
         return {
             labels,
             datasets: [
@@ -65,162 +65,162 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
             ]
         };
     }, [dailyHabitBreakdown]);
-    
-    // Prepare pie chart data
-    const pieChartData = useMemo(() => {
-        if (!effortAllocation || (effortAllocation.goalLinked === 0 && effortAllocation.standalone === 0)) {
-            return null;
-        }
-        
-        return {
-            labels: ['Goal-Linked Habits', 'Standalone Habits'],
-            datasets: [
-                {
-                    data: [effortAllocation.goalLinked, effortAllocation.standalone],
-                    backgroundColor: ['#2e7d64', '#9ca3af'],
-                    borderColor: ['#246653', '#6b7280'],
-                    borderWidth: 2,
-                }
-            ]
-        };
-    }, [effortAllocation]);
-    
-    const pieOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    font: {
-                        size: 12
-                    },
-                    padding: 10
-                }
-            },
-            tooltip: {
-                callbacks: {
-                    label: function(context) {
-                        const label = context.label || '';
-                        const value = context.parsed || 0;
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                        return `${label}: ${value} habits (${percentage}%)`;
-                    }
-                }
-            }
-        }
-    };
-    
-    const journalData = {
-        labels: journalFrequency.map(d => d.week),
-        datasets: [
-            {
-                label: 'Journal Entries',
-                data: journalFrequency.map(d => d.count),
-                backgroundColor: 'rgba(139, 92, 246, 0.7)',
-                borderColor: '#8b5cf6',
-                borderWidth: 2,
-                borderRadius: 8
-            }
-        ]
-    };
-    
-    const habitData = {
-        labels: habitCompletion.map(d => d.week),
-        datasets: [
-            {
-                label: 'Completion %',
-                data: habitCompletion.map(d => d.percentage),
-                borderColor: '#89beab',
-                backgroundColor: 'rgba(137, 190, 171, 0.1)',
-                tension: 0.4,
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                borderWidth: 2
-            }
-        ]
-    };
-    
-    const journalOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                cornerRadius: 8
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    stepSize: 1,
-                    color: '#6b7280'
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    color: '#6b7280'
-                }
-            }
-        }
-    };
-    
-    const habitOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                padding: 12,
-                cornerRadius: 8,
-                callbacks: {
-                    label: function (context) {
-                        return `Completion: ${context.parsed.y}%`;
-                    }
-                }
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 100,
-                ticks: {
-                    callback: function (value) {
-                        return value + '%';
-                    },
-                    color: '#6b7280'
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    color: '#6b7280'
-                }
-            }
-        }
-    };
-    
+
+    // // Prepare pie chart data
+    // const pieChartData = useMemo(() => {
+    //     if (!effortAllocation || (effortAllocation.goalLinked === 0 && effortAllocation.standalone === 0)) {
+    //         return null;
+    //     }
+
+    //     return {
+    //         labels: ['Goal-Linked Habits', 'Standalone Habits'],
+    //         datasets: [
+    //             {
+    //                 data: [effortAllocation.goalLinked, effortAllocation.standalone],
+    //                 backgroundColor: ['#2e7d64', '#9ca3af'],
+    //                 borderColor: ['#246653', '#6b7280'],
+    //                 borderWidth: 2,
+    //             }
+    //         ]
+    //     };
+    // }, [effortAllocation]);
+
+    // const pieOptions = {
+    //     responsive: true,
+    //     maintainAspectRatio: false,
+    //     plugins: {
+    //         legend: {
+    //             position: 'bottom',
+    //             labels: {
+    //                 font: {
+    //                     size: 12
+    //                 },
+    //                 padding: 10
+    //             }
+    //         },
+    //         tooltip: {
+    //             callbacks: {
+    //                 label: function (context) {
+    //                     const label = context.label || '';
+    //                     const value = context.parsed || 0;
+    //                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
+    //                     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+    //                     return `${label}: ${value} habits (${percentage}%)`;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // };
+
+    // const journalData = {
+    //     labels: journalFrequency.map(d => d.week),
+    //     datasets: [
+    //         {
+    //             label: 'Journal Entries',
+    //             data: journalFrequency.map(d => d.count),
+    //             backgroundColor: 'rgba(139, 92, 246, 0.7)',
+    //             borderColor: '#8b5cf6',
+    //             borderWidth: 2,
+    //             borderRadius: 8
+    //         }
+    //     ]
+    // };
+
+    // const habitData = {
+    //     labels: habitCompletion.map(d => d.week),
+    //     datasets: [
+    //         {
+    //             label: 'Completion %',
+    //             data: habitCompletion.map(d => d.percentage),
+    //             borderColor: '#89beab',
+    //             backgroundColor: 'rgba(137, 190, 171, 0.1)',
+    //             tension: 0.4,
+    //             fill: true,
+    //             pointRadius: 4,
+    //             pointHoverRadius: 6,
+    //             borderWidth: 2
+    //         }
+    //     ]
+    // };
+
+    // const journalOptions = {
+    //     responsive: true,
+    //     maintainAspectRatio: false,
+    //     plugins: {
+    //         legend: {
+    //             display: false
+    //         },
+    //         tooltip: {
+    //             backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    //             padding: 12,
+    //             cornerRadius: 8
+    //         }
+    //     },
+    //     scales: {
+    //         y: {
+    //             beginAtZero: true,
+    //             ticks: {
+    //                 stepSize: 1,
+    //                 color: '#6b7280'
+    //             },
+    //             grid: {
+    //                 color: 'rgba(0, 0, 0, 0.05)'
+    //             }
+    //         },
+    //         x: {
+    //             grid: {
+    //                 display: false
+    //             },
+    //             ticks: {
+    //                 color: '#6b7280'
+    //             }
+    //         }
+    //     }
+    // };
+
+    // const habitOptions = {
+    //     responsive: true,
+    //     maintainAspectRatio: false,
+    //     plugins: {
+    //         legend: {
+    //             display: false
+    //         },
+    //         tooltip: {
+    //             backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    //             padding: 12,
+    //             cornerRadius: 8,
+    //             callbacks: {
+    //                 label: function (context) {
+    //                     return `Completion: ${context.parsed.y}%`;
+    //                 }
+    //             }
+    //         }
+    //     },
+    //     scales: {
+    //         y: {
+    //             beginAtZero: true,
+    //             max: 100,
+    //             ticks: {
+    //                 callback: function (value) {
+    //                     return value + '%';
+    //                 },
+    //                 color: '#6b7280'
+    //             },
+    //             grid: {
+    //                 color: 'rgba(0, 0, 0, 0.05)'
+    //             }
+    //         },
+    //         x: {
+    //             grid: {
+    //                 display: false
+    //             },
+    //             ticks: {
+    //                 color: '#6b7280'
+    //             }
+    //         }
+    //     }
+    // };
+
     const stackedBarOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -240,7 +240,7 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
                 padding: 12,
                 cornerRadius: 8,
                 callbacks: {
-                    afterBody: function(tooltipItems) {
+                    afterBody: function (tooltipItems) {
                         const dayIndex = tooltipItems[0].dataIndex;
                         const dayData = dailyHabitBreakdown?.slice(-7)[dayIndex];
                         if (dayData && dayData.milestones && dayData.milestones.length > 0) {
@@ -248,7 +248,7 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
                         }
                         return [];
                     },
-                    footer: function(tooltipItems) {
+                    footer: function (tooltipItems) {
                         const dayIndex = tooltipItems[0].dataIndex;
                         const dayData = dailyHabitBreakdown?.slice(-7)[dayIndex];
                         if (dayData && dayData.milestones && dayData.milestones.length > 0) {
@@ -289,13 +289,13 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
             }
         }
     };
-    
+
     // Calculate insight text
     const effortInsight = useMemo(() => {
         if (!effortAllocation || effortAllocation.total === 0) return null;
-        
+
         const goalPercentage = ((effortAllocation.goalLinked / effortAllocation.total) * 100).toFixed(1);
-        
+
         if (goalPercentage < 20) {
             return " Only 20% of your habits are linked to goals. Link habits to goals to make faster progress!";
         } else if (goalPercentage < 50) {
@@ -305,7 +305,7 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
         }
         return null;
     }, [effortAllocation]);
-    
+
     return (
         <div className="bg-gray-50 dark:bg-gray-700 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600">
             <div className="flex items-center gap-2 mb-6">
@@ -314,13 +314,13 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
                     Activity Overview
                 </h3>
             </div>
-            
+
             {/* Stacked Bar Chart Section */}
             {stackedBarData && (
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-3">
                         <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                             Daily Habit Breakdown (Last 7 Days)
+                            Daily Habit Breakdown (Last 7 Days)
                         </h4>
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                             <Trophy className="w-3 h-3 text-yellow-500" />
@@ -330,7 +330,7 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
                     <div className="h-64">
                         <Bar data={stackedBarData} options={stackedBarOptions} />
                     </div>
-                    
+
                     {/* Effort Insight */}
                     {effortInsight && (
                         <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
@@ -341,11 +341,11 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
                     )}
                 </div>
             )}
-            
+
             {/* Two-column layout for existing charts + pie chart */}
             {/* <div className=" gap-6"> */}
-                {/* Journal Frequency */}
-                {/* <div>
+            {/* Journal Frequency */}
+            {/* <div>
                     <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                          Journal Frequency
                     </h4>
@@ -353,9 +353,9 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
                         <Bar data={journalData} options={journalOptions} />
                     </div>
                 </div> */}
-                
-                {/* Effort Allocation Pie Chart */}
-                {/* {pieChartData && (
+
+            {/* Effort Allocation Pie Chart */}
+            {/* {pieChartData && (
                     <div>
                         <div className="flex items-center gap-2 mb-3">
                             <PieChart className="w-4 h-4 text-gray-600 dark:text-gray-400" />
@@ -372,7 +372,7 @@ const ActivityCharts = ({ journalFrequency, habitCompletion, dailyHabitBreakdown
                     </div>
                 )} */}
             {/* </div> */}
-            
+
             {/* Habit Completion Trend */}
             {/* <div className="mt-6">
                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">

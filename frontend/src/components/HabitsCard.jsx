@@ -18,8 +18,7 @@ const HabitsCard = () => {
 
   const handleAddHabit = () => {
     if (newHabitName.trim()) {
-      addHabit(newHabitName, 'Other');
-      setNewHabitName('');
+      addHabit({ name: newHabitName, category: 'Other' }); setNewHabitName('');
       setShowAddForm(false);
     }
   };
@@ -84,30 +83,29 @@ const HabitsCard = () => {
         </div>
       )}
 
-<div className="flex-1 overflow-y-auto space-y-2 pr-1  scrollbar-thin
+      <div className="flex-1 overflow-y-auto space-y-2 pr-1  scrollbar-thin
     scrollbar-thumb-white/30
     scrollbar-track-transparent">
-  {habits.map((habit) => (
-    <div
-      key={habit.id}
-      className="flex items-center gap-2 cursor-pointer"
-      onClick={() => toggleHabit(habit.id)}
-    >
-      {habit.completedToday ? (
-        <CheckCircle2 className="w-5 h-5 text-[#DB996E]" />
-      ) : (
-        <Circle className="w-5 h-5 text-white/50" />
-      )}
-      <span className={`text-sm ${
-        habit.completedToday 
-          ? 'text-white/70 line-through' 
-          : 'text-white font-medium'
-      }`}>
-        {habit.name}
-      </span>
-    </div>
-  ))}
-</div>
+        {habits.map((habit) => (
+          <div
+            key={habit.id}
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => toggleHabit(habit.id)}
+          >
+            {habit.completedToday ? (
+              <CheckCircle2 className="w-5 h-5 text-[#DB996E]" />
+            ) : (
+              <Circle className="w-5 h-5 text-white/50" />
+            )}
+            <span className={`text-sm ${habit.completedToday
+                ? 'text-white/70 line-through'
+                : 'text-white font-medium'
+              }`}>
+              {habit.name}
+            </span>
+          </div>
+        ))}
+      </div>
 
 
       <button

@@ -6,7 +6,7 @@ import SignupForm from "./auth/SignupForm";
 import LoginForm from "./auth/LoginForm";
 import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
+// import AdminDashboard from "./pages/AdminDashboard";
 import AdminHome from "./pages/AdminHome";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminReportsPage from "./pages/AdminReportsPage";
@@ -35,9 +35,8 @@ import GroupModeratorMembers from "./pages/GroupModeratorMembers";
 import GroupModeratorReports from "./pages/GroupModeratorReports";
 import GroupModeratorRequests from "./pages/GroupModeratorRequests";
 import ChallengeDetailPage from "./pages/ChallengeDetailPage";
-import ChallengesPage from "./pages/ChallengesPage";
-import { useEffect } from 'react';
-import { initializeSocket, disconnectSocket } from './services/socketService';
+// import { useEffect } from 'react';
+// import { initializeSocket, disconnectSocket } from './services/socketService';
 // import { isAuthenticated } from './services/auth';
 
 function App() {
@@ -225,8 +224,8 @@ function App() {
                                         }
                                     />
                                     <Route path="/community" element={<CommunityPage />} />
-                                    <Route path="/community/challenges/browse" element={<BrowseChallengesPage />} />
-                                    <Route path="/community/challenges/:id" element={<ChallengeDetailPage />} />
+                                    <Route path="/challenges/browse" element={<BrowseChallengesPage />} />
+                                    <Route path="/challenges/:id" element={<ChallengeDetailPage />} />
 
                                     <Route
                                         path="/community/group/:groupId"

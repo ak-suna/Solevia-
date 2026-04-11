@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import RightSidebarCards from "../components/RightSidebarCards";
@@ -20,11 +20,9 @@ const BrowseGroupsPage = () => {
     const [pendingGroup, setPendingGroup] = useState(null); // { id, name }
     const [toast, setToast] = useState(null); // { message, type }
 
-    useEffect(() => {
-        fetchData();
-    }, [categoryFilter]);
 
-    const fetchData = async () => {
+
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const data = await getAllGroups(categoryFilter);
@@ -42,7 +40,11 @@ const BrowseGroupsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [categoryFilter]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const openJoinModal = (groupId, groupName) => {
         setPendingGroup({ id: groupId, name: groupName });

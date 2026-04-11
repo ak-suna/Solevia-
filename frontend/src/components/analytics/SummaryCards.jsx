@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, BookOpen, Target, TrendingUp, Smile, ArrowUp, ArrowDown } from 'lucide-react';
+import { CheckCircle2, BookOpen, Target, Smile, ArrowUp, ArrowDown } from 'lucide-react';
 
 const Delta = ({ value }) => {
     if (!value || value === 0) return null;

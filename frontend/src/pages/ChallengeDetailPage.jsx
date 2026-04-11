@@ -191,7 +191,7 @@ const ChallengeDetailPage = () => {
 
                 {/* Back */}
                 <button
-                    onClick={() => navigate('/challenges')}
+                    onClick={() => navigate('/community', { state: { activeTab: 'challenges' } })}
                     className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#f4873e] mb-6 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
@@ -258,12 +258,12 @@ const ChallengeDetailPage = () => {
                                         key={index}
                                         title={day.date}
                                         className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${day.completed
-                                                ? "bg-gradient-to-br from-[#f4873e] to-[#ff9e5e] text-white shadow-md"
-                                                : isToday
-                                                    ? "border-2 border-[#f4873e] text-[#f4873e] bg-orange-50 dark:bg-orange-900/20"
-                                                    : isFuture
-                                                        ? "bg-gray-200 dark:bg-gray-600 text-gray-400"
-                                                        : "bg-gray-300 dark:bg-gray-500 text-gray-500 dark:text-gray-400"
+                                            ? "bg-gradient-to-br from-[#f4873e] to-[#ff9e5e] text-white shadow-md"
+                                            : isToday
+                                                ? "border-2 border-[#f4873e] text-[#f4873e] bg-orange-50 dark:bg-orange-900/20"
+                                                : isFuture
+                                                    ? "bg-gray-200 dark:bg-gray-600 text-gray-400"
+                                                    : "bg-gray-300 dark:bg-gray-500 text-gray-500 dark:text-gray-400"
                                             }`}
                                     >
                                         {index + 1}
@@ -293,10 +293,10 @@ const ChallengeDetailPage = () => {
                                 onClick={handleMarkDone}
                                 disabled={isTodayDone || markingDone || challenge.status === "expired"}
                                 className={`w-full py-3 rounded-full font-bold transition-all ${isTodayDone
-                                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 cursor-not-allowed"
-                                        : challenge.status === "expired"
-                                            ? "bg-gray-200 dark:bg-gray-600 text-gray-400 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-[#f4873e] to-[#ff9e5e] text-white hover:shadow-lg"
+                                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 cursor-not-allowed"
+                                    : challenge.status === "expired"
+                                        ? "bg-gray-200 dark:bg-gray-600 text-gray-400 cursor-not-allowed"
+                                        : "bg-gradient-to-r from-[#f4873e] to-[#ff9e5e] text-white hover:shadow-lg"
                                     }`}
                             >
                                 {isTodayDone

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/auth";
-import { UserPlus, Plus, Users, Calendar, Trash2, Edit, X, Trophy, Inbox, Menu } from 'lucide-react';
+import { UserPlus, Plus, Users, Calendar, Trash2, Edit, X, Trophy, Inbox } from 'lucide-react';
 import ModeratorCandidatesModal from "../components/ModeratorCandidatesModal";
 import JoinRequestsModal from "../components/JoinRequestsModal";
 import AdminSidebar from "../components/AdminSidebar";
-import NotificationBell from '../components/NotificationBell';
+// import NotificationBell from '../components/NotificationBell';
 
 const AdminGroupsPage = () => {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);

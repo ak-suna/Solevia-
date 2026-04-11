@@ -18,6 +18,7 @@ import {
 
 const router = express.Router();
 
+router.get("/user", authenticate, getAllChallenges);
 // Admin template routes
 router.post("/admin/templates", authenticate, authorizeRole("admin"), createTemplate);
 router.get("/admin/templates", authenticate, authorizeRole("admin"), getAllTemplates);

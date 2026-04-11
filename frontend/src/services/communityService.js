@@ -408,12 +408,15 @@ export const getChallengeById = async (challengeId) => {
 
 export const getUserChallenges = async () => {
     try {
-        const response = await fetch(`${API_BASE_URL}/challenges/user`, {
+        const response = await fetch(`${API_BASE_URL}/challenges`, {
             headers: getAuthHeaders()
         });
 
         if (!response.ok) throw new Error("Failed to fetch user challenges");
-        return await response.json();
+        const data = await response.json();
+
+        // Filter only joined ones
+        return { challenges: (data.challenges || []).filter(c => c.isJoined) };
     } catch (error) {
         console.error("Error fetching user challenges:", error);
         throw error;

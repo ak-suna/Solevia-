@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Send, Trash2} from "lucide-react";
-import { getCommentsByPost, addComment, addReaction, deleteComment } from "../services/communityService";
+import { addComment, addReaction, deleteComment } from "../services/communityService";
 import { jwtDecode } from "jwt-decode";
 
 const REACTION_EMOJIS = ["👍", "❤️", "🎉", "💪", "🙏"];

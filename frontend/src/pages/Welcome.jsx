@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import landingBG from "../assets/images/gbb.png";
-// import logoImage from "../assets/images/logo.png"; // Add your logo path
+// import logoImage from "../assets/images/logo.png"; 
 
 const Welcome = () => {
   return (

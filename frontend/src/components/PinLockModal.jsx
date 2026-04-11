@@ -16,10 +16,32 @@ const PinLockModal = ({
     const inputRefs = [useRef(), useRef(), useRef(), useRef()];
     const confirmRefs = [useRef(), useRef(), useRef(), useRef()];
 
+    // useEffect(() => {
+    //     if (isOpen && inputRefs[0].current) {
+    //         setTimeout(() => inputRefs[0].current.focus(), 100);
+    //     }
+    // }, [isOpen]);
     useEffect(() => {
-        if (isOpen && inputRefs[0].current) {
-            setTimeout(() => inputRefs[0].current.focus(), 100);
+        if (isOpen) {
+            // Force clear all PIN state
+            setPin(['', '', '', '']);
+            setConfirmPin(['', '', '', '']);
+            setError('');
+            setIsConfirming(false);
+
+            // Also clear any auto-fill from browser
+            setTimeout(() => {
+                inputRefs.forEach(ref => {
+                    if (ref.current) {
+                        ref.current.value = '';
+                    }
+                });
+            }, 0);
+
+            // Focus on first input
+            setTimeout(() => inputRefs[0]?.current?.focus(), 100);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const handlePinChange = (index, value, isConfirm = false) => {

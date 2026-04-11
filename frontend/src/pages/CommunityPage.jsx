@@ -165,7 +165,7 @@ const CommunityPage = () => {
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Groups</h2>
                                 <button
-                                    onClick={() => navigate('/community/groups/browse', { state: { fromTab: 'groups' } })}
+                                    onClick={() => navigate('/challenges/browse', { state: { fromTab: 'groups' } })}
                                     className="px-6 py-2 bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white rounded-full font-bold hover:shadow-lg flex items-center gap-2"
                                 >
                                     Explore Groups
@@ -233,7 +233,7 @@ const CommunityPage = () => {
                                     {myChallenges.filter(c => c.isJoined !== false).map(challenge => (
                                         <div
                                             key={challenge._id}
-                                            onClick={() => navigate(`/community/challenges/${challenge._id}`)}
+                                            onClick={() => navigate(`/challenges/${challenge._id}`)}
                                             className="bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/20 dark:to-gray-800 rounded-2xl p-5 border-2 border-orange-200 dark:border-orange-800 hover:shadow-lg transition-all cursor-pointer"
                                         >
                                             <div className="flex items-start justify-between mb-3">
