@@ -226,9 +226,19 @@ const Journal = () => {
       const prompt = getMoodBasedPrompt(moodValue, period);
       setCurrentPrompt(prompt);
 
-      // toast.success('Ready to journal! Express yourself freely');
-      // hasShownMoodToast.current = true;
-
+      window.history.replaceState({}, document.title);
+    } else if (location.state?.fromComment) {
+      // Coming from Save to Journal on a comment
+      setIsWriting(true);
+      setTitle('');
+      setContent(location.state.commentContent || '');
+      setMood('');
+      setTags((location.state.commentTags || []).join(', '));
+      setCurrentPrompt('');
+      setEditingEntry(null);
+      if (editor) {
+        editor.commands.setContent(location.state.commentContent || '');
+      }
       // Clear the state to prevent re-triggering
       window.history.replaceState({}, document.title);
     }

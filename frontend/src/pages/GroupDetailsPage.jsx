@@ -62,9 +62,10 @@ const GroupDetailsPage = () => {
         }
     }, [groupError, groupData]);
 
+
     // Sync task completed from group data (must match userId as string)
     useEffect(() => {
-        if (group?.weeklyTask?.completedBy?.some(id => id === currentUserId || id?._id === currentUserId)) {
+        if (group?.weeklyTask?.completedBy?.some(entry => entry.userId === currentUserId || entry.userId?._id === currentUserId)) {
             setTaskCompleted(true);
         } else {
             setTaskCompleted(false);
@@ -127,14 +128,15 @@ const GroupDetailsPage = () => {
         });
     };
 
+
     const handleCompleteTask = async () => {
         try {
-            await completeWeeklyTask(groupId);
+            const res = await completeWeeklyTask(groupId);
             setTaskCompleted(true);
             setToast({ message: 'Great job! Weekly task completed! 🎉', type: 'success' });
-            queryClient.invalidateQueries({ queryKey: ["community"] });
+            queryClient.invalidateQueries({ queryKey: ["community", "group", groupId] });
         } catch (error) {
-            setToast({ message: error.response?.data?.error || 'Failed to complete task', type: 'error' });
+            setToast({ message: error.message || 'Failed to complete task', type: 'error' });
         }
     };
 
@@ -363,6 +365,7 @@ const GroupDetailsPage = () => {
                     </div>
 
                     {/* Weekly Task */}
+
                     {group.weeklyTask?.task && (
                         <div className="bg-gradient-to-br from-[#f8ba90] to-[#f4873e]/50 rounded-2xl p-6 mb-6 shadow-md">
                             <div className="flex items-start justify-between">
@@ -377,7 +380,13 @@ const GroupDetailsPage = () => {
                                     <div className="flex items-center gap-2 text-sm text-white/80">
                                         <Users className="w-4 h-4" />
                                         <span>
-                                            {group.weeklyTask.completedBy?.length || 0} members completed
+                                            {/* Show X/Y members completed · Z% */}
+                                            {(() => {
+                                                const completed = group.weeklyTask.completedBy?.length || 0;
+                                                const total = group.memberCount || group.members?.length || 0;
+                                                const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+                                                return `${completed}/${total} members completed · ${percent}%`;
+                                            })()}
                                         </span>
                                     </div>
                                 </div>

@@ -20,6 +20,7 @@ import {
 } from "../controllers/groupController.js";
 import { setWeeklyTask } from "../controllers/weeklyTaskController.js";
 import { authenticate, authorizeRole } from "../middleware/authMiddleware.js";
+import agenda from '../jobs/notificationJobs.js';
 
 const router = express.Router();
 
@@ -39,6 +40,10 @@ router.get("/:groupId/posts", authenticate, getGroupPosts); // Get group posts (
 router.post("/:groupId/join", authenticate, joinGroup); // Join a group
 router.post("/:groupId/leave", authenticate, leaveGroup); // Leave a group
 
+// Mark weekly group task as completed
+
+router.post("/:groupId/complete-weekly-task", authenticate, completeWeeklyTask);
+
 // Weekly tasks
 router.post("/:groupId/complete-task", authenticate, completeWeeklyTask); // Complete weekly task
 router.put("/:groupId/weekly-task", authenticate, setWeeklyTask); // Set weekly task (admin or moderator)
@@ -56,5 +61,14 @@ router.get("/:groupId/members", authenticate, authorizeRole("admin"), getGroupMe
 
 // Assign moderator (admin only)
 router.post("/:groupId/assign-moderator", authenticate, authorizeRole("admin"), assignModerator);
-
+router.post('/:groupId/test-auto-complete-post', async (req, res) => {
+    const { groupId } = req.params;
+    const week = Date.now(); // or use group.weeklyTask.week
+    try {
+        await agenda.now('auto-group-task-complete-post', { groupId, week });
+        res.json({ message: 'Agenda job triggered!' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 export default router;

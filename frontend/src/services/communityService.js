@@ -1,3 +1,15 @@
+// Mark weekly group task as completed
+export const completeWeeklyTask = async (groupId) => {
+    const response = await fetch(`${API_BASE_URL}/groups/${groupId}/complete-weekly-task`, {
+        method: "POST",
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to complete task");
+    }
+    return await response.json();
+};
 // ==================== GROUP MODERATOR TOOLS ====================
 export const getGroupReports = async (groupId) => {
     try {
@@ -353,23 +365,7 @@ export const getGroupPosts = async (groupId, page = 1, limit = 10) => {
     }
 };
 
-export const completeWeeklyTask = async (groupId) => {
-    try {
-        const response = await fetch(
-            `${API_BASE_URL}/groups/${groupId}/complete-task`,
-            {
-                method: "POST",
-                headers: getAuthHeaders()
-            }
-        );
 
-        if (!response.ok) throw new Error("Failed to complete task");
-        return await response.json();
-    } catch (error) {
-        console.error("Error completing task:", error);
-        throw error;
-    }
-};
 
 // ==================== CHALLENGES ====================
 

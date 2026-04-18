@@ -88,10 +88,14 @@ const supportGroupSchema = new Schema({
         default: 50
     },
 
+
     weeklyTask: {
         task: { type: String, default: "" },
         week: { type: Date },
-        completedBy: [{ type: Schema.Types.ObjectId, ref: "User" }]
+        completedBy: [{
+            userId: { type: Schema.Types.ObjectId, ref: "User" },
+            completedAt: { type: Date, default: Date.now }
+        }]
     },
 
     isActive: {

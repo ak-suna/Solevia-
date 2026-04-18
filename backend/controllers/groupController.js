@@ -1,3 +1,51 @@
+// Mark weekly group task as completed by user
+export const completeWeeklyTask = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const userId = req.user.id;
+
+        const group = await SupportGroup.findById(groupId);
+        if (!group) {
+            return res.status(404).json({ error: "Group not found" });
+        }
+
+        // Check if user is a member and not disabled
+        const member = group.members.find(m => m.userId.toString() === userId);
+        if (!member) {
+            return res.status(403).json({ error: "You must be a member to complete the task" });
+        }
+        if (member.disabled) {
+            return res.status(403).json({ error: "You are disabled from this group." });
+        }
+
+        // Check if already completed
+        const alreadyCompleted = group.weeklyTask.completedBy.some(
+            entry => entry.userId.toString() === userId
+        );
+        if (alreadyCompleted) {
+            return res.status(400).json({ error: "You have already completed this task." });
+        }
+
+        // Add completion
+        group.weeklyTask.completedBy.push({ userId, completedAt: new Date() });
+        await group.save();
+
+        // Calculate stats
+        const totalMembers = group.members.filter(m => !m.disabled).length;
+        const completedCount = group.weeklyTask.completedBy.length;
+        const completionRate = totalMembers > 0 ? Math.round((completedCount / totalMembers) * 100) : 0;
+
+        res.status(200).json({
+            message: "Task marked as completed!",
+            totalMembers,
+            completedCount,
+            completionRate
+        });
+    } catch (error) {
+        console.error("Error completing weekly task:", error);
+        res.status(500).json({ error: "Failed to complete weekly task" });
+    }
+};
 // Disable or enable a group member (group-scoped)
 export const setGroupMemberDisabled = async (req, res) => {
     try {
@@ -313,51 +361,6 @@ export const getGroupPosts = async (req, res) => {
     }
 };
 
-// Complete weekly group task
-export const completeWeeklyTask = async (req, res) => {
-    try {
-        const { groupId } = req.params;
-        const userId = req.user.id;
-
-        const group = await SupportGroup.findById(groupId);
-
-        if (!group) {
-            return res.status(404).json({ error: "Group not found" });
-        }
-
-        // Check if user is a member
-        const member = group.members.find(m => m.userId.toString() === userId);
-        if (!member) {
-            return res.status(403).json({ error: "You must be a member to complete tasks" });
-        }
-        if (member.disabled) {
-            return res.status(403).json({ error: `You are disabled from this group. Reason: ${member.disabledReason || "No reason provided."}` });
-        }
-
-        // Check if already completed
-        const alreadyCompleted = group.weeklyTask.completedBy.some(
-            id => id.toString() === userId
-        );
-
-        if (alreadyCompleted) {
-            return res.status(400).json({ error: "You have already completed this week's task" });
-        }
-
-        group.weeklyTask.completedBy.push(userId);
-        await group.save();
-
-        // Award points to user (+10 per task)
-        await User.findByIdAndUpdate(userId, { $inc: { points: 10 } });
-
-        res.status(200).json({
-            message: "Weekly task completed!",
-            group
-        });
-    } catch (error) {
-        console.error("Error completing weekly task:", error);
-        res.status(500).json({ error: "Failed to complete task" });
-    }
-};
 
 // Create a new group (admin only)
 export const createGroup = async (req, res) => {

@@ -1,6 +1,9 @@
+
 import Agenda from "agenda";
 import dotenv from "dotenv";
 import notificationService from "../services/notificationService.js";
+import { SupportGroup } from "../models/SupportGroup.js";
+import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
 import Habit from "../models/Habit.js";
 import { Mood } from "../models/Mood.js";
@@ -10,13 +13,53 @@ import { ChallengeParticipant } from "../models/ChallengeParticipant.js";
 import Journal from "../models/Journal.js";
 import HabitDay from "../models/HabitDay.js";
 
-
 dotenv.config();
 
 const agenda = new Agenda({
   db: { address: process.env.MONGO_URI, collection: "agendaJobs" },
   processEvery: "1 minute",
   maxConcurrency: 20
+});
+
+// Auto-post group task completion (idempotent)
+agenda.define("auto-group-task-complete-post", async (job) => {
+  const { groupId, week } = job.attrs.data;
+  try {
+    const group = await SupportGroup.findById(groupId);
+    if (!group || !group.weeklyTask || !group.weeklyTask.task) return;
+
+    // Check if post already exists for this group/week
+    const existing = await Post.findOne({
+      groupId,
+      "tags": `auto-complete-${week}`
+    });
+    if (existing) return; // Already posted
+
+    // Calculate stats
+    const totalMembers = group.members.filter(m => !m.disabled).length;
+    const completedCount = group.weeklyTask.completedBy.length;
+    const completionRate = totalMembers > 0 ? Math.round((completedCount / totalMembers) * 100) : 0;
+
+    // Compose post content
+    const startDate = group.weeklyTask.week ? new Date(group.weeklyTask.week) : null;
+    const endDate = new Date();
+    const taskName = group.weeklyTask.task;
+    const content = `"${taskName}" Complete!\nDuration: ${startDate ? startDate.toLocaleDateString() : "-"} - ${endDate.toLocaleDateString()}\nParticipants: ${totalMembers} members\nGroup completion rate: ${completionRate}%\n\nShare your experience below `;
+
+    // Use group creator or moderator as poster
+    const userId = group.moderatorId || group.createdBy;
+    await Post.create({
+      userId,
+      content,
+      type: "group",
+      category: group.category || "other",
+      groupId,
+      tags: [`auto-complete-${week}`]
+    });
+    console.log(`[Agenda] Auto-posted group completion for group ${groupId}, week ${week}`);
+  } catch (err) {
+    console.error("[Agenda] Error in auto-group-task-complete-post:", err);
+  }
 });
 
 agenda.define("send-habit-reminders", async (job) => {
@@ -477,7 +520,8 @@ export async function startNotificationJobs() {
     await agenda.every("0 22 * * *", "check-streak-achievements");
     await agenda.every("0 21 * * *", "check-streaks-at-risk");
     await agenda.every("0 2 * * *", "cleanup-old-notifications");
-    await agenda.every("0 8 * * 0", "activate-challenge-from-template");
+    // await agenda.every("0 7 * * 1", "activate-challenge-from-template");
+    await agenda.every("20 16 * * *", "activate-challenge-from-template");
     await agenda.every("0 0 * * *", "nightly-challenge-tracking");
     await agenda.every("0 1 * * *", "expire-challenges");
     await agenda.every("0 20 * * 0", "challenge-pool-check");

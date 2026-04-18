@@ -1,4 +1,5 @@
 import { SupportGroup } from "../models/SupportGroup.js";
+import agenda from "../jobs/notificationJobs.js";
 
 // Set or update the weekly task (admin or moderator)
 export const setWeeklyTask = async (req, res) => {
@@ -29,12 +30,36 @@ export const setWeeklyTask = async (req, res) => {
             return res.status(403).json({ error: "Only admins and moderators can set the weekly task" });
         }
 
+        // Calculate the start of the current week (Monday 00:00)
+        const now = new Date();
+        const day = now.getDay(); // 0 (Sun) - 6 (Sat)
+        const diffToMonday = (day === 0 ? -6 : 1) - day; // If Sunday, go back 6 days, else back to Monday
+        const monday = new Date(now);
+        monday.setHours(0, 0, 0, 0);
+        monday.setDate(now.getDate() + diffToMonday);
+        const weekStart = monday.getTime();
+
+        // Prevent multiple tasks for the same week
+        if (group.weeklyTask && group.weeklyTask.week === weekStart) {
+            return res.status(400).json({ error: "A weekly task already exists for this week. Wait until next week to set a new one." });
+        }
+
         group.weeklyTask = {
             task: task,
-            week: Date.now(),
+            week: weekStart,
             completedBy: []
         };
         await group.save();
+
+        // Schedule Agenda job for task end (next Monday 00:00)
+        const jobName = "auto-group-task-complete-post";
+        const jobUnique = { groupId: group._id.toString(), week: weekStart };
+        const nextMonday = new Date(monday);
+        nextMonday.setDate(monday.getDate() + 7);
+        // Cancel any existing job for this group/week
+        await agenda.cancel({ name: jobName, "data.groupId": group._id.toString(), "data.week": weekStart });
+        await agenda.schedule(nextMonday, jobName, jobUnique);
+
         // Populate members and createdBy for frontend display
         await group.populate([
             { path: 'createdBy', select: 'firstName lastName' },
