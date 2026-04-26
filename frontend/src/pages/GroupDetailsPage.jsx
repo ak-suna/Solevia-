@@ -10,13 +10,20 @@ import {
     getGroupById,
     getGroupPosts,
     leaveGroup,
-    completeWeeklyTask
+    completeWeeklyTask,
+    sendPeerConnectRequest,
+    getMyPeerConnections,
+    getPendingPeerRequests,
+    respondToPeerRequest
 } from "../services/communityService";
 import PostCard from "../components/PostCard";
 import CreatePostModal from "../components/CreatePostModal";
 import ModeratorCandidatesModal from "../components/ModeratorCandidatesModal";
 import WeeklyTaskModal from "../components/WeeklyTaskModal";
 import { jwtDecode } from "jwt-decode";
+import MemberCard from "../components/MemberCard";
+// import PrivateChatModal from "../components/PrivateChatModal";
+// import {sendPeerConnectRequest, getMyPeerConnections } from "../services/communityService";
 
 const GroupDetailsPage = () => {
     const { groupId } = useParams();
@@ -44,7 +51,37 @@ const GroupDetailsPage = () => {
         refetchInterval: 5000,
     });
 
+    // Helper: is current user a member and not disabled?
     const group = groupData?.group ?? null;
+    const memberObj = group?.members?.find(m => m.userId === currentUserId || m.userId?._id === currentUserId);
+    const isMember = !!memberObj && !memberObj.disabled;
+    const isDisabled = !!memberObj && memberObj.disabled;
+    // Helper: is current user a moderator (by moderatorId or member role)
+    const isModerator = (group?.moderatorId && (group.moderatorId === currentUserId || group.moderatorId?._id === currentUserId)) ||
+        group?.members?.some(m => (m.userId === currentUserId || m.userId?._id === currentUserId) && m.role === "moderator");
+
+
+    const { data: connectionsData, refetch: refetchConnections } = useQuery({
+        queryKey: ["peer", "connections", groupId],
+        queryFn: () => getMyPeerConnections(groupId),
+        enabled: !!groupId && isMember,
+    });
+
+    // Pending peer connect requests
+    const { data: pendingData, refetch: refetchPending } = useQuery({
+        queryKey: ["peer", "pending"],
+        queryFn: getPendingPeerRequests,
+        enabled: isMember,
+        refetchInterval: 15000,
+    });
+    const pendingRequests = pendingData?.requests ?? [];
+    // Only requests for this group
+    const groupPendingRequests = pendingRequests.filter(
+        r => (r.groupId?._id || r.groupId)?.toString() === groupId
+    );
+
+    // Removed openChat state; chat is now a separate page
+    const myConnections = connectionsData?.connections ?? [];
     const posts = postsData?.posts ?? [];
     const loading = loadingGroup;
 
@@ -54,6 +91,10 @@ const GroupDetailsPage = () => {
 
     // Weekly Task Modal state
     const [showWeeklyTaskModal, setShowWeeklyTaskModal] = useState(false);
+
+    // State for modals
+    const [showMembersModal, setShowMembersModal] = useState(false);
+    const [showRequestsModal, setShowRequestsModal] = useState(false);
 
     // Block disabled users from accessing the group
     useEffect(() => {
@@ -81,14 +122,6 @@ const GroupDetailsPage = () => {
         }
         // eslint-disable-next-line
     }, [groupError, navigate]);
-
-    // Helper: is current user a member and not disabled?
-    const memberObj = group?.members?.find(m => m.userId === currentUserId || m.userId?._id === currentUserId);
-    const isMember = !!memberObj && !memberObj.disabled;
-    const isDisabled = !!memberObj && memberObj.disabled;
-    // Helper: is current user a moderator (by moderatorId or member role)
-    const isModerator = (group?.moderatorId && (group.moderatorId === currentUserId || group.moderatorId?._id === currentUserId)) ||
-        group?.members?.some(m => (m.userId === currentUserId || m.userId?._id === currentUserId) && m.role === "moderator");
     // Save weekly task handler
     const handleSaveWeeklyTask = async (task) => {
         try {
@@ -155,6 +188,30 @@ const GroupDetailsPage = () => {
         queryClient.setQueryData(["community", "groupPosts", groupId], (prev) =>
             prev ? { ...prev, posts: prev.posts.filter(p => p._id !== postId) } : prev
         );
+    };
+
+    const handleConnect = async (recipientId) => {
+        try {
+            await sendPeerConnectRequest(recipientId, groupId);
+            setToast({ message: "Connect request sent!", type: "success" });
+            refetchConnections();
+        } catch (error) {
+            setToast({ message: error.message || "Failed to send request", type: "error" });
+        }
+    };
+
+    const handleRespondToRequest = async (connectionId, action) => {
+        try {
+            await respondToPeerRequest(connectionId, action);
+            setToast({
+                message: action === "accept" ? "Connection accepted! 🎉" : "Request declined",
+                type: action === "accept" ? "success" : "error"
+            });
+            refetchConnections();
+            refetchPending();
+        } catch (error) {
+            setToast({ message: error.message || "Failed to respond", type: "error" });
+        }
     };
 
     const categoryColors = {
@@ -292,7 +349,7 @@ const GroupDetailsPage = () => {
                         <span className="font-semibold">Back to Community</span>
                     </button>
 
-                    {/* Group Header */}
+                    {/* Group Header with Members/Requests buttons */}
                     <div className={`bg-gradient-to-r ${gradientColor} rounded-3xl p-6 mb-6 text-white shadow-lg`}>
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-4">
@@ -300,22 +357,17 @@ const GroupDetailsPage = () => {
                                 <div>
                                     <h1 className="text-3xl font-bold mb-2 flex items-center gap-2" style={{ fontFamily: "Brasika" }}>
                                         {group.name}
-                                        {/* 👑 badge for moderator */}
                                         {group.moderatorId && (group.moderatorId === currentUserId || group.moderatorId?._id === currentUserId) && (
                                             <span title="You are the moderator" className="ml-2 text-yellow-400 text-2xl">👑</span>
                                         )}
                                     </h1>
-                                    <p className="text-white/90 mb-3">
-                                        {group.description}
-                                    </p>
+                                    <p className="text-white/90 mb-3">{group.description}</p>
                                     <div className="flex items-center gap-4 text-sm">
                                         <div className="flex items-center gap-2">
                                             <Users className="w-4 h-4" />
                                             <span>{group.memberCount || group.members?.length || 0} members</span>
                                         </div>
-                                        <span className="px-3 py-1 bg-white/20 rounded-full">
-                                            {group.category}
-                                        </span>
+                                        <span className="px-3 py-1 bg-white/20 rounded-full">{group.category}</span>
                                     </div>
                                 </div>
                             </div>
@@ -326,7 +378,6 @@ const GroupDetailsPage = () => {
                                 >
                                     Leave Group
                                 </button>
-                                {/* Show Assign Moderator button for admin only */}
                                 {group && group.adminId === currentUserId && (
                                     <button
                                         onClick={() => setShowModeratorModal(true)}
@@ -335,7 +386,6 @@ const GroupDetailsPage = () => {
                                         Assign Moderator
                                     </button>
                                 )}
-                                {/* Show Set Weekly Task button for admin or moderator */}
                                 {group && (group.adminId === currentUserId || isModerator) && (
                                     <button
                                         onClick={() => setShowWeeklyTaskModal(true)}
@@ -344,7 +394,6 @@ const GroupDetailsPage = () => {
                                         Set Weekly Task
                                     </button>
                                 )}
-                                {/* Show Moderator Tools button for admin or moderator */}
                                 {group && (group.adminId === currentUserId || isModerator) && (
                                     <button
                                         onClick={() => navigate(`/groups/${group._id}/moderator/dashboard`)}
@@ -353,8 +402,26 @@ const GroupDetailsPage = () => {
                                         Moderator Tools
                                     </button>
                                 )}
+                                {/* Members & Requests buttons */}
+                                <div className="flex gap-2 mt-2">
+                                    <button
+                                        onClick={() => setShowMembersModal(true)}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-white/30 hover:bg-white/40 rounded-full text-sm font-semibold text-white"
+                                        title="View Members"
+                                    >
+                                        <Users className="w-4 h-4" />
+                                        Members
+                                    </button>
+                                    <button
+                                        onClick={() => setShowRequestsModal(true)}
+                                        className="flex items-center gap-1 px-3 py-1.5 bg-white/30 hover:bg-white/40 rounded-full text-sm font-semibold text-white"
+                                        title="Pending Requests"
+                                    >
+                                        <CheckCircle className="w-4 h-4" />
+                                        Requests
+                                    </button>
+                                </div>
                             </div>
-                            {/* Weekly Task Modal */}
                             <WeeklyTaskModal
                                 isOpen={showWeeklyTaskModal}
                                 onClose={() => setShowWeeklyTaskModal(false)}
@@ -407,6 +474,95 @@ const GroupDetailsPage = () => {
                         </div>
                     )}
 
+                    {/* Members and Requests modals */}
+                    <Modal
+                        isOpen={showMembersModal}
+                        onClose={() => setShowMembersModal(false)}
+                        title="Group Members"
+                    >
+                        <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1">
+                            {group.members?.filter(m => !m.disabled).map(member => (
+                                <MemberCard
+                                    key={member.userId?._id || member.userId}
+                                    member={member}
+                                    currentUserId={currentUserId}
+                                    groupId={groupId}
+                                    existingConnections={myConnections}
+                                    onConnect={handleConnect}
+                                />
+                            ))}
+                        </div>
+                        {/* Accepted connections — link to chat page */}
+                        {myConnections.filter(c => c.status === "accepted").length > 0 && (
+                            <div className="mt-4">
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Your connections in this group</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {myConnections.filter(c => c.status === "accepted").map(conn => {
+                                        const other = conn.requesterId?._id === currentUserId || conn.requesterId === currentUserId
+                                            ? conn.recipientId
+                                            : conn.requesterId;
+                                        const name = other?.firstName ? `${other.firstName} ${other.lastName}` : "Member";
+                                        return (
+                                            <button
+                                                key={conn._id}
+                                                onClick={() => navigate(`/community/group/${groupId}/chat/${conn._id}`)}
+                                                className="px-4 py-2 bg-[#89beab] hover:bg-[#6fa893] text-white rounded-full text-sm font-semibold transition"
+                                            >
+                                                💬 {name}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </Modal>
+                    <Modal
+                        isOpen={showRequestsModal}
+                        onClose={() => setShowRequestsModal(false)}
+                        title={`Pending Requests (${groupPendingRequests.length})`}
+                    >
+                        <div className="space-y-2">
+                            {groupPendingRequests.length === 0 && (
+                                <p className="text-gray-500">No pending requests.</p>
+                            )}
+                            {groupPendingRequests.map(req => {
+                                const requesterName = req.requesterId?.firstName
+                                    ? `${req.requesterId.firstName} ${req.requesterId.lastName}`
+                                    : "A member";
+                                return (
+                                    <div
+                                        key={req._id}
+                                        className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white font-bold text-sm">
+                                                {requesterName.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{requesterName}</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">wants to connect with you</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleRespondToRequest(req._id, "accept")}
+                                                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full text-xs font-semibold transition"
+                                            >
+                                                Accept
+                                            </button>
+                                            <button
+                                                onClick={() => handleRespondToRequest(req._id, "decline")}
+                                                className="px-3 py-1.5 bg-gray-200 dark:bg-gray-600 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 rounded-full text-xs font-semibold transition"
+                                            >
+                                                Decline
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </Modal>
+
                     {/* Group Feed */}
                     <div className="mb-6">
                         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
@@ -456,6 +612,7 @@ const GroupDetailsPage = () => {
                     </span>
                 </button>
             </div>
+
 
             {/* Modal Dialogs */}
             <Modal
