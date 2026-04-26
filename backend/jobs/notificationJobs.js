@@ -508,6 +508,36 @@ agenda.define("challenge-pool-check", async (job) => {
     console.error("[Agenda] Error in challenge pool check:", error);
   }
 });
+agenda.define("auto-group-session-post", async (job) => {
+  const { sessionId, groupId } = job.attrs.data;
+  try {
+    const { GroupSession } = await import("../models/GroupSession.js");
+    const session = await GroupSession.findById(sessionId);
+    if (!session || session.status === "completed") return;
+
+    const existing = await Post.findOne({ tags: `session-${sessionId}` });
+    if (existing) return;
+
+    const userId = session.createdBy;
+    const rsvpCount = session.rsvps.length;
+
+    await Post.create({
+      userId,
+      content: `📅 Group Session: "${session.topic}" is starting now!\n${session.description ? session.description + "\n" : ""}${rsvpCount} member(s) RSVPed. Join the discussion below! 👇`,
+      type: "group",
+      category: "other",
+      groupId,
+      tags: [`session-${sessionId}`]
+    });
+
+    session.status = "active";
+    await session.save();
+
+    console.log(`[Agenda] Auto-posted session start for session ${sessionId}`);
+  } catch (err) {
+    console.error("[Agenda] Error in auto-group-session-post:", err);
+  }
+});
 
 export async function startNotificationJobs() {
   try {
