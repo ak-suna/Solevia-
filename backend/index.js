@@ -139,6 +139,8 @@ import capsuleRoutes from './routes/capsuleRoutes.js';
 import commentRoutes from "./routes/commentRoutes.js";
 import reactionRoutes from "./routes/reactionRoutes.js";
 import analyticsRoutes from './routes/analyticsRoutes.js'; // ← ANALYTICS IMPORT
+// ADD this import:
+import peerConnectRoutes from "./routes/peerConnectRoutes.js";
 
 dotenv.config();
 
@@ -173,6 +175,8 @@ app.use('/api/analytics', analyticsRoutes); // ← ANALYTICS ROUTE ADDED HERE
 
 
 // Community routes
+
+app.use("/api/groups/connect", peerConnectRoutes); // <-- MUST be before /api/groups
 app.use("/api/posts", postRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/challenges", challengeRoutes);
