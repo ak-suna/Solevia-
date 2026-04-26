@@ -3,26 +3,18 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-export default function Calendar({ onDateSelect, moodData, journals = [], habitHistory = [] }) {
+export default function Calendar({ onDateSelect, moodData, journals = [], habitHistory = [], sessions = [] }) {
   const [calendarEvents, setCalendarEvents] = useState([]);
 
   useEffect(() => {
-    console.log(" Calendar received moodData:", moodData);
-
-    if (!moodData || moodData.length === 0) {
-      setCalendarEvents([]);
-      return;
-    }
-
-    const events = moodData.flatMap(entry => {
+    // Mood events
+    const moodEvents = (moodData || []).flatMap(entry => {
       const entryDate = new Date(entry.date);
       const year = entryDate.getFullYear();
       const month = String(entryDate.getMonth() + 1).padStart(2, '0');
       const day = String(entryDate.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
-
       const events = [];
-
       if (entry.morning) {
         events.push({
           id: `morning-${dateStr}`,
@@ -37,7 +29,6 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
           }
         });
       }
-
       if (entry.evening) {
         events.push({
           id: `evening-${dateStr}`,
@@ -52,13 +43,29 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
           }
         });
       }
-
       return events;
     });
-
-    console.log(" Created events:", events);
-    setCalendarEvents(events);
-  }, [moodData]);
+    // Session events (for indicator only)
+    const sessionEvents = (sessions || []).map(session => {
+      const d = new Date(session.scheduledAt);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      return {
+        id: `session-${session._id}`,
+        date: dateStr,
+        display: 'background',
+        backgroundColor: 'transparent',
+        extendedProps: {
+          type: 'session',
+          groupName: session.groupName,
+          topic: session.topic
+        }
+      };
+    });
+    setCalendarEvents([...moodEvents, ...sessionEvents]);
+  }, [moodData, sessions]);
 
   const renderDayCellContent = (arg) => {
     const year = arg.date.getFullYear();
@@ -91,21 +98,26 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
       return `${habitYear}-${habitMonth}-${habitDay}` === dateStr;
     });
 
+    // Show a blue dot if there is a session on this day
+    const hasSession = (sessions || []).some(session => {
+      const d = new Date(session.scheduledAt);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const sessionDateStr = `${year}-${month}-${day}`;
+      return sessionDateStr === dateStr;
+    });
     return (
-      <div className="relative w-full h-full p-1"
-        style={{ fontFamily: "Brasika" }}>
-        <div className="text-sm font-medium text-gray-700 mb-1">
-          {arg.dayNumberText}
-        </div>
-
-        {/* Small indicators for journals/habits */}
+      <div className="relative w-full h-full p-1" style={{ fontFamily: "Brasika" }}>
+        <div className="text-sm font-medium text-gray-700 mb-1">{arg.dayNumberText}</div>
+        {/* Small indicators for journals/habits/sessions */}
         <div className="flex gap-1 mt-1 absolute bottom-1 left-1/2 transform -translate-x-1/2">
           {hasJournal && <div className="w-1.5 h-1.5 rounded-full bg-[#f4873e]" title="Journal entry" />}
           {habitEntry && habitEntry.completedCount > 0 && (
             <div className="w-1.5 h-1.5 rounded-full bg-green-500" title="Habits completed" />
           )}
+          {hasSession && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Group session" />}
         </div>
-
         {dayMoods && (dayMoods.morning || dayMoods.evening) && (
           <div className="absolute bottom left-0 right-0 flex justify-center items-center gap-2.5 px-1 top-[50px]">
             {dayMoods.morning && (
@@ -122,7 +134,6 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
                 />
               </div>
             )}
-
             {dayMoods.evening && (
               <div className="flex-shrink-0">
                 <img
