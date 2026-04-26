@@ -331,6 +331,7 @@ import NotificationBell from '../components/NotificationBell';
 import { getJournals } from "../services/journalService";
 import { getHabitHistory } from "../services/habitService";
 import { Book, CheckCircle2 } from 'lucide-react';
+import { getUserGroups, getGroupSessionsList, rsvpGroupSession } from "../services/communityService";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -348,6 +349,11 @@ const UserDashboard = () => {
   const [journals, setJournals] = useState([]);
   const [habitHistory, setHabitHistory] = useState([]);
 
+  // Group sessions state
+  const [groupSessions, setGroupSessions] = useState([]); // [{...session, groupName, groupId}]
+  const [groupMap, setGroupMap] = useState({}); // {groupId: groupName}
+  const [loadingSessions, setLoadingSessions] = useState(true);
+
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -355,7 +361,38 @@ const UserDashboard = () => {
     fetchMoodHistory();
     fetchStreaks();
     fetchAllData();
+    fetchAllGroupSessions();
   }, []);
+
+  // Fetch all user groups and their sessions
+  const fetchAllGroupSessions = async () => {
+    setLoadingSessions(true);
+    try {
+      const groupsRes = await getUserGroups();
+      const groups = groupsRes.groups || [];
+      const groupIdNameMap = {};
+      groups.forEach(g => { groupIdNameMap[g._id] = g.name; });
+      setGroupMap(groupIdNameMap);
+      // Fetch sessions for all groups in parallel
+      const sessionsArr = await Promise.all(
+        groups.map(async g => {
+          try {
+            const res = await getGroupSessionsList(g._id);
+            // Attach group info to each session
+            return (res.sessions || []).map(s => ({ ...s, groupId: g._id, groupName: g.name }));
+          } catch {
+            return [];
+          }
+        })
+      );
+      // Flatten
+      setGroupSessions(sessionsArr.flat());
+    } catch (err) {
+      setGroupSessions([]);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
 
   const fetchStreaks = async () => {
     try {
@@ -542,6 +579,7 @@ const UserDashboard = () => {
                 moodData={moodHistory}
                 journals={journals}
                 habitHistory={habitHistory}
+                sessions={groupSessions}
               />
             </div>
 
@@ -552,6 +590,7 @@ const UserDashboard = () => {
                     {selectedDate.toDateString()}
                   </h2>
 
+                  {/* Mood Section */}
                   {selectedDateMood ? (
                     <div className="mb-6">
                       <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Mood</h3>
@@ -569,7 +608,6 @@ const UserDashboard = () => {
                             </div>
                           </div>
                         )}
-
                         {selectedDateMood.evening && (
                           <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-600 rounded-lg">
                             <img
@@ -583,7 +621,6 @@ const UserDashboard = () => {
                             </div>
                           </div>
                         )}
-
                         {!selectedDateMood.morning && !selectedDateMood.evening && (
                           <p className="text-gray-500 dark:text-gray-400 text-sm">No mood logged for this day</p>
                         )}
@@ -596,9 +633,60 @@ const UserDashboard = () => {
                     </div>
                   )}
 
+                  {/* Group Sessions Section */}
+                  <div className="mt-6 space-y-4">
+                    <h3 className="text-lg font-semibold mb-3 text-blue-700 dark:text-blue-300">Group Sessions</h3>
+                    {loadingSessions ? (
+                      <p className="text-gray-400 dark:text-gray-500 text-sm">Loading sessions...</p>
+                    ) : null}
+                    {(() => {
+                      // Find sessions for this date
+                      const year = selectedDate.getFullYear();
+                      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+                      const day = String(selectedDate.getDate()).padStart(2, '0');
+                      const dateStr = `${year}-${month}-${day}`;
+                      const sessionsForDay = groupSessions.filter(s => {
+                        const d = new Date(s.scheduledAt);
+                        const sy = d.getFullYear();
+                        const sm = String(d.getMonth() + 1).padStart(2, '0');
+                        const sd = String(d.getDate()).padStart(2, '0');
+                        return `${sy}-${sm}-${sd}` === dateStr;
+                      });
+                      if (!loadingSessions && sessionsForDay.length === 0) {
+                        return <p className="text-gray-400 dark:text-gray-500 text-sm">No group sessions for this day.</p>;
+                      }
+                      return sessionsForDay.map(session => (
+                        <div key={session._id} className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700 mb-2">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-blue-800 dark:text-blue-200">{session.groupName}</span>
+                            <span className="text-xs px-2 py-1 rounded-full bg-blue-200 dark:bg-blue-700 text-blue-900 dark:text-blue-100">{session.status}</span>
+                          </div>
+                          <div className="font-semibold text-gray-900 dark:text-white">{session.topic}</div>
+                          {session.description && <div className="text-sm text-gray-700 dark:text-gray-300 mb-1">{session.description}</div>}
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                            {new Date(session.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </div>
+                          <button
+                            className={`px-4 py-1 rounded-full text-sm font-semibold transition ${session.hasRsvp ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50" : "bg-[#89beab] hover:bg-[#6fa893] text-white"}`}
+                            onClick={async () => {
+                              try {
+                                await rsvpGroupSession(session._id);
+                                fetchAllGroupSessions();
+                              } catch (err) {
+                                alert("Failed to RSVP: " + (err.message || "Unknown error"));
+                              }
+                            }}
+                          >
+                            {session.hasRsvp ? "RSVPed" : "RSVP"}
+                          </button>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+
+                  {/* Daily Activity Section */}
                   <div className="mt-6 space-y-4">
                     <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Daily Activity</h3>
-
                     <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-600 rounded-xl shadow-sm border border-gray-100 dark:border-gray-500">
                       <div className="flex items-center gap-3">
                         <Book className="w-5 h-5 text-[#f4873e]" />
@@ -606,7 +694,6 @@ const UserDashboard = () => {
                       </div>
                       <span className="font-bold text-[#f4873e]">{details?.journalCount || 0}</span>
                     </div>
-
                     <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-600 rounded-xl shadow-sm border border-gray-100 dark:border-gray-500">
                       <div className="flex items-center gap-3">
                         <CheckCircle2 className="w-5 h-5 text-green-600" />
