@@ -125,17 +125,19 @@ supportGroupSchema.index({ moderators: 1 });
 
 // Virtual for member count
 supportGroupSchema.virtual('memberCount').get(function () {
-    return this.members.length;
+    return Array.isArray(this.members) ? this.members.length : 0;
 });
 
 // Virtual to check if group is full
 supportGroupSchema.virtual('isFull').get(function () {
-    return this.members.length >= this.maxMembers;
+    return (Array.isArray(this.members) ? this.members.length : 0) >= this.maxMembers;
 });
 
 // Virtual for pending request count
 supportGroupSchema.virtual('pendingRequestCount').get(function () {
-    return this.joinRequests.filter(req => req.status === 'pending').length;
+    return Array.isArray(this.joinRequests)
+        ? this.joinRequests.filter(req => req.status === 'pending').length
+        : 0;
 });
 
 supportGroupSchema.set('toJSON', { virtuals: true });
