@@ -48,7 +48,22 @@ export const NOTIFICATION_TYPES = {
     priority: "HIGH",
     defaultChannels: { inApp: true, email: true },
     expiresInDays: 30
-  }
+  },
+  PEER_CONNECT_REQUEST: {
+    priority: "MEDIUM",
+    defaultChannels: { inApp: true, email: false },
+    expiresInDays: 7
+  },
+  PEER_CONNECT_ACCEPTED: {
+    priority: "MEDIUM",
+    defaultChannels: { inApp: true, email: false },
+    expiresInDays: 7
+  },
+  GROUP_SESSION_CREATED: {
+    priority: "HIGH",
+    defaultChannels: { inApp: true, email: false },
+    expiresInDays: 3
+  },
 };
 
 export const getNotificationConfig = (type) => {
