@@ -120,7 +120,7 @@
 // export default ModeratorSidebar;
 import React from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
-import { LayoutDashboard, Users, AlertTriangle, UserPlus } from 'lucide-react';
+import { LayoutDashboard, Users, AlertTriangle, UserPlus, Calendar } from 'lucide-react';
 import logo from '../assets/images/logo.png';
 
 const ModeratorSidebar = () => {
@@ -133,6 +133,7 @@ const ModeratorSidebar = () => {
         { icon: Users, path: `/groups/${groupId}/moderator/members`, label: 'Members' },
         { icon: AlertTriangle, path: `/groups/${groupId}/moderator/reports`, label: 'Reports' },
         { icon: UserPlus, path: `/groups/${groupId}/moderator/requests`, label: 'Requests' },
+        { icon: Calendar, path: `/groups/${groupId}/moderator/sessions`, label: 'Sessions' },
     ];
 
     return (
@@ -153,11 +154,10 @@ const ModeratorSidebar = () => {
                                 key={index}
                                 onClick={() => navigate(item.path)}
                                 title={item.label}
-                                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative ${
-                                    isActive
+                                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative ${isActive
                                         ? 'bg-[#FFA669] text-white shadow-sm'
                                         : 'text-gray-700 hover:text-white hover:bg-[#f8ba90]'
-                                }`}
+                                    }`}
                             >
                                 <item.icon size={26} strokeWidth={2} />
                                 <span className="text-[10px] font-semibold leading-none tracking-tight">
