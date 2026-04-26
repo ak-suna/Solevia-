@@ -25,7 +25,10 @@ const notificationSchema = new mongoose.Schema({
       "CHALLENGE_STARTED",
       "CHALLENGE_COMPLETED",
       "CHALLENGE_POOL_LOW",
-      "GROUP_MEMBER_DISABLED"
+      "GROUP_MEMBER_DISABLED",
+      "PEER_CONNECT_REQUEST",
+      "PEER_CONNECT_ACCEPTED",
+      "GROUP_SESSION_CREATED"
     ]
   },
   priority: {
