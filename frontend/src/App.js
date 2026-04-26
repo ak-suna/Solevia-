@@ -35,6 +35,9 @@ import GroupModeratorMembers from "./pages/GroupModeratorMembers";
 import GroupModeratorReports from "./pages/GroupModeratorReports";
 import GroupModeratorRequests from "./pages/GroupModeratorRequests";
 import ChallengeDetailPage from "./pages/ChallengeDetailPage";
+import GroupSessionsPage from "./pages/GroupSessionsPage";
+import GroupChatPage from "./pages/GroupChatPage";
+
 // import { useEffect } from 'react';
 // import { initializeSocket, disconnectSocket } from './services/socketService';
 // import { isAuthenticated } from './services/auth';
@@ -213,6 +216,8 @@ function App() {
                                             </ProtectedRoute>
                                         }
                                     />
+                                    <Route path="/groups/:groupId/moderator/sessions" element={<GroupSessionsPage />} />
+
                                     <Route
                                         path="/analytics"
                                         element={
@@ -237,9 +242,26 @@ function App() {
                                             </ProtectedRoute>
                                         }
                                     />
-                                    {/* Removed old ModeratorToolsPage route, now handled by new dashboard and sidebar */}
                                     <Route
-                                        path="/groups/:groupId/moderator/dashboard"
+                                        path="/community/group/:groupId/chat/:connectionId"
+                                        element={
+                                            <ProtectedRoute>
+                                                <ThemedLayout>
+                                                    <GroupChatPage />
+                                                </ThemedLayout>
+                                            </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/admin/groups/:groupId"
+                                        element={
+                                            <AdminRoute>
+                                                <AdminGroupsPage />
+                                            </AdminRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/admin/groups/:groupId/moderator/dashboard"
                                         element={
                                             <ProtectedRoute>
                                                 <GroupModeratorDashboard />
@@ -247,7 +269,7 @@ function App() {
                                         }
                                     />
                                     <Route
-                                        path="/groups/:groupId/moderator/members"
+                                        path="/admin/groups/:groupId/moderator/members"
                                         element={
                                             <ProtectedRoute>
                                                 <GroupModeratorMembers />
@@ -255,7 +277,7 @@ function App() {
                                         }
                                     />
                                     <Route
-                                        path="/groups/:groupId/moderator/reports"
+                                        path="/admin/groups/:groupId/moderator/reports"
                                         element={
                                             <ProtectedRoute>
                                                 <GroupModeratorReports />
@@ -263,7 +285,7 @@ function App() {
                                         }
                                     />
                                     <Route
-                                        path="/groups/:groupId/moderator/requests"
+                                        path="/admin/groups/:groupId/moderator/requests"
                                         element={
                                             <ProtectedRoute>
                                                 <GroupModeratorRequests />
