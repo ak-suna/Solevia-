@@ -652,3 +652,117 @@ export const getUserJoinRequests = async () => {
         throw error;
     }
 };
+
+// ==================== PEER CONNECT ====================
+
+export const sendPeerConnectRequest = async (recipientId, groupId) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/request`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ recipientId, groupId })
+    });
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to send request");
+    }
+    return await response.json();
+};
+
+export const respondToPeerRequest = async (connectionId, action) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/${connectionId}/respond`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ action })
+    });
+    if (!response.ok) throw new Error("Failed to respond");
+    return await response.json();
+};
+
+export const getMyPeerConnections = async (groupId = null) => {
+    let url = `${API_BASE_URL}/groups/connect/mine`;
+    if (groupId) url += `?groupId=${groupId}`;
+    const response = await fetch(url, { headers: getAuthHeaders() });
+    if (!response.ok) throw new Error("Failed to fetch connections");
+    return await response.json();
+};
+
+export const getPendingPeerRequests = async () => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/pending`, {
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Failed to fetch pending requests");
+    return await response.json();
+};
+
+export const getPeerMessages = async (connectionId) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/${connectionId}/messages`, {
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Failed to fetch messages");
+    return await response.json();
+};
+
+export const sendPeerMessage = async (connectionId, content) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/${connectionId}/messages`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ content })
+    });
+    if (!response.ok) throw new Error("Failed to send message");
+    return await response.json();
+};
+
+export const savePeerCalendlyLink = async (connectionId, calendlyLink) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/${connectionId}/calendly`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ calendlyLink })
+    });
+    if (!response.ok) throw new Error("Failed to save link");
+    return await response.json();
+};
+
+// ==================== GROUP SESSIONS ====================
+
+
+export const createGroupSession = async (groupId, sessionData) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/${groupId}/sessions`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify(sessionData)
+    });
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to create session");
+    }
+    return await response.json();
+};
+
+
+export const getGroupSessionsList = async (groupId) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/${groupId}/sessions`, {
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Failed to fetch sessions");
+    return await response.json();
+};
+
+
+export const rsvpGroupSession = async (sessionId) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/sessions/${sessionId}/rsvp`, {
+        method: "POST",
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Failed to RSVP");
+    return await response.json();
+};
+
+
+export const deleteGroupSession = async (sessionId) => {
+    const response = await fetch(`${API_BASE_URL}/groups/connect/sessions/${sessionId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error("Failed to delete session");
+    return await response.json();
+};
