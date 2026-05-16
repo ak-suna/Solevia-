@@ -6,6 +6,8 @@ import { ChevronRight, LogOut, Save, X, Check, Camera, Moon, Sun, ChevronLeft } 
 import { useTheme } from "../contexts/ThemeContext";
 import { Link } from "react-router-dom";
 import PasswordStrength, { checkPasswordStrength } from "../components/PasswordStrength";
+import { uploadProfilePicture } from "../services/profile";
+
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -23,6 +25,27 @@ const SettingsPage = () => {
         phone: "",
         address: "",
     });
+    const [uploadingPic, setUploadingPic] = useState(false);
+    const fileInputRef = React.useRef(null);
+    const handlePictureUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) {
+            setMessage({ type: "error", text: "Image must be under 5MB" });
+            return;
+        }
+        setUploadingPic(true);
+        try {
+            const data = await uploadProfilePicture(file);
+            setProfile(prev => ({ ...prev, profilePicture: data.profilePicture }));
+            setMessage({ type: "success", text: "Profile picture updated!" });
+            setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+        } catch (error) {
+            setMessage({ type: "error", text: error.message });
+        } finally {
+            setUploadingPic(false);
+        }
+    };
 
     const [tempValue, setTempValue] = useState("");
 
@@ -239,21 +262,50 @@ const SettingsPage = () => {
                         <div>
                             <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Account Settings</h2>
 
-                            {/* Profile Picture */}
                             <div className="flex items-center gap-4 mb-8 pb-6 border-b-2 border-[#f4873e]/20 dark:border-gray-600">
                                 <div className="relative">
-                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                                        {profile.firstName?.charAt(0) || "U"}{profile.lastName?.charAt(0) || ""}
+                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white text-2xl font-bold shadow-lg overflow-hidden">
+                                        {profile.profilePicture ? (
+                                            <img
+                                                src={profile.profilePicture}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span>{profile.firstName?.charAt(0) || "U"}{profile.lastName?.charAt(0) || ""}</span>
+                                        )}
                                     </div>
-                                    <button className="absolute bottom-0 right-0 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-lg border-2 border-[#f4873e] dark:border-orange-500 hover:border-[#ff9e5e] transition-colors">
-                                        <Camera className="w-4 h-4 text-[#f4873e] dark:text-orange-400" />
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploadingPic}
+                                        className="absolute bottom-0 right-0 bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-lg border-2 border-[#f4873e] dark:border-orange-500 hover:border-[#ff9e5e] transition-colors disabled:opacity-60"
+                                    >
+                                        {uploadingPic ? (
+                                            <div className="w-4 h-4 border-2 border-[#f4873e] border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <Camera className="w-4 h-4 text-[#f4873e] dark:text-orange-400" />
+                                        )}
                                     </button>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handlePictureUpload}
+                                        className="hidden"
+                                    />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600 dark:text-gray-400">Profile Picture</p>
-                                    <button className="text-sm text-[#f4873e] dark:text-orange-400 hover:text-[#ff9e5e] dark:hover:text-orange-300 font-medium">
-                                        Upload new picture
+                                    <p className="text-sm font-semibold text-gray-800 dark:text-white">
+                                        {profile.firstName} {profile.lastName}
+                                    </p>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploadingPic}
+                                        className="text-sm text-[#f4873e] dark:text-orange-400 hover:text-[#ff9e5e] dark:hover:text-orange-300 font-medium disabled:opacity-60"
+                                    >
+                                        {uploadingPic ? "Uploading..." : "Upload new picture"}
                                     </button>
+                                    <p className="text-xs text-gray-400 mt-0.5">JPG, PNG or GIF · Max 5MB</p>
                                 </div>
                             </div>
 
@@ -353,7 +405,7 @@ const SettingsPage = () => {
                                     <input
                                         type="password"
                                         value={passwordData.newPassword}
-                                        onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                                         required
                                         minLength={8}
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"

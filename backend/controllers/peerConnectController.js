@@ -105,8 +105,8 @@ export const getMyConnections = async (req, res) => {
         if (groupId) query.groupId = groupId;
 
         const connections = await PeerConnect.find(query)
-            .populate("requesterId", "firstName lastName")
-            .populate("recipientId", "firstName lastName")
+            .populate("requesterId", "firstName lastName profilePicture")
+            .populate("recipientId", "firstName lastName profilePicture")
             .sort({ updatedAt: -1 });
 
         res.status(200).json({ connections });
@@ -121,7 +121,7 @@ export const getPendingRequests = async (req, res) => {
     try {
         const userId = req.user.id;
         const requests = await PeerConnect.find({ recipientId: userId, status: "pending" })
-            .populate("requesterId", "firstName lastName")
+            .populate("requesterId", "firstName lastName profilePicture")
             .populate("groupId", "name icon");
         res.status(200).json({ requests });
     } catch (error) {

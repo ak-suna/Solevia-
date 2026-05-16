@@ -77,7 +77,7 @@ const Sidebar = () => {
   const location = useLocation();
 
   const navItems = [
-    { icon: Home, path: '/dashboard', label: 'Dashboard' },
+    { icon: Home, path: '/user/dashboard', label: 'Dashboard' },
     { icon: BookOpen, path: '/journal', label: 'Journal' },
     { icon: CheckSquare, path: '/tasks', label: 'Habits' },
     { icon: Target, path: '/goals', label: 'Goals' },
@@ -86,19 +86,19 @@ const Sidebar = () => {
   ];
 
   const handleLogoClick = () => {
-    navigate('/dashboard');
+    navigate('/user/dashboard');
   };
 
   return (
     <div className="fixed left-6 top-0 flex flex-col items-center w-24 h-screen z-50">
       {/* Logo at the top */}
-      <div 
+      <div
         className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center p-2 mt-4 cursor-pointer"
         onClick={handleLogoClick}
       >
-        <img 
-          src={logo} 
-          alt="Logo" 
+        <img
+          src={logo}
+          alt="Logo"
           className="w-full h-full rounded-full object-cover"
         />
       </div>
@@ -112,11 +112,10 @@ const Sidebar = () => {
               <button
                 key={index}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative ${
-                  isActive 
-                    ? 'bg-[#FFA669] text-white shadow-sm' 
+                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative ${isActive
+                    ? 'bg-[#FFA669] text-white shadow-sm'
                     : 'text-gray-700 hover:text-white hover:bg-[#f8ba90]'
-                }`}
+                  }`}
                 title={item.label}
               >
                 <item.icon size={25} strokeWidth={2} />

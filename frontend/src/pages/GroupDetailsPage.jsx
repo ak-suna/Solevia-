@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
 import NotificationBell from '../components/NotificationBell';
-import { Menu, ArrowLeft, Users, CheckCircle, Plus, Calendar } from 'lucide-react';
+import { Settings, ArrowLeft, Users, CheckCircle, Plus, Calendar } from 'lucide-react';
 import {
     getGroupById,
     getGroupPosts,
@@ -22,8 +22,7 @@ import ModeratorCandidatesModal from "../components/ModeratorCandidatesModal";
 import WeeklyTaskModal from "../components/WeeklyTaskModal";
 import { jwtDecode } from "jwt-decode";
 import MemberCard from "../components/MemberCard";
-// import PrivateChatModal from "../components/PrivateChatModal";
-// import {sendPeerConnectRequest, getMyPeerConnections } from "../services/communityService";
+import { User as UserIcon } from "lucide-react";
 
 const GroupDetailsPage = () => {
     const { groupId } = useParams();
@@ -227,6 +226,9 @@ const GroupDetailsPage = () => {
 
     const gradientColor = categoryColors[group?.category] || categoryColors.other;
 
+    // State for showing connections modal
+    const [showConnectionsModal, setShowConnectionsModal] = useState(false);
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
@@ -234,7 +236,6 @@ const GroupDetailsPage = () => {
             </div>
         );
     }
-
 
     if (!group) {
         return (
@@ -432,7 +433,6 @@ const GroupDetailsPage = () => {
                     </div>
 
                     {/* Weekly Task */}
-
                     {group.weeklyTask?.task && (
                         <div className="bg-gradient-to-br from-[#f8ba90] to-[#f4873e]/50 rounded-2xl p-6 mb-6 shadow-md">
                             <div className="flex items-start justify-between">
@@ -447,7 +447,6 @@ const GroupDetailsPage = () => {
                                     <div className="flex items-center gap-2 text-sm text-white/80">
                                         <Users className="w-4 h-4" />
                                         <span>
-                                            {/* Show X/Y members completed · Z% */}
                                             {(() => {
                                                 const completed = group.weeklyTask.completedBy?.length || 0;
                                                 const total = group.memberCount || group.members?.length || 0;
@@ -474,94 +473,42 @@ const GroupDetailsPage = () => {
                         </div>
                     )}
 
-                    {/* Members and Requests modals */}
-                    <Modal
-                        isOpen={showMembersModal}
-                        onClose={() => setShowMembersModal(false)}
-                        title="Group Members"
-                    >
-                        <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto pr-1">
-                            {group.members?.filter(m => !m.disabled).map(member => (
-                                <MemberCard
-                                    key={member.userId?._id || member.userId}
-                                    member={member}
-                                    currentUserId={currentUserId}
-                                    groupId={groupId}
-                                    existingConnections={myConnections}
-                                    onConnect={handleConnect}
-                                />
-                            ))}
-                        </div>
-                        {/* Accepted connections — link to chat page */}
-                        {myConnections.filter(c => c.status === "accepted").length > 0 && (
-                            <div className="mt-4">
-                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Your connections in this group</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {myConnections.filter(c => c.status === "accepted").map(conn => {
-                                        const other = conn.requesterId?._id === currentUserId || conn.requesterId === currentUserId
-                                            ? conn.recipientId
-                                            : conn.requesterId;
-                                        const name = other?.firstName ? `${other.firstName} ${other.lastName}` : "Member";
-                                        return (
+
+                    {/* Connections Row Section */}
+                    {myConnections.filter(c => c.status === "accepted").length > 0 && (
+                        <div className="mb-8">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+                                Your connections in this group
+                            </h2>
+                            <div className="flex flex-wrap gap-6 justify-center py-2">
+                                {myConnections.filter(c => c.status === "accepted").map((conn, idx) => {
+                                    const other = conn.requesterId?._id === currentUserId || conn.requesterId === currentUserId
+                                        ? conn.recipientId
+                                        : conn.requesterId;
+                                    const name = other?.firstName ? `${other.firstName} ${other.lastName}` : "Member";
+                                    const avatarUrl = other?.profilePicture || null;
+                                    return (
+                                        <div key={conn._id} className="flex flex-col items-center gap-2 w-24">
                                             <button
-                                                key={conn._id}
                                                 onClick={() => navigate(`/community/group/${groupId}/chat/${conn._id}`)}
-                                                className="px-4 py-2 bg-[#89beab] hover:bg-[#6fa893] text-white rounded-full text-sm font-semibold transition"
+                                                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white text-2xl font-bold shadow-md hover:scale-105 transition border-4 border-white"
+                                                title={name}
                                             >
-                                                💬 {name}
+                                                {avatarUrl ? (
+                                                    <img src={avatarUrl} alt={name} className="w-full h-full object-cover rounded-full" />
+                                                ) : (
+                                                    name.charAt(0).toUpperCase()
+                                                )}
                                             </button>
-                                        );
-                                    })}
-                                </div>
+                                            <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 text-center truncate w-full" title={name}>{name}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        )}
-                    </Modal>
-                    <Modal
-                        isOpen={showRequestsModal}
-                        onClose={() => setShowRequestsModal(false)}
-                        title={`Pending Requests (${groupPendingRequests.length})`}
-                    >
-                        <div className="space-y-2">
-                            {groupPendingRequests.length === 0 && (
-                                <p className="text-gray-500">No pending requests.</p>
-                            )}
-                            {groupPendingRequests.map(req => {
-                                const requesterName = req.requesterId?.firstName
-                                    ? `${req.requesterId.firstName} ${req.requesterId.lastName}`
-                                    : "A member";
-                                return (
-                                    <div
-                                        key={req._id}
-                                        className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white font-bold text-sm">
-                                                {requesterName.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{requesterName}</p>
-                                                <p className="text-xs text-gray-500 dark:text-gray-400">wants to connect with you</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleRespondToRequest(req._id, "accept")}
-                                                className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full text-xs font-semibold transition"
-                                            >
-                                                Accept
-                                            </button>
-                                            <button
-                                                onClick={() => handleRespondToRequest(req._id, "decline")}
-                                                className="px-3 py-1.5 bg-gray-200 dark:bg-gray-600 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 rounded-full text-xs font-semibold transition"
-                                            >
-                                                Decline
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
                         </div>
-                    </Modal>
+                    )}
+
+
 
                     {/* Group Feed */}
                     <div className="mb-6">
@@ -597,7 +544,7 @@ const GroupDetailsPage = () => {
                         onClick={() => navigate('/settings')}
                         className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg"
                     >
-                        <Menu className="w-7 h-7 text-gray-600 dark:text-gray-300" />
+                        <Settings className="w-7 h-7 text-gray-600 dark:text-gray-300" />
                     </button>
                 </div>
 
@@ -613,6 +560,141 @@ const GroupDetailsPage = () => {
                 </button>
             </div>
 
+            {/* Members Modal */}
+            <Modal
+                isOpen={showMembersModal}
+                onClose={() => setShowMembersModal(false)}
+                title={`Members (${group?.members?.filter(m => m.role !== "admin").length || 0})`}
+            >
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {group?.members?.filter(m => m.role !== "admin").map((member) => {
+                        const user = member.userId || member;
+                        const isCurrentUser = (user._id || user) === currentUserId;
+                        const isConnected = myConnections.some(conn =>
+                            conn.status === "accepted" && (
+                                (conn.requesterId?._id === (user._id || user) || conn.recipientId?._id === (user._id || user))
+                            )
+                        );
+                        return (
+                            <div key={user._id || user} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white font-bold">
+                                        {user.firstName?.charAt(0) || user.username?.charAt(0) || "?"}
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900 dark:text-white">
+                                            {user.firstName} {user.lastName}
+                                            {isCurrentUser && " (You)"}
+                                            {member.role === "moderator" && " 🛡️"}
+                                        </p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            Joined {new Date(member.joinedAt).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                {!isCurrentUser && !isConnected && (
+                                    <button
+                                        onClick={() => handleConnect(user._id || user)}
+                                        className="px-3 py-1.5 bg-[#89beab] hover:bg-[#6fa893] text-white rounded-full text-xs font-semibold transition"
+                                    >
+                                        Connect
+                                    </button>
+                                )}
+                                {isConnected && (
+                                    <span className="px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-xs font-semibold">
+                                        Connected
+                                    </span>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </Modal>
+
+            {/* Requests Modal */}
+            <Modal
+                isOpen={showRequestsModal}
+                onClose={() => setShowRequestsModal(false)}
+                title={`Pending Requests (${groupPendingRequests.length})`}
+            >
+                <div className="space-y-2">
+                    {groupPendingRequests.length === 0 && (
+                        <p className="text-gray-500">No pending requests.</p>
+                    )}
+                    {groupPendingRequests.map(req => {
+                        const requesterName = req.requesterId?.firstName
+                            ? `${req.requesterId.firstName} ${req.requesterId.lastName}`
+                            : "A member";
+                        return (
+                            <div
+                                key={req._id}
+                                className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white font-bold text-sm">
+                                        {requesterName.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{requesterName}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">wants to connect with you</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleRespondToRequest(req._id, "accept")}
+                                        className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-full text-xs font-semibold transition"
+                                    >
+                                        Accept
+                                    </button>
+                                    <button
+                                        onClick={() => handleRespondToRequest(req._id, "decline")}
+                                        className="px-3 py-1.5 bg-gray-200 dark:bg-gray-600 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 rounded-full text-xs font-semibold transition"
+                                    >
+                                        Decline
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </Modal>
+
+            {/* Connections Modal */}
+            <Modal
+                isOpen={showConnectionsModal}
+                onClose={() => setShowConnectionsModal(false)}
+                title="Your Connections in this Group"
+            >
+                <div className="flex flex-wrap gap-6 justify-center py-4">
+                    {myConnections.filter(c => c.status === "accepted").map((conn, idx) => {
+                        const other = conn.requesterId?._id === currentUserId || conn.requesterId === currentUserId
+                            ? conn.recipientId
+                            : conn.requesterId;
+                        const name = other?.firstName ? `${other.firstName} ${other.lastName}` : "Member";
+                        // Use avatar if available, else fallback to initials
+                        const avatarUrl = other?.profilePicture || null;
+                        return (
+                            <div key={conn._id} className="flex flex-col items-center gap-2 w-24">
+                                <button
+                                    onClick={() => {
+                                        setShowConnectionsModal(false);
+                                        navigate(`/community/group/${groupId}/chat/${conn._id}`);
+                                    }}
+                                    className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white text-2xl font-bold shadow-md hover:scale-105 transition border-4 border-white"
+                                    title={name}
+                                >
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt={name} className="w-full h-full object-cover rounded-full" />
+                                    ) : (
+                                        name.charAt(0).toUpperCase()
+                                    )}
+                                </button>
+                                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 text-center truncate w-full" title={name}>{name}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </Modal>
 
             {/* Modal Dialogs */}
             <Modal

@@ -1,12 +1,14 @@
 import express from "express";
-import { getProfile, updateProfile, changeUserPassword } from "../controllers/profileController.js";
+import { getProfile, updateProfile, changeUserPassword, uploadProfilePicture } from "../controllers/profileController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import multer from "multer";
 
+const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 
-// All profile routes require authentication
 router.get("/", authenticate, getProfile);
 router.put("/", authenticate, updateProfile);
 router.post("/change-password", authenticate, changeUserPassword);
+router.post("/upload-picture", authenticate, upload.single("profilePicture"), uploadProfilePicture);
 
 export default router;

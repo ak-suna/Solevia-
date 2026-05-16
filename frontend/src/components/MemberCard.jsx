@@ -29,6 +29,8 @@ const MemberCard = ({ member, currentUserId, groupId, existingConnections, onCon
     };
 
     if (isMe) return null;
+    if (member.role === "admin") return null;  // ← add this
+
 
     return (
         <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">

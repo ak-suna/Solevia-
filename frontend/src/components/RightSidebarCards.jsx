@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from '../components/NotificationBell';
-import { Menu, Users, Trophy, TrendingUp, Clock, XCircle, ArrowRight } from 'lucide-react';
+import {Users, Trophy, TrendingUp, Clock, XCircle, Settings } from 'lucide-react';
 
 const RightSidebarCards = ({
     myGroups = [],
@@ -21,7 +21,7 @@ const RightSidebarCards = ({
                     onClick={() => navigate('/settings')}
                     className="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-md hover:shadow-lg border-2 border-gray-200 dark:border-gray-700"
                 >
-                    <Menu className="w-7 h-7 text-gray-600 dark:text-gray-300" />
+                    <Settings className="w-7 h-7 text-gray-600 dark:text-gray-300" />
                 </button>
             </div>
 

@@ -55,6 +55,8 @@ const userSchema = new Schema({
         consecutiveLowDays: { type: Number, default: 0 },
         lastCompletionDate: { type: Date, default: null }
     },
+    profilePicture: { type: String, default: "" },
+
 
 
     disabled: {
@@ -95,5 +97,6 @@ const userSchema = new Schema({
         }
     }
 });
+
 
 export const User = model("User", userSchema);
