@@ -92,8 +92,9 @@ class NotificationService {
   getTypeCategory(type) {
     if (type.includes("HABIT")) return "habits";
     if (type.includes("MOOD")) return "moods";
+    if (type.includes("JOURNAL")) return "journals";
     if (type.includes("STREAK")) return "streaks";
-    if (type.includes("COMMUNITY")) return "community";
+    if (type.includes("COMMUNITY") || type.includes("GROUP") || type.includes("PEER")) return "community";
     return "system";
   }
 

@@ -174,6 +174,32 @@ agenda.define("send-evening-mood-reminder", async (job) => {
   }
 });
 
+agenda.define("send-journal-reminder", async (job) => {
+  console.log("🔔 Running: send-journal-reminder");
+
+  try {
+    const users = await User.find({
+      "notificationPreferences.journals.inApp": { $ne: false }
+    });
+
+    for (const user of users) {
+      await notificationService.createNotification({
+        userId: user._id,
+        type: "JOURNAL_PROMPT",
+        title: "📝 Journal Reminder",
+        message: "Take a moment to write in your journal today.",
+        data: {
+          actionUrl: "/journal"
+        }
+      });
+    }
+
+    console.log(`✅ Sent journal reminders to ${users.length} users`);
+  } catch (error) {
+    console.error("❌ Error in send-journal-reminder:", error);
+  }
+});
+
 agenda.define("check-streak-achievements", async (job) => {
   console.log("🔔 Running: check-streak-achievements");
 
@@ -547,6 +573,7 @@ export async function startNotificationJobs() {
     await agenda.every("0 9 * * *", "send-habit-reminders");
     await agenda.every("0 8 * * *", "send-morning-mood-reminder");
     await agenda.every("0 20 * * *", "send-evening-mood-reminder");
+    await agenda.every("0 19 * * *", "send-journal-reminder");
     await agenda.every("0 22 * * *", "check-streak-achievements");
     await agenda.every("0 21 * * *", "check-streaks-at-risk");
     await agenda.every("0 2 * * *", "cleanup-old-notifications");

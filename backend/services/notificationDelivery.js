@@ -12,13 +12,7 @@ export async function deliverNotification(notification, user) {
   }
 
   if (notification.channels.email) {
-    const shouldSendEmail = 
-      !deliveryResults.inApp || 
-      notification.priority === "HIGH";
-
-    if (shouldSendEmail) {
-      deliveryResults.email = await deliverEmailNotification(notification, user);
-    }
+    deliveryResults.email = await deliverEmailNotification(notification, user);
   }
 
   console.log(`📬 Notification ${notification._id} delivery:`, deliveryResults);

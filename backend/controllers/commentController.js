@@ -1,5 +1,7 @@
 import { Comment } from "../models/Comment.js";
 import { Post } from "../models/Post.js";
+import { User } from "../models/User.js";
+import notificationService from "../services/notificationService.js";
 
 // Get comments by post ID
 export const getCommentsByPost = async (req, res) => {
@@ -46,6 +48,16 @@ export const addComment = async (req, res) => {
             content: content.trim()
         });
         await newComment.populate("userId", "firstName lastName");
+
+        if (post.userId.toString() !== userId.toString()) {
+            await notificationService.createNotification({
+                userId: post.userId,
+                type: "COMMUNITY_COMMENT",
+                title: "New comment on your post",
+                message: `Someone commented on your post`,
+                data: { postId: post._id, actionUrl: "/community" }
+            });
+        }
 
         // Award points for commenting in a group post
         if (post.groupId) {

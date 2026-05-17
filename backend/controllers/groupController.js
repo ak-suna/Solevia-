@@ -646,7 +646,7 @@ export const approveJoinRequest = async (req, res) => {
         // Notify the user (in-app notification)
         await notificationService.createNotification({
             userId: request.userId,
-            type: "SYSTEM_ALERT",
+            type: "GROUP_JOIN_APPROVED",
             title: `Group Join Request Approved`,
             message: `Your request to join group '${group.name}' was approved! You are now a member.`,
             data: {
@@ -681,9 +681,14 @@ export const rejectJoinRequest = async (req, res) => {
 
         // Check authorization
         const isAdmin = req.user.role === 'admin';
-        const isModerator = group.moderators.some(id => id.toString() === userId);
+        // Moderator by moderatorId
+        const isModeratorId = group.moderatorId && group.moderatorId.toString() === userId;
+        // Moderator by member role
+        const isModeratorRole = Array.isArray(group.members) && group.members.some(
+            m => m.userId && m.userId.toString() === userId && m.role === "moderator"
+        );
 
-        if (!isAdmin && !isModerator) {
+        if (!isAdmin && !isModeratorId && !isModeratorRole) {
             return res.status(403).json({ error: "Unauthorized" });
         }
 
@@ -709,7 +714,7 @@ export const rejectJoinRequest = async (req, res) => {
         // Notify the user (in-app notification)
         await notificationService.createNotification({
             userId: request.userId,
-            type: "SYSTEM_ALERT",
+            type: "GROUP_JOIN_REJECTED",
             title: `Group Join Request Rejected`,
             message: `Your request to join group '${group.name}' was rejected.${reason ? ` Reason: ${reason}` : ""}`,
             data: {
@@ -786,7 +791,7 @@ export const assignModerator = async (req, res) => {
         // Notify user
         await notificationService.createNotification({
             userId,
-            type: "SYSTEM_ALERT",
+            type: "GROUP_MODERATOR_ASSIGNED",
             title: `You are now a group moderator!`,
             message: `You have been promoted to moderator for group '${group.name}'.`,
             data: { groupId: group._id, groupName: group.name, status: "promoted" }

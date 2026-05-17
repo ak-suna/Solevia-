@@ -24,6 +24,7 @@ import GoalsPage from "./pages/GoalsPage";
 import { HabitsProvider } from './contexts/HabitsContext';
 import { GoalsProvider } from './contexts/GoalsContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { Toaster } from 'react-hot-toast';
 import CommunityPage from "./pages/CommunityPage";
 import BrowseChallengesPage from "./pages/BrowseChallengesPage";
 import BrowseGroupsPage from "./pages/BrowseGroupsPage";
@@ -58,6 +59,7 @@ function App() {
     return (
         <QueryClientProvider client={queryClient}>
             <Router>
+                <Toaster position="top-center" />
                 {/* ← WRAP EVERYTHING IN NotificationProvider */}
                 <NotificationProvider>
                     <HabitsProvider>

@@ -448,6 +448,7 @@ function NotificationSettingsContent() {
         habits: { inApp: true, email: true },
         moods: { inApp: true, email: false },
         streaks: { inApp: true, email: false },
+        journals: { inApp: true, email: false },
         community: { inApp: true, email: false },
         system: { inApp: true, email: true }
     });
@@ -540,6 +541,11 @@ function NotificationSettingsContent() {
             description: "Achievements, milestones, and streak warnings"
         },
         {
+            key: "journals",
+            title: "Journal Reminders",
+            description: "Daily prompts to write in your journal"
+        },
+        {
             key: "community",
             title: "Community Activity",
             description: "Likes, comments, and interactions on your posts"
@@ -618,9 +624,9 @@ function NotificationSettingsContent() {
             <div className="mt-6 bg-[#89beab]/10 dark:bg-teal-900/20 border-2 border-[#89beab]/30 dark:border-teal-800 rounded-2xl p-4">
                 <h4 className="font-semibold text-[#1F3B36] dark:text-teal-300 mb-2">💡 How it works</h4>
                 <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-                    <li>• <strong>In-App:</strong> Real-time notifications in your dashboard</li>
-                    <li>• <strong>Email:</strong> Notifications sent when you're offline</li>
-                    <li>• <strong>High Priority:</strong> Habit reminders always send emails</li>
+                    <li>• <strong>In-App:</strong> Notifications appear in your dashboard bell icon</li>
+                    <li>• <strong>Email:</strong> Notifications sent to your registered email address</li>
+                    <li>• Toggle each channel independently per notification type</li>
                 </ul>
             </div>
         </div>

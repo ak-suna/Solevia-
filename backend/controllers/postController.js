@@ -5,6 +5,7 @@ import { Report } from "../models/Report.js";
 import { Comment } from "../models/Comment.js";
 import { Reaction } from "../models/Reaction.js";
 import cloudinary from '../config/cloudinaryConfig.js';
+import notificationService from "../services/notificationService.js";
 
 // Create a new post
 // Create a new post
@@ -268,6 +269,16 @@ export const addReaction = async (req, res) => {
         } else {
             await Reaction.create({ postId, userId, emoji });
             awardedPoints = true;
+
+            if (post.userId.toString() !== userId.toString()) {
+                await notificationService.createNotification({
+                    userId: post.userId,
+                    type: "COMMUNITY_LIKE",
+                    title: "Someone liked your post",
+                    message: `Your post received a new like`,
+                    data: { postId: post._id, actionUrl: "/community" }
+                });
+            }
         }
 
         // Award points for new reaction (not for toggling off)
@@ -321,6 +332,16 @@ export const addComment = async (req, res) => {
             content: content.trim()
         });
         await newComment.populate("userId", "firstName lastName");
+
+        if (post.userId.toString() !== userId.toString()) {
+            await notificationService.createNotification({
+                userId: post.userId,
+                type: "COMMUNITY_COMMENT",
+                title: "New comment on your post",
+                message: `Someone commented on your post`,
+                data: { postId: post._id, actionUrl: "/community" }
+            });
+        }
 
         const updatedPost = await getPostByIdForResponse(postId);
         res.status(200).json({

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, UserPlus, Check, XCircle, Clock } from 'lucide-react';
 import { getGroupJoinRequests, approveJoinRequest, rejectJoinRequest } from '../services/communityService';
 import Modal from './Modal';
-import Toast from './Toast';
+import toast from 'react-hot-toast';
 
 const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
     const [requests, setRequests] = useState([]);
@@ -12,7 +12,6 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null); // { id, userName }
     const [rejectReason, setRejectReason] = useState("");
-    const [toast, setToast] = useState(null); // { message, type }
 
     useEffect(() => {
         fetchRequests();
@@ -24,7 +23,7 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
             const data = await getGroupJoinRequests(groupId);
             setRequests(data.requests || []);
         } catch (error) {
-            setToast({ message: error.message, type: 'error' });
+            toast.error(error.message || "Failed to fetch requests");
         } finally {
             setLoading(false);
         }
@@ -41,11 +40,11 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
         setShowApproveModal(false);
         try {
             await approveJoinRequest(groupId, selectedRequest.id);
-            setToast({ message: `${selectedRequest.userName} has been added to the group!`, type: 'success' });
+            toast.success(`${selectedRequest.userName} has been added to the group!`);
             fetchRequests(); // Refresh list
             onSuccess();
         } catch (error) {
-            setToast({ message: error.message, type: 'error' });
+            toast.error(error.message || "Failed to approve request");
         } finally {
             setProcessing(null);
             setSelectedRequest(null);
@@ -64,11 +63,11 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
         setShowRejectModal(false);
         try {
             await rejectJoinRequest(groupId, selectedRequest.id, rejectReason);
-            setToast({ message: `${selectedRequest.userName}'s request has been rejected.`, type: 'success' });
+            toast.success(`${selectedRequest.userName}'s request has been rejected.`);
             fetchRequests(); // Refresh list
             onSuccess();
         } catch (error) {
-            setToast({ message: error.message, type: 'error' });
+            toast.error(error.message || "Failed to reject request");
         } finally {
             setProcessing(null);
             setSelectedRequest(null);
@@ -270,18 +269,6 @@ const JoinRequestsModal = ({ groupId, groupName, onClose, onSuccess }) => {
                     </button>
                 </div>
             </Modal>
-
-            {/* Toast Notification */}
-            <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100]">
-                {toast && (
-                    <Toast
-                        message={toast.message}
-                        type={toast.type === "error" ? "error" : "success"}
-                        onClose={() => setToast(null)}
-                        duration={3000}
-                    />
-                )}
-            </div>
         </div>
     );
 };

@@ -4,6 +4,7 @@ import ModeratorSidebar from '../components/ModeratorSidebar';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getGroupJoinRequests, approveJoinRequest, rejectJoinRequest } from '../services/communityService';
 import { UserPlus, CheckCircle, XCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const GroupModeratorRequests = () => {
     const { groupId } = useParams();
@@ -18,11 +19,23 @@ const GroupModeratorRequests = () => {
 
     const approveMutation = useMutation({
         mutationFn: (requestId) => approveJoinRequest(groupId, requestId),
-        onSuccess: () => queryClient.invalidateQueries(['community', 'groupJoinRequests', groupId]),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['community', 'groupJoinRequests', groupId]);
+            toast.success("Request approved successfully");
+        },
+        onError: (error) => {
+            toast.error(error.message || "Failed to approve request");
+        }
     });
     const rejectMutation = useMutation({
         mutationFn: (requestId) => rejectJoinRequest(groupId, requestId),
-        onSuccess: () => queryClient.invalidateQueries(['community', 'groupJoinRequests', groupId]),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['community', 'groupJoinRequests', groupId]);
+            toast.success("Request rejected");
+        },
+        onError: (error) => {
+            toast.error(error.message || "Failed to reject request");
+        }
     });
 
     if (isLoading) {

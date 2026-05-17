@@ -87,6 +87,10 @@ const userSchema = new Schema({
             inApp: { type: Boolean, default: true },
             email: { type: Boolean, default: false }
         },
+        journals: {
+            inApp: { type: Boolean, default: true },
+            email: { type: Boolean, default: false }
+        },
         community: {
             inApp: { type: Boolean, default: true },
             email: { type: Boolean, default: false }

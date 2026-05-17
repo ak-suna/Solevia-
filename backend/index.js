@@ -154,8 +154,7 @@ const server = createServer(app);
 app.use(cors());
 app.use(express.json());
 
-// Connect DB
-connectDB();
+// Connect DB (will be awaited at the bottom)
 
 // EXISTING ROUTES
 app.use("/api/users", userRoutes);
@@ -200,14 +199,17 @@ app.get("/", (req, res) => {
 // ============ INITIALIZE SOCKET.IO ============
 initializeSocket(server);
 
-// ============ START AGENDA JOBS ============
-startNotificationJobs()
-    .then(() => console.log("✅ Notification system initialized"))
-    .catch(err => console.error("❌ Error starting Agenda:", err));
-
-// Start server (use 'server' instead of 'app')
-server.listen(port, () => {
-    console.log(`✅ Server is running on port ${port}`);
+// ============ START AGENDA JOBS AND SERVER ============
+connectDB().then(() => {
+    startNotificationJobs()
+        .then(() => {
+            console.log("✅ Notification system initialized");
+            // Start server
+            server.listen(port, () => {
+                console.log(`✅ Server is running on port ${port}`);
+            });
+        })
+        .catch(err => console.error("❌ Error starting Agenda:", err));
 });
 
 // ============ GRACEFUL SHUTDOWN ============

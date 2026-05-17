@@ -165,7 +165,7 @@ const CommunityPage = () => {
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Groups</h2>
                                 <button
-                                    onClick={() => navigate('/challenges/browse', { state: { fromTab: 'groups' } })}
+                                    onClick={() => navigate('/community/groups/browse', { state: { fromTab: 'groups' } })}
                                     className="px-6 py-2 bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white rounded-full font-bold hover:shadow-lg flex items-center gap-2"
                                 >
                                     Explore Groups

@@ -116,7 +116,9 @@ router.get("/preferences", async (req, res) => {
       habits: { inApp: true, email: true },
       moods: { inApp: true, email: false },
       streaks: { inApp: true, email: false },
-      community: { inApp: true, email: false }
+      journals: { inApp: true, email: false },
+      community: { inApp: true, email: false },
+      system: { inApp: true, email: true }
     };
 
     res.json({
@@ -134,7 +136,7 @@ router.get("/preferences", async (req, res) => {
 
 router.put("/preferences", async (req, res) => {
   try {
-    const { habits, moods, streaks, community } = req.body;
+    const { habits, moods, streaks, journals, community, system } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.userId || req.user.id,
@@ -143,7 +145,9 @@ router.put("/preferences", async (req, res) => {
           habits: habits || { inApp: true, email: true },
           moods: moods || { inApp: true, email: false },
           streaks: streaks || { inApp: true, email: false },
-          community: community || { inApp: true, email: false }
+          journals: journals || { inApp: true, email: false },
+          community: community || { inApp: true, email: false },
+          system: system || { inApp: true, email: true }
         }
       },
       { new: true, runValidators: true }

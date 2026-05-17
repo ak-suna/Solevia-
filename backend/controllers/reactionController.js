@@ -1,6 +1,7 @@
 import { Reaction } from "../models/Reaction.js";
 import { Post } from "../models/Post.js";
 import mongoose from "mongoose";
+import notificationService from "../services/notificationService.js";
 
 // Helper to get post with comments and reactions for response
 async function getPostWithCommentsAndReactions(postId) {
@@ -43,6 +44,16 @@ export const toggleReaction = async (req, res) => {
             }
         } else {
             await Reaction.create({ postId, userId, emoji });
+            
+            if (post.userId.toString() !== userId.toString()) {
+                await notificationService.createNotification({
+                    userId: post.userId,
+                    type: "COMMUNITY_LIKE",
+                    title: "Someone liked your post",
+                    message: `Your post received a new like`,
+                    data: { postId: post._id, actionUrl: "/community" }
+                });
+            }
         }
 
         const updatedPost = await getPostWithCommentsAndReactions(postId);

@@ -26,6 +26,9 @@ const notificationSchema = new mongoose.Schema({
       "CHALLENGE_COMPLETED",
       "CHALLENGE_POOL_LOW",
       "GROUP_MEMBER_DISABLED",
+      "GROUP_JOIN_APPROVED",
+      "GROUP_JOIN_REJECTED",
+      "GROUP_MODERATOR_ASSIGNED",
       "PEER_CONNECT_REQUEST",
       "PEER_CONNECT_ACCEPTED",
       "GROUP_SESSION_CREATED"
