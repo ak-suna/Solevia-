@@ -5,25 +5,26 @@ import landingBG from "../assets/images/gbb.png";
 
 const Welcome = () => {
   return (
+
     <div
-      className="min-h-screen w-full bg-cover bg-centre  bg-no-repeat flex items-center justify-center relative"
+      className="min-h-screen w-full bg-cover bg-centre bg-no-repeat flex items-center justify-center relative bg-white dark:bg-gray-900"
       style={{ backgroundImage: `url(${landingBG})` }}
     >
       {/* Overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div className="absolute inset-0 bg-black/20 dark:bg-black/60"></div>
 
       {/* Content */}
       <div className="relative z-10 text-center px-6 max-w-3xl">
         {/* Logo Animation */}
         {/* Logo Text Animation */}
-<div className="mb-12 flex justify-center animate-slide-from-right">
-  <h1 
-className="text-[90px] md:text-[150px] lg:text-[200px] text-white drop-shadow-2xl leading-none text-logo-glow"
-    style={{ fontFamily: "Brasika" }}
-  >
-    Solevia
-  </h1>
-</div>
+        <div className="mb-12 flex justify-center animate-slide-from-right">
+          <h1
+            className="text-[90px] md:text-[150px] lg:text-[200px] text-white dark:text-white drop-shadow-2xl leading-none text-logo-glow"
+            style={{ fontFamily: 'Brasika' }}
+          >
+            Solevia
+          </h1>
+        </div>
 
 
         {/* Title Animation */}
@@ -32,28 +33,28 @@ className="text-[90px] md:text-[150px] lg:text-[200px] text-white drop-shadow-2x
         </h1> */}
 
         {/* Subtitle Animation */}
-        <p className="text-xl md:text-2xl text-white/90 mb-4 font-light animate-fade-in-up animation-delay-400"
-        style={{ fontFamily: "Brasika" }}
+        <p className="text-xl md:text-2xl text-white/90 dark:text-gray-100 mb-4 font-light animate-fade-in-up animation-delay-400"
+          style={{ fontFamily: 'Brasika' }}
         >
           Your journey to better wellbeing starts today.🍀
         </p>
 
         {/* Description Animation */}
-<p className="text-xl md:text-2xl text-white/80 mb-10 font-light leading-relaxed max-w-2xl mx-auto animate-fade-in-up animation-delay-600">
+        <p className="text-xl md:text-2xl text-white/80 dark:text-gray-300 mb-10 font-light leading-relaxed max-w-2xl mx-auto animate-fade-in-up animation-delay-600">
           Track your habits, boost your mindset, and take small daily steps toward a happier, healthier life.
         </p>
 
         {/* Buttons Animation */}
         <div className="flex flex-col sm:flex-row gap-8 justify-center items-center animate-fade-in-up animation-delay-800">
-          <Link 
-            to="/signup" 
-    className="px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl min-w-[200px]"
+          <Link
+            to="/signup"
+            className="px-10 py-4 text-xl bg-[#f096b3] dark:bg-[#f487a0] text-white rounded-full font-semibold hover:bg-[#f8ba90] dark:hover:bg-[#f8ba90]/80 transition-all duration-300 hover:scale-105 shadow-xl min-w-[200px]"
           >
             Sign Up
           </Link>
-          <Link 
-            to="/login" 
-    className="px-10 py-4 text-xl bg-transparent text-white border-2 border-[#f096b3] rounded-full font-semibold hover:bg-white/10 transition-all duration-300 hover:scale-105 backdrop-blur-sm shadow-lg min-w-[200px]"
+          <Link
+            to="/login"
+            className="px-10 py-4 text-xl bg-transparent text-white dark:text-gray-100 border-2 border-[#f096b3] dark:border-[#f487a0] rounded-full font-semibold hover:bg-white/10 dark:hover:bg-gray-800/40 transition-all duration-300 hover:scale-105 backdrop-blur-sm shadow-lg min-w-[200px]"
           >
             Log In
           </Link>

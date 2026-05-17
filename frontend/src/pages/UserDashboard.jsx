@@ -184,7 +184,7 @@ const UserDashboard = () => {
   };
 
   const StreaksCard = () => (
-    <div className="bg-[#f8ba90] rounded-[40px] p-6 h-[180px] shadow-lg flex flex-col justify-between border-2 border-[#f4873e]/20">
+    <div className="bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-6 h-[180px] shadow-lg flex flex-col justify-between border-2 border-[#f4873e]/20">
       <div className="mb-3">
         <h3 className="text-[#1F3B36] text-sm uppercase tracking-wide font-bold">Check-in Streak</h3>
         <div className="flex items-center justify-center mt-3">

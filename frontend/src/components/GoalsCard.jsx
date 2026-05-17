@@ -14,9 +14,9 @@ const GoalsCard = () => {
   const avgProgress =
     activeGoals.length > 0
       ? Math.round(
-          activeGoals.reduce((sum, g) => sum + g.progress, 0) /
-            activeGoals.length
-        )
+        activeGoals.reduce((sum, g) => sum + g.progress, 0) /
+        activeGoals.length
+      )
       : 0;
 
   const handleAddGoal = () => {
@@ -36,7 +36,7 @@ const GoalsCard = () => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
-  
+
   const calculateDaysRemaining = (deadline) => {
     if (!deadline) return null;
     const today = new Date();
@@ -49,15 +49,15 @@ const GoalsCard = () => {
   };
 
   return (
-    <div className="bg-[#f9d9e3] p-10 rounded-[40px] w-full h-[240px] flex flex-col">
-      
+    <div className="bg-[#f9d9e3] dark:bg-gray-800 p-10 rounded-[40px] w-full h-[240px] flex flex-col">
+
       <div className="flex justify-between items-start mb-3">
-        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide opacity-80">
+        <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 uppercase tracking-wide opacity-80">
           Active Goals
         </h3>
         <button
           onClick={() => navigate('/goals')}
-          className="text-xs text-gray-600 hover:underline"
+          className="text-xs text-gray-600 dark:text-gray-300 hover:underline"
         >
           View All
         </button>
@@ -65,15 +65,15 @@ const GoalsCard = () => {
 
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-5 h-5 text-pink-600" />
-        <span className="text-2xl font-bold text-gray-900">
+        <span className="text-2xl font-bold text-gray-900 dark:text-white">
           {avgProgress}%
         </span>
-        <span className="text-xs text-gray-600">Average</span>
+        <span className="text-xs text-gray-600 dark:text-gray-300">Average</span>
       </div>
 
       {/* Add Goal Quick Form */}
       {showAddForm && (
-        <div className="mb-3 bg-white rounded-lg p-3">
+        <div className="mb-3 bg-white dark:bg-gray-700 rounded-lg p-3">
           <input
             type="text"
             value={newGoal.name}
@@ -81,7 +81,7 @@ const GoalsCard = () => {
               setNewGoal({ ...newGoal, name: e.target.value })
             }
             placeholder="Goal name..."
-            className="w-full px-3 py-2 border rounded text-sm mb-2"
+            className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded text-sm mb-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
           <div className="flex gap-2 mb-2">
             <input
@@ -91,7 +91,7 @@ const GoalsCard = () => {
                 setNewGoal({ ...newGoal, target: e.target.value })
               }
               placeholder="Target"
-              className="flex-1 px-3 py-2 border rounded text-sm"
+              className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             />
             <input
               type="text"
@@ -100,7 +100,7 @@ const GoalsCard = () => {
                 setNewGoal({ ...newGoal, unit: e.target.value })
               }
               placeholder="Unit"
-              className="flex-1 px-3 py-2 border rounded text-sm"
+              className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             />
           </div>
           <div className="flex gap-2">
@@ -112,7 +112,7 @@ const GoalsCard = () => {
             </button>
             <button
               onClick={() => setShowAddForm(false)}
-              className="px-3 py-1 bg-gray-300 rounded text-sm hover:bg-gray-400"
+              className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded text-sm hover:bg-gray-400 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100"
             >
               Cancel
             </button>
@@ -121,38 +121,38 @@ const GoalsCard = () => {
       )}
 
       {/* Scrollable Goals List */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-pink-300 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-pink-300 dark:scrollbar-thumb-pink-700 scrollbar-track-transparent">
         {activeGoals.map((goal) => (
           <div key={goal.id}>
             <div className="flex justify-between items-end mb-2">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 {goal.name}
               </span>
-              <span className="text-xs font-bold text-gray-500">
+              <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
                 {goal.progress || 0}%
               </span>
             </div>
-            <div className="text-xs text-gray-600 mb-1">
+            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">
               {goal.current || 0} / {goal.target} {goal.unit}
             </div>
             {goal.deadline && (() => {
               const daysRemaining = calculateDaysRemaining(goal.deadline);
               return (
-                <div className="text-xs text-gray-500 mb-1">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                   Due: {formatDate(goal.deadline)}
                   {daysRemaining !== null && (
                     <span className="ml-1">
-                      {daysRemaining < 0 
+                      {daysRemaining < 0
                         ? `(${Math.abs(daysRemaining)} days overdue)`
                         : daysRemaining === 0
-                        ? '(Due today)'
-                        : `(${daysRemaining} days left)`}
+                          ? '(Due today)'
+                          : `(${daysRemaining} days left)`}
                     </span>
                   )}
                 </div>
               );
             })()}
-            <div className="h-2 w-full bg-white rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-white dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-pink-500 to-red-500 rounded-full transition-all duration-300"
                 style={{ width: `${goal.progress || 0}%` }}
@@ -164,7 +164,7 @@ const GoalsCard = () => {
 
       <button
         onClick={() => setShowAddForm(!showAddForm)}
-        className="w-full flex items-center justify-center gap-2 py-2 bg-white hover:bg-gray-50 rounded-lg text-gray text-sm transition-all mt-3"
+        className="w-full flex items-center justify-center gap-2 py-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg text-gray-700 dark:text-gray-200 text-sm transition-all mt-3"
       >
         <Plus className="w-4 h-4" />
         Quick Add

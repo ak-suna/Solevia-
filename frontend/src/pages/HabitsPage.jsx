@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { CheckCircle2, Circle, Plus, Trash2, Calendar, X, Repeat, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
@@ -19,7 +19,7 @@ const HabitsPage = () => {
   const [frequency, setFrequency] = useState('daily');
   const [daysOfWeek, setDaysOfWeek] = useState([]);
   const [linkedGoalId, setLinkedGoalId] = useState('');
-  const [setLinkedGoalsMap] = useState({}); // Fixed typo
+  const [linkedGoalsMap, setLinkedGoalsMap] = useState({});
   const [goalContribution, setGoalContribution] = useState(10);
   const [habitDate, setHabitDate] = useState(new Date().toISOString().split('T')[0]);
 
@@ -40,7 +40,7 @@ const HabitsPage = () => {
   const [historyPage, setHistoryPage] = useState(1);           // NEW
   const [hasMoreHistory, setHasMoreHistory] = useState(false); // NEW
   // const [setLinkedGoalsMap] = useState({});
-  const [setPastHabits] = useState([]); // Fixed typo
+  const [pastHabits, setPastHabits] = useState([]);
 
   const handleAddHabit = async () => {
     if (newHabitName.trim()) {

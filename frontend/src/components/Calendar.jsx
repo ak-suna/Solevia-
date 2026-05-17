@@ -108,15 +108,15 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
       return sessionDateStr === dateStr;
     });
     return (
-      <div className="relative w-full h-full p-1" style={{ fontFamily: "Brasika" }}>
-        <div className="text-sm font-medium text-gray-700 mb-1">{arg.dayNumberText}</div>
+      <div className="relative w-full h-full p-1" style={{ fontFamily: 'Brasika' }}>
+        <div className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">{arg.dayNumberText}</div>
         {/* Small indicators for journals/habits/sessions */}
         <div className="flex gap-1 mt-1 absolute bottom-1 left-1/2 transform -translate-x-1/2">
-          {hasJournal && <div className="w-1.5 h-1.5 rounded-full bg-[#f4873e]" title="Journal entry" />}
+          {hasJournal && <div className="w-1.5 h-1.5 rounded-full bg-[#f4873e] dark:bg-orange-400" title="Journal entry" />}
           {habitEntry && habitEntry.completedCount > 0 && (
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500" title="Habits completed" />
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 dark:bg-green-400" title="Habits completed" />
           )}
-          {hasSession && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" title="Group session" />}
+          {hasSession && <div className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400" title="Group session" />}
         </div>
         {dayMoods && (dayMoods.morning || dayMoods.evening) && (
           <div className="absolute bottom left-0 right-0 flex justify-center items-center gap-2.5 px-1 top-[50px]">
@@ -155,7 +155,7 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
   };
 
   return (
-    <div className="p-6 w-[600px] h-[600px] rounded-xl shadow-md overflow-auto bg-[#FCF8F5]">
+    <div className="p-6 w-[600px] h-[600px] rounded-xl shadow-md overflow-auto bg-[#FCF8F5] dark:bg-gray-800">
       <style>{`
         .fc-daygrid-day-frame > div {
           position: relative !important;

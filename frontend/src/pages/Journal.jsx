@@ -534,11 +534,11 @@ const Journal = () => {
   }
 
   return (
-    <div className="min-h-screen flex gap-6  border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)]">
+    <div className="min-h-screen flex gap-6 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)]">
       <Toaster position="top-center" />
       <Sidebar />
 
-      <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-[#f4f2f0] dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] overflow-y-auto">
+      <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-[#f4f2f0] dark:bg-gray-900 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] overflow-y-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -557,7 +557,7 @@ const Journal = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/capsules')}
-                className="flex flex-col items-center justify-center bg-[#f8ba90] text-black w-24 h-24 rounded-full shadow-lg hover:bg-[#89beab] hover:shadow-xl transition-all"
+                className="flex flex-col items-center justify-center bg-[#f8ba90] dark:bg-orange-900/60 text-black dark:text-white w-24 h-24 rounded-full shadow-lg hover:bg-[#89beab] dark:hover:bg-orange-700 hover:shadow-xl transition-all"
                 title="Memory Capsules"
               >
                 <Gift className="w-12 h-11 mb-1" />
@@ -572,7 +572,7 @@ const Journal = () => {
                   setIsWriting(true);
                 }}
                 disabled={loading}
-                className="flex flex-col items-center justify-center bg-[#89beab] text-black w-24 h-24 rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex flex-col items-center justify-center bg-[#89beab] dark:bg-teal-900/60 text-black dark:text-white w-24 h-24 rounded-full shadow-lg hover:bg-[#f8ba90] dark:hover:bg-teal-700 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Plus className="w-12 h-11 mb-1" />
               </motion.button>
@@ -587,13 +587,13 @@ const Journal = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="bg-[#FCF8F5] rounded-2xl p-6 mb-6 overflow-hidden"
+              className="bg-[#FCF8F5] dark:bg-gray-800 rounded-2xl p-6 mb-6 overflow-hidden"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                   {editingEntry ? 'Edit Entry' : 'New Entry'}
                 </h2>
-                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600">
+                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -603,10 +603,10 @@ const Journal = () => {
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-[#EDE5DA] border-l-4 border-[#244856] p-4 mb-4 rounded"
+                  className="bg-[#EDE5DA] dark:bg-gray-700 border-l-4 border-[#244856] dark:border-orange-400 p-4 mb-4 rounded"
 
                 >
-                  <p className="text-[#244856] italic">
+                  <p className="text-[#244856] dark:text-orange-300 italic">
                     💭 {currentPrompt}
                   </p>
                 </motion.div>
@@ -617,12 +617,11 @@ const Journal = () => {
                 placeholder="Title (optional)"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[#244856]
-"
+                className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[#244856] dark:focus:ring-orange-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               />
 
               {/* Tiptap Toolbar */}
-              <div className="bg-[#FFFFF] border border-gray-300 rounded-t-lg p-2 flex flex-wrap gap-1">
+              <div className="bg-[#FFFFF] dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-t-lg p-2 flex flex-wrap gap-1">
                 <ToolbarButton
                   onClick={() => editor.chain().focus().toggleBold().run()}
                   active={editor.isActive('bold')}
@@ -723,7 +722,7 @@ const Journal = () => {
               </div>
 
               {/* Tiptap Editor */}
-              <div className="bg-white border border-gray-200 border-t-0 rounded-b-lg p-4 min-h-[16rem]">
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 border-t-0 rounded-b-lg p-4 min-h-[16rem] text-gray-900 dark:text-gray-100">
                 <style dangerouslySetInnerHTML={{
                   __html: `
                   .ProseMirror {
@@ -777,7 +776,7 @@ const Journal = () => {
               </div>
 
               <div className="mb-4 mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   How are you feeling?
                 </label>
                 <div className="flex gap-2 flex-wrap">
@@ -789,8 +788,8 @@ const Journal = () => {
                       type="button"
                       onClick={() => setMood(m.value)}
                       className={`px-4 py-2 rounded-lg border-2 transition-all ${mood === m.value
-                        ? 'border-purple-600 bg-purple-50'
-                        : 'border-gray-200 hover:border-purple-300'
+                        ? 'border-purple-600 dark:border-orange-400 bg-purple-50 dark:bg-orange-900/40'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-orange-400'
                         }`}
                     >
                       <span className="text-2xl mr-2">{m.emoji}</span>
@@ -801,7 +800,7 @@ const Journal = () => {
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                   Tags (comma-separated)
                 </label>
                 <input
@@ -809,12 +808,11 @@ const Journal = () => {
                   placeholder="gratitude, work, family..."
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856]
-"
+                  className="w-full px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856] dark:focus:ring-orange-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
-              <div className="mb-4 bg-[#EDE5DA] p-4 rounded-lg">
+              <div className="mb-4 bg-[#EDE5DA] dark:bg-gray-700 p-4 rounded-lg">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -831,9 +829,9 @@ const Journal = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <Lock className="w-4 h-4 text-[#F8BA90]" />
-                      <span className="font-medium text-gray-800">Lock this entry with PIN</span>
+                      <span className="font-medium text-gray-800 dark:text-gray-100">Lock this entry with PIN</span>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       {entryPin
                         ? '✓ PIN protection enabled'
                         : 'Requires a 4-digit PIN to view later'
@@ -856,7 +854,7 @@ const Journal = () => {
                 </label>
               </div>
 
-              <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
+              <div className="flex items-center justify-between mb-4 text-sm text-gray-600 dark:text-gray-300">
                 <span>{content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} words</span>
                 <span>{content.replace(/<[^>]*>/g, '').length} characters</span>
               </div>
@@ -868,7 +866,7 @@ const Journal = () => {
                   onClick={saveEntry}
                   disabled={!content.trim() || loading}
                   type="button"
-                  className="px-8 py-4 flex items-center justify-center gap-2 bg-[#89beab] text-white rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl min-w-[150px] min-h-[50px] transition-all"
+                  className="px-8 py-4 flex items-center justify-center gap-2 bg-[#89beab] dark:bg-teal-900 text-white dark:text-gray-100 rounded-full shadow-lg hover:bg-[#f8ba90] dark:hover:bg-orange-900 hover:shadow-xl min-w-[150px] min-h-[50px] transition-all"
                 >
                   <Save className="w-5 h-5" />
                   {loading ? 'Saving...' : (editingEntry ? 'Update' : 'Save')} Entry
@@ -879,7 +877,7 @@ const Journal = () => {
                   onClick={resetForm}
                   disabled={loading}
                   type="button"
-                  className="px-8 py-4 border-2 border-gray-400 text-black rounded-full shadow-lg  hover:shadow-xl min-w-[150px] min-h-[50px] flex justify-center items-center transition-all"
+                  className="px-8 py-4 border-2 border-gray-400 dark:border-gray-600 text-black dark:text-gray-100 rounded-full shadow-lg  hover:shadow-xl min-w-[150px] min-h-[50px] flex justify-center items-center transition-all"
                 >
                   Cancel
                 </motion.button>
@@ -900,7 +898,7 @@ const Journal = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-gray-50 rounded-2xl p-6 mb-6"
+            className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 mb-6"
           >
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
@@ -910,15 +908,13 @@ const Journal = () => {
                   placeholder="Search entries..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856]
-"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856] dark:focus:ring-orange-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                 />
               </div>
               <select
                 value={filterTag}
                 onChange={(e) => setFilterTag(e.target.value)}
-                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856]
-"
+                className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#244856] dark:focus:ring-orange-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               >
                 <option value="all">All Tags</option>
                 {allTags.map(tag => (
@@ -936,13 +932,13 @@ const Journal = () => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-gray-50 rounded-2xl p-12 text-center"
+                className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-12 text-center"
               >
                 <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-100 mb-2">
                   {entries.length === 0 ? 'Start Your Journey' : 'No Entries Found'}
                 </h3>
-                <p className="text-gray-500 mb-6">
+                <p className="text-gray-500 dark:text-gray-300 mb-6">
                   {entries.length === 0
                     ? 'Begin documenting your thoughts and feelings.'
                     : 'Try adjusting your search or filters.'
@@ -953,7 +949,7 @@ const Journal = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setIsWriting(true)}
-                    className="bg-[#89beab] text-black  p-5 rounded-full shadow-lg hover:bg-[#f8ba90] hover:shadow-xl " style={{ fontFamily: "Brasika" }}
+                    className="bg-[#89beab] dark:bg-teal-900 text-black dark:text-white p-5 rounded-full shadow-lg hover:bg-[#f8ba90] dark:hover:bg-orange-900 hover:shadow-xl " style={{ fontFamily: "Brasika" }}
                   >
                     Write First Entry
                   </motion.button>
@@ -973,26 +969,26 @@ const Journal = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -100 }}
                       transition={{ delay: index * 0.05 }}
-                      className={`bg-gray-50 rounded-2xl p-6 hover:shadow-md transition-shadow ${isLocked ? 'border-2 border-[#F8BA90]' : ''
+                      className={`bg-gray-50 dark:bg-gray-800 rounded-2xl p-6 hover:shadow-md transition-shadow ${isLocked ? 'border-2 border-[#F8BA90]' : ''
                         }`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-bold text-gray-800">{entry.title}</h3>
+                            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">{entry.title}</h3>
                             {moodData && (
                               <span className="text-2xl" title={moodData.label}>
                                 {moodData.emoji}
                               </span>
                             )}
                             {isLocked && (
-                              <span className="flex items-center gap-1 bg-[#FBE4C9] text-[#F8BA90] px-2 py-1 rounded-full text-xs font-semibold">
+                              <span className="flex items-center gap-1 bg-[#FBE4C9] dark:bg-orange-900 text-[#F8BA90] dark:text-orange-300 px-2 py-1 rounded-full text-xs font-semibold">
                                 <Lock className="w-3 h-3" />
                                 Locked
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-300">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
                               {new Date(entry.createdAt).toLocaleDateString('en-US', {
@@ -1049,7 +1045,7 @@ const Journal = () => {
                       {!isLocked ? (
                         <>
                           <div
-                            className={`text-gray-700 mb-3 prose prose-sm max-w-none cursor-pointer ${!isExpanded ? 'line-clamp-3' : ''}`}
+                            className={`text-gray-700 dark:text-gray-100 mb-3 prose prose-sm max-w-none cursor-pointer ${!isExpanded ? 'line-clamp-3' : ''}`}
                             onClick={() => setExpandedEntry(isExpanded ? null : entry._id)}
                             dangerouslySetInnerHTML={{ __html: entry.content }}
                           />
@@ -1057,26 +1053,26 @@ const Journal = () => {
                           {entry.content.length > 200 && (
                             <button
                               onClick={() => setExpandedEntry(isExpanded ? null : entry._id)}
-                              className="text-purple-600 text-sm hover:underline mb-3"
+                              className="text-purple-600 dark:text-orange-400 text-sm hover:underline mb-3"
                             >
                               {isExpanded ? 'Show less' : 'Read more'}
                             </button>
                           )}
                         </>
                       ) : (
-                        <p className="text-gray-500 italic text-sm mb-4">
+                        <p className="text-gray-500 dark:text-gray-300 italic text-sm mb-4">
                           🔒 This entry is locked. Click the lock icon to unlock it.
                         </p>
                       )}
 
                       {entry.tags && entry.tags.length > 0 && (
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Tag className="w-4 h-4 text-gray-400" />
+                          <Tag className="w-4 h-4 text-gray-400 dark:text-orange-400" />
                           {entry.tags.map((tag, idx) => (
                             <motion.span
                               key={idx}
                               whileHover={{ scale: 1.05 }}
-                              className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm cursor-pointer"
+                              className="px-3 py-1 bg-purple-100 dark:bg-orange-900 text-purple-700 dark:text-orange-300 rounded-full text-sm cursor-pointer"
                               onClick={() => setFilterTag(tag)}
                             >
                               {tag}

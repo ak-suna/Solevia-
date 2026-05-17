@@ -81,7 +81,7 @@ const CommunityFeed = ({ posts, getCategoryColor }) => {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 bg-white dark:bg-gray-900 p-2 rounded-2xl">
             {posts.map((post) => {
                 // DEBUG LOG: Check if image exists in the post data
                 console.log(`Post ${post._id} data:`, post);
