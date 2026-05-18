@@ -17,6 +17,9 @@ const SettingsPage = () => {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState({ type: "", text: "" });
     const [editingField, setEditingField] = useState(null);
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const [profile, setProfile] = useState({
         firstName: "",
@@ -382,57 +385,133 @@ const SettingsPage = () => {
                     {/* Security Section */}
                     {activeSection === "security" && (
                         <div>
-                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Security</h2>
+                            {/* Section Heading matching the flat Left-Aligned layout */}
+                            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>
+                                Security
+                            </h2>
 
-                            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4">Change Password</h3>
-                            <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Current Password
-                                    </label>
-                                    <input
-                                        type="password"
-                                        value={passwordData.currentPassword}
-                                        onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                                        required
-                                        className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
-                                    />
+                            <div className="space-y-6">
+                                {/* Inner White Box Panel with updated matching border styles and enhanced top/bottom padding */}
+                                <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600 px-8 py-10 sm:px-12">
+
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-6 text-center">
+                                        Change Password
+                                    </h3>
+
+                                    <form onSubmit={handlePasswordSubmit} className="space-y-5 max-w-md mx-auto w-full">
+
+                                        {/* Current Password Field */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Current Password
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type={showCurrentPassword ? "text" : "password"}
+                                                    value={passwordData.currentPassword}
+                                                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                                                    required
+                                                    className="w-full pl-4 pr-12 py-2.5 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#f4873e] dark:hover:text-teal-400 transition-colors duration-200"
+                                                >
+                                                    {showCurrentPassword ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                        </svg>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* New Password Field */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                New Password (min 8 characters)
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type={showNewPassword ? "text" : "password"}
+                                                    value={passwordData.newPassword}
+                                                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                                    required
+                                                    minLength={8}
+                                                    className="w-full pl-4 pr-12 py-2.5 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#f4873e] dark:hover:text-teal-400 transition-colors duration-200"
+                                                >
+                                                    {showNewPassword ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                        </svg>
+                                                    )}
+                                                </button>
+                                            </div>
+                                            <PasswordStrength password={passwordData.newPassword} />
+                                        </div>
+
+                                        {/* Confirm New Password Field */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                Confirm New Password
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type={showConfirmPassword ? "text" : "password"}
+                                                    value={passwordData.confirmPassword}
+                                                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                                    required
+                                                    minLength={6}
+                                                    className="w-full pl-4 pr-12 py-2.5 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#f4873e] dark:hover:text-teal-400 transition-colors duration-200"
+                                                >
+                                                    {showConfirmPassword ? (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                                        </svg>
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Button layout matching form bounds */}
+                                        <div className="w-full flex justify-center pt-2">
+                                            <button
+                                                type="submit"
+                                                disabled={saving}
+                                                className="w-full sm:w-auto px-10 py-2.5 bg-[#89beab] dark:bg-teal-600 text-white rounded-xl font-medium hover:bg-[#FFA669] dark:hover:bg-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md text-center"
+                                            >
+                                                {saving ? "Updating..." : "Change Password"}
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        New Password (min 8 characters)
-                                    </label>
-                                    <input
-                                        type="password"
-                                        value={passwordData.newPassword}
-                                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                                        required
-                                        minLength={8}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
-                                    />
-                                    <PasswordStrength password={passwordData.newPassword} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Confirm New Password
-                                    </label>
-                                    <input
-                                        type="password"
-                                        value={passwordData.confirmPassword}
-                                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                                        required
-                                        minLength={6}
-                                        className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-[#f4873e]"
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={saving}
-                                    className="px-6 py-2 bg-[#89beab] dark:bg-teal-600 text-white rounded-xl font-medium hover:bg-[#FFA669] dark:hover:bg-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-                                >
-                                    {saving ? "Updating..." : "Change Password"}
-                                </button>
-                            </form>
+                            </div>
                         </div>
                     )}
                 </div>
