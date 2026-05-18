@@ -407,28 +407,45 @@ router.post('/check-day', authenticate, async (req, res) => {
         // If snapshot doesn't exist, create it
         // We use lastCompletedDate to determine if a habit was completed yesterday
         // A habit was completed yesterday if its lastCompletedDate is exactly yesterday
+        // ✅ BEFORE creating the fallback snapshot, get yesterdayDayOfWeek
+        const yesterdayDayOfWeek = yesterday.getDay();
+
         if (!yesterdaySnapshot && totalYesterday > 0) {
-          const yesterdayHabits = habits.map(h => {
+          // ✅ Filter to only habits that actually applied yesterday
+          const relevantYesterdayHabits = habits.filter(h => {
+            if (h.isArchived) return false;
+            if (h.isRecurring) {
+              if (h.frequency === 'daily') return true;
+              if (
+                (h.frequency === 'weekly' || h.frequency === 'custom') &&
+                h.daysOfWeek.includes(yesterdayDayOfWeek)
+              ) return true;
+              return false;
+            }
+            // One-time: must match yesterday's date
+            const hDate = h.habitDate
+              ? new Date(h.habitDate).setHours(0, 0, 0, 0)
+              : null;
+            return hDate === yesterdayTimestamp;
+          });
+
+          const yesterdayHabits = relevantYesterdayHabits.map(h => {
             let wasCompleted = false;
             if (h.lastCompletedDate) {
               const completedDate = new Date(h.lastCompletedDate);
               completedDate.setHours(0, 0, 0, 0);
               wasCompleted = completedDate.getTime() === yesterdayTimestamp;
             }
-            return {
-              habitId: h._id,
-              name: h.name,
-              completed: wasCompleted
-            };
+            return { habitId: h._id, name: h.name, completed: wasCompleted };
           });
 
           const completedCount = yesterdayHabits.filter(h => h.completed).length;
-          const completionPercentage = totalYesterday > 0
-            ? Math.round((completedCount / totalYesterday) * 100)
+          const totalCount = relevantYesterdayHabits.length;
+          const completionPercentage = totalCount > 0
+            ? Math.round((completedCount / totalCount) * 100)
             : 0;
 
-          // Only create snapshot if we have habits
-          if (totalYesterday > 0) {
+          if (totalCount > 0) {
             try {
               yesterdaySnapshot = await HabitDay.create({
                 user: req.user.id,
@@ -436,10 +453,9 @@ router.post('/check-day', authenticate, async (req, res) => {
                 habits: yesterdayHabits,
                 completionPercentage,
                 completedCount,
-                totalCount: totalYesterday
+                totalCount
               });
             } catch (err) {
-              // If duplicate key error, fetch the existing document
               if (err.code === 11000) {
                 yesterdaySnapshot = await HabitDay.findOne({
                   user: req.user.id,
@@ -509,9 +525,18 @@ router.get('/history', authenticate, async (req, res) => {
     const limit = parseInt(req.query.limit) || 7;
     const skip = (page - 1) * limit;
 
-    const total = await HabitDay.countDocuments({ user: req.user.id });
+    const todaySnap = new Date();
+    todaySnap.setHours(0, 0, 0, 0);
 
-    const habitDays = await HabitDay.find({ user: req.user.id })
+    const total = await HabitDay.countDocuments({
+      user: req.user.id,
+      date: { $lt: todaySnap }
+    });
+
+    const habitDays = await HabitDay.find({
+      user: req.user.id,
+      date: { $lt: todaySnap }
+    })
       .sort({ date: -1 })
       .skip(skip)
       .limit(limit)

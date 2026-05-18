@@ -190,23 +190,34 @@ const HabitsPage = () => {
 
   const formatDate = (dateInput) => {
     if (!dateInput) return '';
-    const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+    const date = new Date(dateInput);
     if (isNaN(date.getTime())) return '';
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dateOnly = new Date(date);
-    dateOnly.setHours(0, 0, 0, 0);
+    // Compare using local date strings (avoids UTC vs local midnight mismatch)
+    const toLocalStr = (d) => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
 
-    if (dateOnly.getTime() === today.getTime()) {
-      return 'Today';
-    }
+    const dateStr = toLocalStr(date);
+    const today = new Date();
+    const todayStr = toLocalStr(today);
+
+    if (dateStr === todayStr) return 'Today';
+
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    if (dateOnly.getTime() === yesterday.getTime()) {
-      return 'Yesterday';
-    }
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const yesterdayStr = toLocalStr(yesterday);
+
+    if (dateStr === yesterdayStr) return 'Yesterday';
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   // Filter goals by category for the dropdown (but allow selecting from any)

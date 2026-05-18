@@ -43,7 +43,12 @@ export const deleteHabit = async (id) => {
 };
 
 export const checkNewDay = async () => {
-  const response = await axios.post(`${API_URL}/check-day`, {}, getAuthHeader());
+  const localDate = new Date().toLocaleDateString('en-CA'); // "YYYY-MM-DD" in local TZ
+  const response = await axios.post(
+    `${API_URL}/check-day`,
+    { localDate },
+    getAuthHeader()
+  );
   return response.data;
 };
 
