@@ -195,6 +195,15 @@ export const getAnalyticsSummary = async (req, res) => {
     try {
         const userId = req.user.id;
 
+        // ===== 1. HANDLE DYNAMIC FILTER RANGE =====
+        // Accepts '7', '30', or '90'. Defaults to 30 if missing or invalid.
+        const allowedRanges = [7, 30, 90];
+        const queryRange = parseInt(req.query.range, 10);
+        const filterDays = allowedRanges.includes(queryRange) ? queryRange : 30;
+
+        // Get the specific start date for the selected filter range
+        const { startDate: filterStartDate } = getDateRange(filterDays);
+
         // Get date ranges
         const { startOfWeek, endOfWeek } = getWeekBoundaries();
         const { startOfLastWeek, endOfLastWeek } = getLastWeekBoundaries();
@@ -361,7 +370,11 @@ export const getAnalyticsSummary = async (req, res) => {
         }
 
         // ===== MOOD DISTRIBUTION =====
-        const allMoods = await Mood.find({ userId });
+        const filteredMoods = await Mood.find({
+            userId,
+            date: { $gte: filterStartDate }
+        });
+
         const moodCounts = {
             happy: 0,
             excited: 0,
@@ -372,13 +385,13 @@ export const getAnalyticsSummary = async (req, res) => {
             tired: 0
         };
 
-        allMoods.forEach(mood => {
+        filteredMoods.forEach(mood => {
             if (moodCounts.hasOwnProperty(mood.mood)) {
                 moodCounts[mood.mood]++;
             }
         });
 
-        const totalMoods = allMoods.length;
+        const totalMoods = filteredMoods.length;
         const moodDistribution = {};
         Object.keys(moodCounts).forEach(mood => {
             moodDistribution[mood] = totalMoods > 0
@@ -569,6 +582,7 @@ export const getAnalyticsSummary = async (req, res) => {
 
         // ===== RESPONSE =====
         res.json({
+            activeFilterRange: filterDays, // <-- ADD THIS NEW LINE HERE
             thisWeek: {
                 moodCheckins: thisWeekMoods.length,
                 habitsCompleted,
@@ -590,7 +604,7 @@ export const getAnalyticsSummary = async (req, res) => {
             lastJournalDate,           // NEW — for actionable insight
             moodTrends: moodTrendsArray,
             habitHeatmap,
-            moodDistribution,
+            moodDistribution,          // This will now automatically contain the filtered version!
             journalFrequency,
             habitCompletionTrend,
             goalMilestones,            // NEW — for ActivityCharts trophy overlay
