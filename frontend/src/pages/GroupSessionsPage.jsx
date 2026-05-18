@@ -91,12 +91,12 @@ const GroupSessionsPage = () => {
             <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 <div className="flex items-center gap-4 mb-8">
-                    <button
-                        onClick={() => navigate(`/groups/${groupId}/moderator/dashboard`)}
+                    {/* <button
+                        onClick={() => navigate(`/admin/groups/${groupId}/moderator/dashboard`)}
                         className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-semibold"
                     >
                         <ArrowLeft className="w-4 h-4" /> Back
-                    </button>
+                    </button> */}
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3" style={{ fontFamily: "Brasika" }}>
                         <Calendar className="w-7 h-7 text-[#f4873e]" /> Group Sessions
                         {group?.name && <span className="text-gray-400 font-normal text-lg">— {group.name}</span>}
@@ -168,8 +168,8 @@ const GroupSessionsPage = () => {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${session.status === "active" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" :
-                                                session.status === "completed" ? "bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300" :
-                                                    "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                                            session.status === "completed" ? "bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300" :
+                                                "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                                             }`}>
                                             {session.status}
                                         </span>
@@ -205,8 +205,8 @@ const GroupSessionsPage = () => {
                                 <button
                                     onClick={() => handleRsvp(session._id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition ${session.hasRsvp
-                                            ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
-                                            : "bg-[#89beab] hover:bg-[#6fa893] text-white"
+                                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50"
+                                        : "bg-[#89beab] hover:bg-[#6fa893] text-white"
                                         }`}
                                 >
                                     {session.hasRsvp ? <><Check className="w-4 h-4" /> RSVPed</> : "RSVP"}

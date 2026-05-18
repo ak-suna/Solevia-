@@ -397,7 +397,7 @@ const GroupDetailsPage = () => {
                                 )}
                                 {group && (group.adminId === currentUserId || isModerator) && (
                                     <button
-                                        onClick={() => navigate(`/groups/${group._id}/moderator/dashboard`)}
+                                        onClick={() => navigate(`/admin/groups/${group._id}/moderator/dashboard`)}
                                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-semibold transition-colors mt-2"
                                     >
                                         Moderator Tools

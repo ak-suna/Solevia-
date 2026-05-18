@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 
 const GroupModeratorRequests = () => {
     const { groupId } = useParams();
+    // const navigate = useNavigate();
     const queryClient = useQueryClient();
 
     const { data: joinRequestsData, isLoading } = useQuery({
@@ -52,9 +53,15 @@ const GroupModeratorRequests = () => {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
             <ModeratorSidebar />
+            
 
             <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
-
+                {/* <button
+                    onClick={() => navigate(`/admin/groups/${groupId}/moderator/dashboard`)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-semibold"
+                >
+                    <ArrowLeft className="w-4 h-4" /> Back
+                </button> */}
                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'Brasika' }}>
                     <UserPlus className="w-7 h-7 text-[#89beab]" />
                     Join Requests
