@@ -129,10 +129,10 @@ const ModeratorSidebar = () => {
     const { groupId } = useParams();
 
     const navItems = [
-        { icon: LayoutDashboard, path: `/groups/${groupId}/moderator/dashboard`, label: 'Dashboard' },
-        { icon: Users, path: `/groups/${groupId}/moderator/members`, label: 'Members' },
-        { icon: AlertTriangle, path: `/groups/${groupId}/moderator/reports`, label: 'Reports' },
-        { icon: UserPlus, path: `/groups/${groupId}/moderator/requests`, label: 'Requests' },
+        { icon: LayoutDashboard, path: `/admin/groups/${groupId}/moderator/dashboard`, label: 'Dashboard' },
+        { icon: Users, path: `/admin/groups/${groupId}/moderator/members`, label: 'Members' },
+        { icon: AlertTriangle, path: `/admin/groups/${groupId}/moderator/reports`, label: 'Reports' },
+        { icon: UserPlus, path: `/admin/groups/${groupId}/moderator/requests`, label: 'Requests' },
         { icon: Calendar, path: `/groups/${groupId}/moderator/sessions`, label: 'Sessions' },
     ];
 
@@ -155,8 +155,8 @@ const ModeratorSidebar = () => {
                                 onClick={() => navigate(item.path)}
                                 title={item.label}
                                 className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative ${isActive
-                                        ? 'bg-[#FFA669] text-white shadow-sm'
-                                        : 'text-gray-700 hover:text-white hover:bg-[#f8ba90]'
+                                    ? 'bg-[#FFA669] text-white shadow-sm'
+                                    : 'text-gray-700 hover:text-white hover:bg-[#f8ba90]'
                                     }`}
                             >
                                 <item.icon size={26} strokeWidth={2} />
