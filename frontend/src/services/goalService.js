@@ -40,3 +40,8 @@ export const getLinkedHabits = async (goalId) => {
   const response = await axios.get(`${API_URL}/${goalId}/linked-habits`, getAuthHeader());
   return response.data;
 };
+
+export const getPastGoals = async () => {
+  const response = await axios.get(`${API_URL}/past`, getAuthHeader());
+  return response.data;
+};
