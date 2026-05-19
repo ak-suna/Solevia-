@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Send, Trash2} from "lucide-react";
+import { MessageCircle, Send, Trash2 } from "lucide-react";
 import { addComment, addReaction, deleteComment } from "../services/communityService";
 import { jwtDecode } from "jwt-decode";
 
-const REACTION_EMOJIS = ["👍", "❤️", "🎉", "💪", "🙏"];
+const REACTION_EMOJIS = ["❤️", "😆", "😢", "🤩", "😡"];
 
 const CommunityFeed = ({ posts, getCategoryColor }) => {
     const queryClient = useQueryClient();
@@ -122,25 +122,25 @@ const CommunityFeed = ({ posts, getCategoryColor }) => {
                                         {post.category}
                                     </span>
                                     {/* Delete Post Button (owner only) */}
-{String(post.userId?._id) === String(currentUserId) && (
-    <button
-        onClick={async () => {
-            if (window.confirm("Are you sure you want to delete this post?")) {
-                try {
-                    const { deletePost } = await import("../services/communityService");
-                    await deletePost(post._id);
-                    queryClient.invalidateQueries({ queryKey: ["community"] });
-                } catch (err) {
-                    alert("Failed to delete post");
-                }
-            }
-        }}
-        className="ml-auto p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-        title="Delete Post"
-    >
-        <Trash2 size={16} />
-    </button>
-)}
+                                    {String(post.userId?._id) === String(currentUserId) && (
+                                        <button
+                                            onClick={async () => {
+                                                if (window.confirm("Are you sure you want to delete this post?")) {
+                                                    try {
+                                                        const { deletePost } = await import("../services/communityService");
+                                                        await deletePost(post._id);
+                                                        queryClient.invalidateQueries({ queryKey: ["community"] });
+                                                    } catch (err) {
+                                                        alert("Failed to delete post");
+                                                    }
+                                                }
+                                            }}
+                                            className="ml-auto p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+                                            title="Delete Post"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
                                 </div>
                                 <p className="text-gray-700 dark:text-gray-300 mb-4 text-left mt-1">
                                     {post.content}

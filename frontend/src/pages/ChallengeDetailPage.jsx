@@ -373,7 +373,7 @@ const ChallengeDetailPage = () => {
                                             {post.content}
                                         </p>
                                         <div className="flex gap-2 flex-wrap">
-                                            {["❤️", "🔥", "💪", "👏", "✨"].map(emoji => {
+                                            {["❤️", "😆", "😢", "🤩", "😡"].map(emoji => {
                                                 const reaction = post.reactions?.find(r => r.emoji === emoji);
                                                 return (
                                                     <button
