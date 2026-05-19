@@ -7,7 +7,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { Link } from "react-router-dom";
 import PasswordStrength, { checkPasswordStrength } from "../components/PasswordStrength";
 import { uploadProfilePicture } from "../services/profile";
-
+import FontSizeToggle from "../components/FontSizeToggle";
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -364,6 +364,7 @@ const SettingsPage = () => {
                                         <span
                                             className={`h-6 w-6 transform rounded-full bg-white transition-transform flex items-center justify-center ${theme === 'dark' ? 'translate-x-7' : 'translate-x-1'
                                                 }`}
+                                            style={{ fontFamily: "Brasika" }}
                                         >
                                             {theme === 'dark' ? (
                                                 <Moon className="w-4 h-4 text-[#f4873e]" />
@@ -372,6 +373,10 @@ const SettingsPage = () => {
                                             )}
                                         </span>
                                     </button>
+                                </div>
+                                {/* Font size toggle below dark mode */}
+                                <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600">
+                                    <FontSizeToggle />
                                 </div>
                             </div>
                         </div>
