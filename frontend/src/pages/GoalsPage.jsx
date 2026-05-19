@@ -526,9 +526,10 @@ const GoalsPage = () => {
     : 0;
 
   const categories = ['All', 'Fitness', 'Health', 'Learning', 'Career', 'Finance', 'Personal', 'Other'];
+  // Only show active goals in the main section
   const filteredGoals = selectedCategory === 'All'
-    ? goals
-    : goals.filter(g => g.category === selectedCategory);
+    ? goals.filter(g => g.status === 'active')
+    : goals.filter(g => g.category === selectedCategory && g.status === 'active');
 
   const categoryColors = {
     Fitness: 'bg-blue-100   dark:bg-blue-900   text-blue-800   dark:text-blue-200   border-blue-300   dark:border-blue-700',
