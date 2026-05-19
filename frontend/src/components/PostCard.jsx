@@ -233,7 +233,7 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
                 {/* Footer Actions */}
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
                     <div className="flex items-center gap-2">
-                        {['👍', '❤️', '🎉', '💪', '🙏'].map(emoji => (
+                        {["❤️", "😆", "😢", "🤩", "😡"].map(emoji => (
                             <button
                                 key={emoji}
                                 onClick={() => handleReaction(emoji)}

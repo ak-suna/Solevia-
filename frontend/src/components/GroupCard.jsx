@@ -21,7 +21,7 @@ const GroupCard = ({ group, onUpdate }) => {
     return (
         <div
             onClick={() => navigate(`/community/group/${group._id}`)}
-            className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all cursor-pointer border-2 border-gray-200 dark:border-gray-600 hover:border-[#89beab] dark:hover:border-[#89beab]"
+            className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all cursor-pointer border-2 border-gray-200 dark:border-gray-600 hover:border-[#89beab] dark:hover:border-[#89beab] min-h-0 overflow-hidden flex flex-col"
         >
             {/* Icon and Title */}
             <div className="flex items-start gap-4 mb-4">

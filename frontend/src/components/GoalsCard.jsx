@@ -49,7 +49,7 @@ const GoalsCard = () => {
   };
 
   return (
-    <div className="bg-[#f9d9e3] dark:bg-gray-800 p-10 rounded-[40px] w-full h-[240px] flex flex-col">
+    <div className="bg-[#f9d9e3] dark:bg-gray-800 p-10 rounded-[40px] w-full flex flex-col min-h-0 overflow-hidden max-h-[340px]">
 
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 uppercase tracking-wide opacity-80">
@@ -121,7 +121,7 @@ const GoalsCard = () => {
       )}
 
       {/* Scrollable Goals List */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-pink-300 dark:scrollbar-thumb-pink-700 scrollbar-track-transparent">
+      <div className="flex-1 min-h-0 max-h-[200px] overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-pink-300 dark:scrollbar-thumb-pink-700 scrollbar-track-transparent">
         {activeGoals.map((goal) => (
           <div key={goal.id}>
             <div className="flex justify-between items-end mb-2">

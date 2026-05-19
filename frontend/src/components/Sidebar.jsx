@@ -90,10 +90,10 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="fixed left-6 top-0 flex flex-col items-center w-24 h-screen z-50">
+    <div className="fixed left-6 top-0 flex flex-col items-center w-24 text-base h-screen z-50 transition-all sidebar-accessible">
       {/* Logo at the top */}
       <div
-        className="w-20 h-20 rounded-full bg-white dark:bg-gray-900 shadow-lg flex items-center justify-center p-2 mt-4 cursor-pointer border-2 border-gray-200 dark:border-gray-700"
+        className="w-20 h-20 rounded-full bg-white dark:bg-gray-900 shadow-lg flex items-center justify-center p-2 mt-4 cursor-pointer border-2 border-gray-200 dark:border-gray-700 transition-all"
         onClick={handleLogoClick}
       >
         <img
@@ -104,7 +104,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation container */}
-      <div className="flex flex-col justify-center w-[75px] h-[600px] bg-[#f9d9e3] dark:bg-gray-900 backdrop-blur-sm rounded-full shadow-sm py-8 mt-12 border-2 border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col justify-center w-[75px] h-[600px] bg-[#f9d9e3] dark:bg-gray-900 backdrop-blur-sm rounded-full shadow-sm py-8 mt-12 border-2 border-gray-200 dark:border-gray-700 transition-all">
         <nav className="flex flex-col justify-center gap-6 w-full items-center">
           {navItems.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -112,14 +112,14 @@ const Sidebar = () => {
               <button
                 key={index}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative border-2 border-transparent ${isActive
+                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative border-2 border-transparent text-[12px] font-semibold sidebar-accessible-btn ${isActive
                     ? 'bg-[#FFA669] text-white shadow-sm border-orange-400 dark:border-orange-500'
                     : 'text-gray-700 dark:text-gray-200 hover:text-white hover:bg-[#f8ba90] dark:hover:bg-orange-900/40 dark:hover:text-orange-200'
                   }`}
                 title={item.label}
               >
-                <item.icon size={25} strokeWidth={2} />
-                <span className="text-[10px] font-semibold leading-none tracking-tight w-full text-center">
+                <item.icon className="w-6 h-6" strokeWidth={2} />
+                <span className="font-semibold leading-none tracking-tight w-full text-center">
                   {item.label}
                 </span>
                 {isActive && (

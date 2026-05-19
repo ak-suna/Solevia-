@@ -21,7 +21,7 @@ const ChallengeCard = ({ challenge }) => {
     return (
         <div
             onClick={() => navigate(`/challenges/${challenge._id}`)}
-            className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all cursor-pointer border-2 border-gray-200 dark:border-gray-700 hover:border-[#f4873e]"
+            className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all cursor-pointer border-2 border-gray-200 dark:border-gray-700 hover:border-[#f4873e] min-h-0 overflow-hidden flex flex-col"
         >
             <div className="flex justify-between items-start mb-3">
                 <div className="flex gap-2 flex-wrap">

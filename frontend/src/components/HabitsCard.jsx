@@ -24,7 +24,7 @@ const HabitsCard = () => {
   };
 
   return (
-    <div className="bg-[#89beab] dark:bg-gray-800 p-10 rounded-[40px] w-full h-[238px] flex flex-col">
+    <div className="bg-[#89beab] dark:bg-gray-800 p-10 rounded-[40px] w-full flex flex-col min-h-0 overflow-hidden max-h-[340px]">
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-sm font-bold text-[#1F3B36] dark:text-white uppercase tracking-wide opacity-80">
           Today's Habits
@@ -83,7 +83,7 @@ const HabitsCard = () => {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-white/30 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
+      <div className="flex-1 min-h-0 max-h-[200px] overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-white/30 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
         {habits.map((habit) => (
           <div
             key={habit.id}
