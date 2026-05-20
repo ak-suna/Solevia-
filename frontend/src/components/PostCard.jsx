@@ -12,7 +12,7 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
     const [showComments, setShowComments] = useState(false);
     const [commentText, setCommentText] = useState("");
     const [showOptions, setShowOptions] = useState(false);
-    const [showReportModal, setShowReportModal] = useState(false);
+    const [reportConfig, setReportConfig] = useState(null);
     const [submittingComment, setSubmittingComment] = useState(false);
 
 
@@ -120,11 +120,11 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
 
     return (
         <>
-            {showReportModal && (
+            {reportConfig && (
                 <ReportModal
-                    targetId={post._id}
-                    targetType="post"
-                    onClose={() => setShowReportModal(false)}
+                    targetId={reportConfig.targetId}
+                    targetType={reportConfig.targetType}
+                    onClose={() => setReportConfig(null)}
                 />
             )}
 
@@ -163,7 +163,7 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
                                 ) : (
                                     <button
                                         onClick={() => {
-                                            setShowReportModal(true);
+                                            setReportConfig({ targetId: post._id, targetType: 'post' });
                                             setShowOptions(false);
                                         }}
                                         className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
@@ -295,12 +295,19 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
                                             <span className="text-[10px] text-gray-400">
                                                 {formatDate(comment.createdAt)}
                                             </span>
-                                            {comment.userId?._id === currentUserId && (
+                                            {comment.userId?._id === currentUserId ? (
                                                 <button
                                                     onClick={() => handleDeleteComment(comment._id)}
                                                     className="text-[10px] text-red-400 hover:text-red-600 font-medium"
                                                 >
                                                     Delete
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setReportConfig({ targetId: comment._id, targetType: 'comment' })}
+                                                    className="text-[10px] text-gray-400 hover:text-red-500 font-medium"
+                                                >
+                                                    Report
                                                 </button>
                                             )}
                                             {/* Save to Journal button for auto-complete posts */}

@@ -1,6 +1,8 @@
 import { Report } from "../models/Report.js";
 import { Post } from "../models/Post.js";
 import { User } from "../models/User.js";
+import { Comment } from "../models/Comment.js";
+import notificationService from "../services/notificationService.js";
 
 // Create a report
 export const createReport = async (req, res) => {
@@ -44,6 +46,20 @@ export const createReport = async (req, res) => {
                 post.reportCount += 1;
                 post.isReported = true;
                 await post.save();
+            }
+        } else if (reportType === "user") {
+            const user = await User.findById(targetId);
+            if (user) {
+                user.reportCount += 1;
+                user.isReported = true;
+                await user.save();
+            }
+        } else if (reportType === "comment") {
+            const comment = await Comment.findById(targetId);
+            if (comment) {
+                comment.reportCount += 1;
+                comment.isReported = true;
+                await comment.save();
             }
         }
 
@@ -92,6 +108,12 @@ export const getAllReports = async (req, res) => {
                     .select('firstName lastName email')
                     .lean();
                 report.targetDetails = user;
+            } else if (report.reportType === "comment") {
+                const comment = await Comment.findById(report.targetId)
+                    .populate('userId', 'firstName lastName')
+                    .populate('postId', 'groupId')
+                    .lean();
+                report.targetDetails = comment;
             }
         }
 
@@ -134,6 +156,12 @@ export const getReportById = async (req, res) => {
                 .select('firstName lastName email role')
                 .lean();
             report.targetDetails = user;
+        } else if (report.reportType === "comment") {
+            const comment = await Comment.findById(report.targetId)
+                .populate('userId', 'firstName lastName')
+                .populate('postId', 'groupId')
+                .lean();
+            report.targetDetails = comment;
         }
 
         res.status(200).json({ report });
@@ -174,8 +202,69 @@ export const updateReportStatus = async (req, res) => {
                         await post.save();
                     }
                 }
+            } else if (report.reportType === "comment") {
+                const comment = await Comment.findById(report.targetId);
+                if (comment) {
+                    if (action === "content-removed") {
+                        comment.isHidden = true;
+                        await comment.save();
+                    }
+                }
+            } else if (report.reportType === "user") {
+                const user = await User.findById(report.targetId);
+                if (user) {
+                    if (action === "user-suspended" || action === "user-banned") {
+                        user.disabled = true;
+                        user.disabledReason = adminNotes || "User suspended due to report.";
+                        await user.save();
+                    }
+                }
             }
-            // User suspension/ban would be handled separately
+
+            // Send warning notification
+            if (action === "warning") {
+                try {
+                    let warnedUserId = null;
+                    let actionUrl = null;
+                    if (report.reportType === "post") {
+                        const post = await Post.findById(report.targetId);
+                        warnedUserId = post?.userId;
+                        if (post) {
+                            actionUrl = post.groupId 
+                                ? `/community/group/${post.groupId}?focus=${post._id}`
+                                : `/community?focus=${post._id}`;
+                        }
+                    } else if (report.reportType === "comment") {
+                        const comment = await Comment.findById(report.targetId).populate('postId', 'groupId');
+                        warnedUserId = comment?.userId;
+                        if (comment && comment.postId) {
+                            const postId = comment.postId._id || comment.postId;
+                            const groupId = comment.postId.groupId;
+                            actionUrl = groupId 
+                                ? `/community/group/${groupId}?focus=${postId}&comment=${comment._id}`
+                                : `/community?focus=${postId}&comment=${comment._id}`;
+                        }
+                    } else if (report.reportType === "user") {
+                        warnedUserId = report.targetId;
+                    }
+
+                    if (warnedUserId) {
+                        const notificationData = { reportId: report._id };
+                        if (actionUrl) {
+                            notificationData.actionUrl = actionUrl;
+                        }
+                        await notificationService.createNotification({
+                            userId: warnedUserId,
+                            type: "SYSTEM_WARNING",
+                            title: "Warning: Community Guidelines Violation",
+                            message: adminNotes || "Your content has been flagged for violating our community guidelines. Please review our policies to avoid account suspension.",
+                            data: notificationData
+                        });
+                    }
+                } catch (notifyErr) {
+                    console.error("Failed to send warning notification:", notifyErr);
+                }
+            }
         }
 
         if (adminNotes) {

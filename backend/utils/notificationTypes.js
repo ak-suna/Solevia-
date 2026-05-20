@@ -44,6 +44,11 @@ export const NOTIFICATION_TYPES = {
     defaultChannels: { inApp: true, email: false },
     expiresInDays: 7
   },
+  SYSTEM_WARNING: {
+    priority: "HIGH",
+    defaultChannels: { inApp: true, email: true },
+    expiresInDays: 30
+  },
   SYSTEM_ALERT: {
     priority: "HIGH",
     defaultChannels: { inApp: true, email: true },

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { UserPlus, Check, Clock } from "lucide-react";
+import { UserPlus, Check, Clock, Flag } from "lucide-react";
+import ReportModal from "./ReportModal";
 
 const MemberCard = ({ member, currentUserId, groupId, existingConnections, onConnect }) => {
     const [loading, setLoading] = useState(false);
+    const [showReportModal, setShowReportModal] = useState(false);
 
     const userId = member.userId?._id || member.userId;
     const name = member.userId?.firstName
@@ -69,6 +71,22 @@ const MemberCard = ({ member, currentUserId, groupId, existingConnections, onCon
                 <span className="flex items-center gap-1 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold">
                     <Check className="w-3 h-3" /> Connected
                 </span>
+            )}
+
+            <button
+                onClick={() => setShowReportModal(true)}
+                className="p-1.5 ml-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors"
+                title="Report User"
+            >
+                <Flag className="w-4 h-4" />
+            </button>
+
+            {showReportModal && (
+                <ReportModal
+                    targetId={userId}
+                    targetType="user"
+                    onClose={() => setShowReportModal(false)}
+                />
             )}
         </div>
     );

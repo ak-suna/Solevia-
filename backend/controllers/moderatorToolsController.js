@@ -12,16 +12,32 @@ export const getGroupReports = async (req, res) => {
     if (!group) return res.status(404).json({ error: "Group not found" });
     const postIds = await Post.find({ groupId }).distinct("_id");
     const userIds = group.members.map(m => m.userId);
-    // Find reports for posts or users in this group
+    const { Comment } = await import("../models/Comment.js");
+    const commentIds = await Comment.find({ postId: { $in: postIds } }).distinct("_id");
+    
+    // Find reports for posts, comments, or users in this group
     const reports = await Report.find({
       $or: [
         { reportType: "post", targetId: { $in: postIds } },
-        { reportType: "user", targetId: { $in: userIds } }
+        { reportType: "user", targetId: { $in: userIds } },
+        { reportType: "comment", targetId: { $in: commentIds } }
       ],
       status: { $in: ["pending", "under-review"] }
     })
       .populate("reportedBy", "firstName lastName email")
       .lean();
+
+    for (let report of reports) {
+        report.targetType = report.reportType;
+        if (report.reportType === "post") {
+            report.post = await Post.findById(report.targetId).lean();
+        } else if (report.reportType === "user") {
+            report.user = await User.findById(report.targetId).select("firstName lastName email").lean();
+        } else if (report.reportType === "comment") {
+            report.comment = await Comment.findById(report.targetId).lean();
+        }
+    }
+
     res.status(200).json({ reports });
   } catch (error) {
     console.error("Error fetching group reports:", error);

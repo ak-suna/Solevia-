@@ -63,6 +63,14 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
+    reportCount: {
+        type: Number,
+        default: 0
+    },
+    isReported: {
+        type: Boolean,
+        default: false
+    },
     // Reason for disabling (admin action)
     disabledReason: {
         type: String,

@@ -22,6 +22,7 @@ const notificationSchema = new mongoose.Schema({
       "COMMUNITY_LIKE",
       "COMMUNITY_COMMENT",
       "SYSTEM_ALERT",
+      "SYSTEM_WARNING",
       "CHALLENGE_STARTED",
       "CHALLENGE_COMPLETED",
       "CHALLENGE_POOL_LOW",

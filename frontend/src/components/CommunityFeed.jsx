@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Send, Trash2 } from "lucide-react";
+import { MessageCircle, Send, Trash2, MoreVertical, Flag, UserX } from "lucide-react";
 import { addComment, addReaction, deleteComment } from "../services/communityService";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useRef } from "react";
+import ReportModal from "./ReportModal";
 const REACTION_EMOJIS = ["❤️", "😆", "😢", "🤩", "😡"];
 
 
@@ -13,6 +14,8 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
     const [expandedComments, setExpandedComments] = useState({});
     const [commentText, setCommentText] = useState({});
     const [submittingComment, setSubmittingComment] = useState({});
+    const [reportConfig, setReportConfig] = useState(null);
+    const [showOptions, setShowOptions] = useState({});
 
     const token = localStorage.getItem("token");
     const currentUserId = token ? jwtDecode(token).id : null;
@@ -104,7 +107,14 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
     }, [highlightCommentId, expandedComments]);
 
     return (
-        <div className="space-y-4 bg-white dark:bg-gray-900 p-2 rounded-2xl">
+        <div className="space-y-4 bg-white dark:bg-gray-900 p-2 rounded-2xl relative">
+            {reportConfig && (
+                <ReportModal
+                    targetId={reportConfig.targetId}
+                    targetType={reportConfig.targetType}
+                    onClose={() => setReportConfig(null)}
+                />
+            )}
             {posts.map((post) => {
                 // DEBUG LOG: Check if image exists in the post data
                 // console.log(`Post ${post._id} data:`, post);
@@ -147,8 +157,8 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
                                     >
                                         {post.category}
                                     </span>
-                                    {/* Delete Post Button (owner only) */}
-                                    {String(post.userId?._id) === String(currentUserId) && (
+                                    {/* Delete Post Button or Options */}
+                                    {String(post.userId?._id) === String(currentUserId) ? (
                                         <button
                                             onClick={async () => {
                                                 if (window.confirm("Are you sure you want to delete this post?")) {
@@ -166,6 +176,39 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
                                         >
                                             <Trash2 size={16} />
                                         </button>
+                                    ) : (
+                                        <div className="relative ml-auto">
+                                            <button
+                                                onClick={() => setShowOptions(prev => ({ ...prev, [post._id]: !prev[post._id] }))}
+                                                className="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                            >
+                                                <MoreVertical size={16} />
+                                            </button>
+                                            {showOptions[post._id] && (
+                                                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+                                                    <button
+                                                        onClick={() => {
+                                                            setReportConfig({ targetId: post._id, targetType: 'post' });
+                                                            setShowOptions(prev => ({ ...prev, [post._id]: false }));
+                                                        }}
+                                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                                                    >
+                                                        <Flag className="w-4 h-4" />
+                                                        Report Post
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setReportConfig({ targetId: post.userId?._id, targetType: 'user' });
+                                                            setShowOptions(prev => ({ ...prev, [post._id]: false }));
+                                                        }}
+                                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                                                    >
+                                                        <UserX className="w-4 h-4" />
+                                                        Report User
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                                 <p className="text-gray-700 dark:text-gray-300 mb-4 text-left mt-1">
@@ -276,7 +319,7 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
                                                         <span className="text-xs text-gray-500 dark:text-gray-400">
                                                             {formatDate(comment.createdAt)}
                                                         </span>
-                                                        {String(comment.userId?._id) === String(currentUserId) && (
+                                                        {String(comment.userId?._id) === String(currentUserId) ? (
                                                             <button
                                                                 onClick={() =>
                                                                     handleDeleteComment(
@@ -287,6 +330,13 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
                                                                 className="text-xs text-red-600 hover:underline"
                                                             >
                                                                 Delete
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setReportConfig({ targetId: comment._id, targetType: 'comment' })}
+                                                                className="text-xs text-gray-400 hover:text-red-500 font-medium"
+                                                            >
+                                                                Report
                                                             </button>
                                                         )}
                                                     </div>

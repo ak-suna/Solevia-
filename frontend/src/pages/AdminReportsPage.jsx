@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/auth";
 import { AlertTriangle, Eye, X, CheckCircle } from 'lucide-react';
 import DataTable from "../components/DataTable";
@@ -7,11 +7,12 @@ import AdminSidebar from "../components/AdminSidebar";
 // import NotificationBell from '../components/NotificationBell';
 
 const AdminReportsPage = () => {
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("pending");
     const [selectedReport, setSelectedReport] = useState(null);
+    const [viewingContent, setViewingContent] = useState(false);
 
 
 
@@ -277,17 +278,38 @@ const AdminReportsPage = () => {
                                             </p>
                                         </div>
                                     )}
+                                    {selectedReport.reportType === "comment" && (
+                                        <div className="space-y-2">
+                                            <p className="text-gray-900 dark:text-white">
+                                                <span className="font-bold">Author:</span> {selectedReport.targetDetails.userId?.firstName}
+                                            </p>
+                                            <p className="text-gray-900 dark:text-white">
+                                                <span className="font-bold">Comment:</span> {selectedReport.targetDetails.content}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
                             <div className="grid grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => updateReportStatus(selectedReport._id, "resolved", "content-removed", "Content removed due to policy violation")}
-                                    className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full font-bold hover:shadow-lg transition-all"
-                                >
-                                    <X className="w-5 h-5" />
-                                    Remove Content
-                                </button>
+                                {(selectedReport.reportType === "post" || selectedReport.reportType === "comment") && (
+                                    <button
+                                        onClick={() => updateReportStatus(selectedReport._id, "resolved", "content-removed", "Content removed due to policy violation")}
+                                        className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full font-bold hover:shadow-lg transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                        Remove Content
+                                    </button>
+                                )}
+                                {selectedReport.reportType === "user" && (
+                                    <button
+                                        onClick={() => updateReportStatus(selectedReport._id, "resolved", "user-suspended", "User disabled due to policy violation")}
+                                        className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full font-bold hover:shadow-lg transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                        Disable User
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => updateReportStatus(selectedReport._id, "resolved", "warning", "User warned")}
                                     className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-full font-bold hover:shadow-lg transition-all"
@@ -308,7 +330,84 @@ const AdminReportsPage = () => {
                                 >
                                     Close
                                 </button>
+                                {(selectedReport.reportType === "post" || selectedReport.reportType === "comment") && (
+                                    <button
+                                        onClick={() => setViewingContent(true)}
+                                        className="flex items-center justify-center gap-2 py-3 bg-blue-500 text-white rounded-full font-bold hover:shadow-lg transition-all col-span-2 mt-2"
+                                    >
+                                        <Eye className="w-5 h-5" />
+                                        View Original Content
+                                    </button>
+                                )}
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Original Content Modal */}
+                {viewingContent && selectedReport && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4" onClick={() => setViewingContent(false)}>
+                        <div className="bg-white dark:bg-gray-800 rounded-[40px] p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+                            <button
+                                onClick={() => setViewingContent(false)}
+                                className="absolute top-6 right-6 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                            >
+                                <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                            </button>
+                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2" style={{ fontFamily: "Brasika" }}>
+                                Original Content
+                            </h3>
+                            
+                            {/* Render Post or Comment */}
+                            {selectedReport.reportType === "post" && (
+                                <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-3xl border border-gray-200 dark:border-gray-600">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f8ba90] to-[#f4873e] flex items-center justify-center text-white font-bold">
+                                            {selectedReport.targetDetails?.userId?.firstName?.[0] || '?'}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-gray-900 dark:text-white">
+                                                {selectedReport.targetDetails?.userId?.firstName} {selectedReport.targetDetails?.userId?.lastName}
+                                            </p>
+                                            <p className="text-xs text-gray-500">{new Date(selectedReport.targetDetails?.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mb-4">
+                                        {selectedReport.targetDetails?.content}
+                                    </p>
+                                    {selectedReport.targetDetails?.image && (
+                                        <img src={selectedReport.targetDetails.image} alt="Post Attachment" className="w-full max-h-[400px] object-contain rounded-2xl bg-gray-100 dark:bg-gray-900 mt-4" />
+                                    )}
+                                </div>
+                            )}
+                            
+                            {selectedReport.reportType === "comment" && (
+                                <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-3xl border border-gray-200 dark:border-gray-600">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#89beab] to-[#6fa893] flex items-center justify-center text-white text-xs font-bold">
+                                            {selectedReport.targetDetails?.userId?.firstName?.[0] || '?'}
+                                        </div>
+                                        <p className="font-bold text-gray-900 dark:text-white">
+                                            {selectedReport.targetDetails?.userId?.firstName} {selectedReport.targetDetails?.userId?.lastName}
+                                        </p>
+                                        <span className="text-xs text-gray-500">
+                                            {new Date(selectedReport.targetDetails?.createdAt).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    <div className="ml-11">
+                                        <p className="text-gray-800 dark:text-gray-200">
+                                            {selectedReport.targetDetails?.content}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            <button
+                                onClick={() => setViewingContent(false)}
+                                className="mt-6 w-full py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Back to Report
+                            </button>
                         </div>
                     </div>
                 )}
