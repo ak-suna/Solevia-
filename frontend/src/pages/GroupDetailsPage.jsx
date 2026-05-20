@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Toast from "../components/Toast";
 import Modal from "../components/Modal";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
 import NotificationBell from '../components/NotificationBell';
@@ -23,6 +23,8 @@ import WeeklyTaskModal from "../components/WeeklyTaskModal";
 import { jwtDecode } from "jwt-decode";
 import MemberCard from "../components/MemberCard";
 import { User as UserIcon } from "lucide-react";
+import CommunityFeed from "../components/CommunityFeed";
+
 
 const GroupDetailsPage = () => {
     const { groupId } = useParams();
@@ -31,6 +33,12 @@ const GroupDetailsPage = () => {
 
     const [showCreatePost, setShowCreatePost] = useState(false);
     const [taskCompleted, setTaskCompleted] = useState(false);
+
+    const location = useLocation();  // add this import too if not already there
+    const searchParams = new URLSearchParams(location.search);
+    const focusPostId = searchParams.get("focus");
+    const focusCommentId = searchParams.get("comment");
+    const focusPostRef = useRef(null);
 
     // Get current user ID
     const token = localStorage.getItem("token");
@@ -121,6 +129,18 @@ const GroupDetailsPage = () => {
         }
         // eslint-disable-next-line
     }, [groupError, navigate]);
+
+    useEffect(() => {
+        if (focusPostId && focusPostRef.current && posts.length > 0) {
+            setTimeout(() => {
+                focusPostRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                focusPostRef.current?.classList.add("ring-4", "ring-[#f4873e]");
+                setTimeout(() => {
+                    focusPostRef.current?.classList.remove("ring-4", "ring-[#f4873e]");
+                }, 2000);
+            }, 400);
+        }
+    }, [focusPostId, posts]);
     // Save weekly task handler
     const handleSaveWeeklyTask = async (task) => {
         try {
@@ -523,16 +543,12 @@ const GroupDetailsPage = () => {
                                 </p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
-                                {posts.map(post => (
-                                    <PostCard
-                                        key={post._id}
-                                        post={post}
-                                        onUpdate={handlePostUpdated}
-                                        onDelete={handlePostDeleted}
-                                    />
-                                ))}
-                            </div>
+                            <CommunityFeed
+                                posts={posts}
+                                getCategoryColor={() => "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"}
+                                focusPostId={focusPostId}
+                                highlightCommentId={focusCommentId}
+                            />
                         )}
                     </div>
                 </div>

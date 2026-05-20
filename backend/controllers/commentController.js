@@ -54,8 +54,14 @@ export const addComment = async (req, res) => {
                 userId: post.userId,
                 type: "COMMUNITY_COMMENT",
                 title: "New comment on your post",
-                message: `Someone commented on your post`,
-                data: { postId: post._id, actionUrl: "/community" }
+                message: `${newComment.userId.firstName} ${newComment.userId.lastName} commented on your post`,
+                data: {
+                    postId: post._id,
+                    commentId: newComment._id,
+                    userName: `${newComment.userId.firstName} ${newComment.userId.lastName}`,
+                    commentContent: newComment.content,
+                    actionUrl: `/community/post/${post._id}?comment=${newComment._id}`
+                }
             });
         }
 

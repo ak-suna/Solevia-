@@ -271,12 +271,19 @@ export const addReaction = async (req, res) => {
             awardedPoints = true;
 
             if (post.userId.toString() !== userId.toString()) {
+                // Get user info for notification
+                const reactingUser = await User.findById(userId).select("firstName lastName");
                 await notificationService.createNotification({
                     userId: post.userId,
                     type: "COMMUNITY_LIKE",
-                    title: "Someone liked your post",
+                    title: `${reactingUser.firstName} ${reactingUser.lastName} liked your post`,
                     message: `Your post received a new like`,
-                    data: { postId: post._id, actionUrl: "/community" }
+                    data: {
+                        postId: post._id,
+                        groupId: post.groupId || null,
+                        userName: `${reactingUser.firstName} ${reactingUser.lastName}`,
+                        actionUrl: `/community/post/${post._id}`
+                    }
                 });
             }
         }
@@ -338,8 +345,15 @@ export const addComment = async (req, res) => {
                 userId: post.userId,
                 type: "COMMUNITY_COMMENT",
                 title: "New comment on your post",
-                message: `Someone commented on your post`,
-                data: { postId: post._id, actionUrl: "/community" }
+                message: `${newComment.userId.firstName} ${newComment.userId.lastName} commented on your post`,
+                data: {
+                    postId: post._id,
+                    commentId: newComment._id,
+                    groupId: post.groupId || null,
+                    userName: `${newComment.userId.firstName} ${newComment.userId.lastName}`,
+                    commentContent: newComment.content,
+                    actionUrl: `/community/post/${post._id}?comment=${newComment._id}`
+                }
             });
         }
 
@@ -353,7 +367,6 @@ export const addComment = async (req, res) => {
         res.status(500).json({ error: "Failed to add comment" });
     }
 };
-
 // Delete comment (uses Comment model; own comment only or admin)
 export const deleteComment = async (req, res) => {
     try {

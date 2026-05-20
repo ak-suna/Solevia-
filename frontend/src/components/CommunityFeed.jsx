@@ -3,10 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, Send, Trash2 } from "lucide-react";
 import { addComment, addReaction, deleteComment } from "../services/communityService";
 import { jwtDecode } from "jwt-decode";
-
+import { useEffect, useRef } from "react";
 const REACTION_EMOJIS = ["❤️", "😆", "😢", "🤩", "😡"];
 
-const CommunityFeed = ({ posts, getCategoryColor }) => {
+
+
+const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef, singlePostMode, focusPostId }) => {
     const queryClient = useQueryClient();
     const [expandedComments, setExpandedComments] = useState({});
     const [commentText, setCommentText] = useState({});
@@ -80,11 +82,32 @@ const CommunityFeed = ({ posts, getCategoryColor }) => {
         return date.toLocaleDateString();
     };
 
+    // Ref for focusing post
+    const focusRef = useRef(null);
+    const localCommentRef = useRef(null);
+    const resolvedCommentRef = commentRef || localCommentRef;
+
+    // add below the existing focusRef useEffect
+    useEffect(() => {
+        if (highlightCommentId && focusPostId) {
+            setExpandedComments(prev => ({ ...prev, [focusPostId]: true }));
+        }
+    }, [highlightCommentId, focusPostId]);
+
+    useEffect(() => {
+        if (highlightCommentId && resolvedCommentRef.current) {
+            const timeout = setTimeout(() => {
+                resolvedCommentRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 300);
+            return () => clearTimeout(timeout);
+        }
+    }, [highlightCommentId, expandedComments]);
+
     return (
         <div className="space-y-4 bg-white dark:bg-gray-900 p-2 rounded-2xl">
             {posts.map((post) => {
                 // DEBUG LOG: Check if image exists in the post data
-                console.log(`Post ${post._id} data:`, post);
+                // console.log(`Post ${post._id} data:`, post);
 
                 const counts = reactionCounts(post);
                 const userReact = userReaction(post);
@@ -93,10 +116,13 @@ const CommunityFeed = ({ posts, getCategoryColor }) => {
                 const text = commentText[post._id] || "";
                 const submitting = submittingComment[post._id];
 
+                const isFocus = focusPostId && String(post._id) === String(focusPostId);
+
                 return (
                     <div
                         key={post._id}
-                        className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 hover:border-[#f4873e] transition-all"
+                        ref={isFocus ? focusRef : undefined}
+                        className={`bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 hover:border-[#f4873e] transition-all ${isFocus ? "ring-4 ring-[#f4873e]" : ""}`}
                     >
                         {/* Post Header + Caption */}
                         <div className="flex items-start gap-3 mb-3">
@@ -224,43 +250,50 @@ const CommunityFeed = ({ posts, getCategoryColor }) => {
                                     </button>
                                 </div>
                                 <div className="space-y-3">
-                                    {comments.map((comment) => (
-                                        <div key={comment._id} className="flex gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#89beab] to-[#f4873e] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                                {comment.userId?.firstName?.[0]}
-                                                {comment.userId?.lastName?.[0]}
-                                            </div>
-                                            <div className="flex-1">
-                                                <div className="bg-gray-100 dark:bg-gray-600 rounded-lg p-3">
-                                                    <p className="font-semibold text-sm text-gray-900 dark:text-white">
-                                                        {comment.userId?.firstName}{" "}
-                                                        {comment.userId?.lastName}
-                                                    </p>
-                                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                                                        {comment.content}
-                                                    </p>
+                                    {comments.map((comment) => {
+                                        const isHighlight = highlightCommentId && String(comment._id) === String(highlightCommentId);
+                                        return (
+                                            <div
+                                                key={comment._id}
+                                                className={`flex gap-3 ${isHighlight ? "ring-2 ring-[#f4873e]" : ""}`}
+                                                ref={isHighlight ? resolvedCommentRef : undefined}
+                                            >
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#89beab] to-[#f4873e] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                                    {comment.userId?.firstName?.[0]}
+                                                    {comment.userId?.lastName?.[0]}
                                                 </div>
-                                                <div className="flex items-center gap-3 mt-1 px-3">
-                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                        {formatDate(comment.createdAt)}
-                                                    </span>
-                                                    {String(comment.userId?._id) === String(currentUserId) && (
-                                                        <button
-                                                            onClick={() =>
-                                                                handleDeleteComment(
-                                                                    post._id,
-                                                                    comment._id
-                                                                )
-                                                            }
-                                                            className="text-xs text-red-600 hover:underline"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    )}
+                                                <div className="flex-1">
+                                                    <div className="bg-gray-100 dark:bg-gray-600 rounded-lg p-3">
+                                                        <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                                                            {comment.userId?.firstName}{" "}
+                                                            {comment.userId?.lastName}
+                                                        </p>
+                                                        <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+                                                            {comment.content}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 mt-1 px-3">
+                                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {formatDate(comment.createdAt)}
+                                                        </span>
+                                                        {String(comment.userId?._id) === String(currentUserId) && (
+                                                            <button
+                                                                onClick={() =>
+                                                                    handleDeleteComment(
+                                                                        post._id,
+                                                                        comment._id
+                                                                    )
+                                                                }
+                                                                className="text-xs text-red-600 hover:underline"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

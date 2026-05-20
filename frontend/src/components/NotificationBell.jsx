@@ -1,7 +1,9 @@
 // frontend/src/components/NotificationBell.jsx
 import { useState, useEffect } from "react";
-import { useNotificationContext } from "../contexts/NotificationContext"; // ← USE CONTEXT
+import { useNotificationContext } from "../contexts/NotificationContext";
 import { Bell, Trash2, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 export default function NotificationBell() {
   const {
@@ -12,22 +14,50 @@ export default function NotificationBell() {
     markAsRead,
     markAllAsRead,
     deleteNotification
-  } = useNotificationContext(); // ← GET FROM CONTEXT
-
+  } = useNotificationContext();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Only fetch if we have notifications data and it's the first load
     if (notifications.length === 0) {
       fetchNotifications();
     }
   }, []);
 
+  // Enhanced click handler
   const handleNotificationClick = (notification) => {
+    // Morning/Evening check-in notifications are not clickable
+    if (["MOOD_REMINDER_MORNING", "MOOD_REMINDER_EVENING"].includes(notification.type)) return;
+
     if (!notification.read) {
       markAsRead(notification._id);
     }
 
+    // Likes/comments: go to post/comment
+    if (notification.type === "COMMUNITY_COMMENT" && notification.data?.postId) {
+    const base = notification.data.groupId
+        ? `/community/group/${notification.data.groupId}`
+        : `/community`;
+    const query = `?focus=${notification.data.postId}${notification.data.commentId ? `&comment=${notification.data.commentId}` : ""}`;
+    navigate(`${base}${query}`);
+    setIsOpen(false);
+    return;
+}
+    if (notification.type === "COMMUNITY_LIKE" && notification.data?.postId) {
+    const base = notification.data.groupId
+        ? `/community/group/${notification.data.groupId}`
+        : `/community`;
+    navigate(`${base}?focus=${notification.data.postId}`);
+    setIsOpen(false);
+    return;
+    }
+    // Group accept: go to group
+    if (notification.type === "GROUP_JOIN_APPROVED" && notification.data?.groupId) {
+      navigate(`/community/group/${notification.data.groupId}`);
+      setIsOpen(false);
+      return;
+    }
+    // Fallback: use actionUrl if present
     if (notification.data?.actionUrl) {
       window.location.href = notification.data.actionUrl;
       setIsOpen(false);
@@ -121,12 +151,29 @@ function NotificationItem({ notification, onClick, onDelete }) {
     LOW: "bg-blue-500"
   };
 
+  // Check-in notifications are not clickable
+  const isCheckin = ["MOOD_REMINDER_MORNING", "MOOD_REMINDER_EVENING"].includes(notification.type);
+
+  // Likes/comments: show user name and preview
+  let message = notification.message;
+  if (notification.type === "COMMUNITY_COMMENT" && notification.data) {
+    const name = notification.data.userName || "Someone";
+    const preview = notification.data.commentContent ? `: \"${notification.data.commentContent.slice(0, 30)}${notification.data.commentContent.length > 30 ? '...' : ''}\"` : "";
+    message = `${name} commented${preview}`;
+  }
+  if (notification.type === "COMMUNITY_LIKE" && notification.data) {
+    const name = notification.data.userName || "Someone";
+    message = `${name} liked your post`;
+  }
+
   return (
     <div
-      className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition ${
+      className={`p-4 ${isCheckin ? 'cursor-default' : 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'} transition ${
         !notification.read ? "bg-blue-50 dark:bg-blue-900/20" : ""
       }`}
-      onClick={onClick}
+      onClick={isCheckin ? undefined : onClick}
+      tabIndex={isCheckin ? -1 : 0}
+      aria-disabled={isCheckin}
     >
       <div className="flex items-start gap-3">
         <div
@@ -138,7 +185,6 @@ function NotificationItem({ notification, onClick, onDelete }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <h4 className="font-medium text-sm text-gray-800 dark:text-white">{notification.title}</h4>
-            
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -149,14 +195,11 @@ function NotificationItem({ notification, onClick, onDelete }) {
               <Trash2 size={14} />
             </button>
           </div>
-          
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{notification.message}</p>
-          
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{message}</p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
             {formatTimestamp(notification.createdAt)}
           </p>
         </div>
-
         {!notification.read && (
           <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-2" />
         )}

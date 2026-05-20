@@ -17,6 +17,11 @@ const CommunityPage = () => {
     const [pendingRequests] = useState([]);
     const [showCreatePostModal, setShowCreatePostModal] = useState(false);
 
+    // Focus post logic
+    const searchParams = new URLSearchParams(location.search);
+    const focusPostId = searchParams.get("focus");
+    const focusCommentId = searchParams.get("comment");
+
     // Listen for navigation state to set active tab
     useEffect(() => {
         if (location.state?.activeTab) {
@@ -154,7 +159,7 @@ const CommunityPage = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <CommunityFeed posts={posts} getCategoryColor={getCategoryColor} />
+                                <CommunityFeed posts={posts} getCategoryColor={getCategoryColor} focusPostId={focusPostId} highlightCommentId={focusCommentId} />
                             )}
                         </div>
                     )}
