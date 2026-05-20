@@ -26,6 +26,7 @@ import { GoalsProvider } from './contexts/GoalsContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { Toaster } from 'react-hot-toast';
 import CommunityPage from "./pages/CommunityPage";
+import PostDetailPage from "./pages/PostDetailPage";
 import BrowseChallengesPage from "./pages/BrowseChallengesPage";
 import BrowseGroupsPage from "./pages/BrowseGroupsPage";
 import GroupDetailsPage from "./pages/GroupDetailsPage";
@@ -231,6 +232,7 @@ function App() {
                                         }
                                     />
                                     <Route path="/community" element={<CommunityPage />} />
+                                    <Route path="/community/post/:postId" element={<PostDetailPage />} />
                                     <Route path="/challenges/browse" element={<BrowseChallengesPage />} />
                                     <Route path="/challenges/:id" element={<ChallengeDetailPage />} />
 
