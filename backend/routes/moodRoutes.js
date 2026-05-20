@@ -51,22 +51,24 @@ router.post("/", authenticate, async (req, res) => {
         
         // If first entry of the day
         if (!lastEntry || lastEntry < today) {
-            const yesterday = today - 86400000;
-            
+            const oneDay = 86400000;
+            const yesterday = today - oneDay;
+            const dayBeforeYesterday = today - 2 * oneDay;
+
             if (!lastEntry) {
                 // First ever entry
                 user.moodStreak.current = 1;
-            } else if (lastEntry === yesterday) {
-                // Logged yesterday too - continue streak
+            } else if (lastEntry === yesterday || lastEntry === dayBeforeYesterday) {
+                // Logged yesterday or missed one day (grace period) - continue streak
                 user.moodStreak.current += 1;
                 if (user.moodStreak.current > user.moodStreak.best) {
                     user.moodStreak.best = user.moodStreak.current;
                 }
-            } else if (today - lastEntry > 86400000) {
-                // Missed a day - reset
+            } else if (today - lastEntry > 2 * oneDay) {
+                // Missed two or more consecutive days - reset
                 user.moodStreak.current = 1;
             }
-            
+
             user.moodStreak.lastEntryDate = new Date();
             await user.save();
         }
