@@ -274,10 +274,11 @@
 
 // export default LoginForm;
 import React, { useState } from "react";
-import { login, isVerified } from "../services/auth";
+import { login, isVerified, reactivateAccount, cancelAccountDeletion } from "../services/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { loginSchema } from "../utils/validationSchemas";
 import { initializeEncryption } from '../utils/encryption';
+import Toast from "../components/Toast";
 
 const LoginForm = () => {
     const navigate = useNavigate();
@@ -290,6 +291,10 @@ const LoginForm = () => {
     const [fieldErrors, setFieldErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+    // Lifecycle hold state
+    const [holdState, setHoldState] = useState({ type: null, expiresAt: null });
 
     // 🆕 NEW: Password visibility state tracking
     const [showPassword, setShowPassword] = useState(false);
@@ -340,11 +345,114 @@ const LoginForm = () => {
                 navigate("/dashboard");
             }, 2000);
         } catch (err) {
-            setError(err.message);
+            if (err.status === "deactivated_hold") {
+                setHoldState({ type: "deactivated", expiresAt: null });
+            } else if (err.status === "deletion_hold") {
+                setHoldState({ type: "pending_deletion", expiresAt: err.expiresAt });
+            } else {
+                setError(err.message);
+                setToast({ show: true, message: err.message, type: "error" });
+            }
         } finally {
             setLoading(false);
         }
     };
+
+    const handleReactivate = async () => {
+        setLoading(true);
+        setError("");
+        try {
+            await reactivateAccount({ email: formData.email, password: formData.password });
+            setToast({ show: true, message: "Account reactivated successfully! Please log in.", type: "success" });
+            setHoldState({ type: null, expiresAt: null });
+        } catch (err) {
+            setError(err.message);
+            setToast({ show: true, message: err.message, type: "error" });
+            setHoldState({ type: null, expiresAt: null });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelDeletion = async () => {
+        setLoading(true);
+        setError("");
+        try {
+            await cancelAccountDeletion({ email: formData.email, password: formData.password });
+            setToast({ show: true, message: "Deletion request cancelled! Please log in.", type: "success" });
+            setHoldState({ type: null, expiresAt: null });
+        } catch (err) {
+            setError(err.message);
+            setToast({ show: true, message: err.message, type: "error" });
+            setHoldState({ type: null, expiresAt: null });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (holdState.type === "deactivated") {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300">
+                {toast.show && <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />}
+                <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 animate-fade-in">
+                    <h2 className="text-3xl font-bold text-gray-800 mb-4">Account Deactivated</h2>
+                    <p className="text-gray-600 mb-6 text-lg">
+                        Your account is currently deactivated. Would you like to restore your profile and pick up right where you left off?
+                    </p>
+                    <div className="flex flex-col space-y-4">
+                        <button
+                            onClick={handleReactivate}
+                            disabled={loading}
+                            className="w-full px-6 py-3 bg-[#759a68] text-white rounded-lg font-semibold hover:bg-[#6ca859] transition-colors"
+                        >
+                            {loading ? "Restoring..." : "Restore Account"}
+                        </button>
+                        <button
+                            onClick={() => setHoldState({ type: null, expiresAt: null })}
+                            className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (holdState.type === "pending_deletion") {
+        const formattedDate = holdState.expiresAt 
+            ? new Date(holdState.expiresAt).toLocaleDateString() 
+            : 'soon';
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
+                {toast.show && <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />}
+                <div className="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-md w-full mx-4 animate-fade-in border-t-4 border-red-500">
+                    <h2 className="text-3xl font-bold text-red-600 mb-4">Deletion Scheduled</h2>
+                    <p className="text-gray-700 mb-4 font-semibold text-lg">
+                        Your account is scheduled to be permanently deleted on {formattedDate}.
+                    </p>
+                    <p className="text-gray-600 mb-8">
+                        Logging in will cancel this request and restore your account fully.
+                    </p>
+                    <div className="flex flex-col space-y-4">
+                        <button
+                            onClick={handleCancelDeletion}
+                            disabled={loading}
+                            className="w-full px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors shadow-lg hover:shadow-xl"
+                        >
+                            {loading ? "Cancelling..." : "Cancel Deletion & Enter"}
+                        </button>
+                        <button
+                            onClick={() => setHoldState({ type: null, expiresAt: null })}
+                            className="w-full px-6 py-3 bg-gray-100 text-gray-600 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+                        >
+                            Keep Deletion (Go Back)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (success) {
         return (
@@ -369,6 +477,7 @@ const LoginForm = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#f1bdcd] via-[#f5d9c9] to-[#A7D5C4]">
+            {toast.show && <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />}
             <div className="flex min-h-screen">
                 {/* Left Side - Form */}
                 <div className="w-full lg:w-1/2 flex items-center justify-center p-8">

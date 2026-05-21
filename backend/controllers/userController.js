@@ -103,6 +103,22 @@ export const loginUser = async (req, res) => {
             });
         }
 
+        // ✅ LIFECYCLE INTERCEPTION
+        if (loginUser.accountStatus === 'deactivated') {
+            return res.status(403).json({
+                status: "deactivated_hold",
+                error: "Your account is deactivated. Please restore to continue."
+            });
+        }
+
+        if (loginUser.accountStatus === 'pending_deletion') {
+            return res.status(403).json({
+                status: "deletion_hold",
+                expiresAt: loginUser.deletionGracePeriodExpiresAt,
+                error: "Your account is scheduled for permanent deletion. Please cancel the request to continue."
+            });
+        }
+
         const token = generateToken({
             id: loginUser._id,
             email: loginUser.email,

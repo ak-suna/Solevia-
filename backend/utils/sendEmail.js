@@ -169,3 +169,65 @@ export const sendUserDisabledEmail = async (user, reason) => {
         throw new Error("Failed to send disabled account email");
     }
 };
+
+export const sendAccountDeactivatedEmail = async (user) => {
+    try {
+        const transporter = getTransporter();
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Your Account Has Been Deactivated - SOLEVIA",
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #f0ad4e;">Account Deactivated</h2>
+                    <p>Hi ${user.firstName},</p>
+                    <p>Your account has been successfully deactivated.</p>
+                    <p>Your profile and content are now hidden from the community. You will not receive any further notifications from us while your account is in this state.</p>
+                    <p>Whenever you are ready to return, simply log in to your account with your email and password, and click <strong>Restore</strong> to reactivate your account and pick up right where you left off.</p>
+                    <br/>
+                    <p>Take care,</p>
+                    <p>The SOLEVIA Team</p>
+                </div>
+            `,
+        };
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Deactivation email sent to: ${user.email}`);
+    } catch (error) {
+        console.error("❌ Error sending deactivation email:", error);
+        // We do not throw an error here to prevent blocking the deactivation flow if email fails
+    }
+};
+
+export const sendAccountDeletionRequestedEmail = async (user, expirationDate) => {
+    try {
+        const transporter = getTransporter();
+        const formattedDate = new Date(expirationDate).toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Account Deletion Request Received - SOLEVIA",
+            html: `
+                <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #d9534f;">Account Deletion Request</h2>
+                    <p>Hi ${user.firstName},</p>
+                    <p>We have received your request to permanently delete your SOLEVIA account.</p>
+                    <p>Your account is now scheduled for permanent deletion on <strong>${formattedDate}</strong>. After this date, all of your private data (journals, habits, mood logs, and goals) will be permanently erased and cannot be recovered.</p>
+                    <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #5bc0de; margin: 20px 0;">
+                        <p style="margin: 0;"><strong>Changed your mind?</strong></p>
+                        <p style="margin: 10px 0 0 0;">You have a 30-day grace period to cancel this request. If you wish to keep your account, simply log in before ${formattedDate} and click <strong>Cancel Deletion</strong>.</p>
+                    </div>
+                    <p>If you meant to do this, no further action is required from you.</p>
+                    <br/>
+                    <p>Best regards,</p>
+                    <p>The SOLEVIA Team</p>
+                </div>
+            `,
+        };
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Deletion request email sent to: ${user.email}`);
+    } catch (error) {
+        console.error("❌ Error sending deletion request email:", error);
+    }
+};

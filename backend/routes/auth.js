@@ -9,6 +9,14 @@ import {
     refreshToken
 } from "../controllers/userController.js";
 
+import {
+    deactivateAccount,
+    reactivateAccount,
+    requestAccountDeletion,
+    cancelAccountDeletion
+} from "../controllers/userLifecycleController.js";
+import { authenticate } from "../middleware/authMiddleware.js";
+
 const router = express.Router();
 
 router.post("/signup", registerUser);
@@ -20,5 +28,11 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password/:token", resetPasswordController);
 
 router.post("/refresh-token", refreshToken);
+
+// 🆕 NEW: Account Lifecycle routes
+router.post("/deactivate", authenticate, deactivateAccount);
+router.post("/reactivate", reactivateAccount);
+router.post("/request-deletion", authenticate, requestAccountDeletion);
+router.post("/cancel-deletion", cancelAccountDeletion);
 
 export default router;

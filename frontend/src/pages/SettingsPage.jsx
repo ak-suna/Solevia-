@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, changePassword } from "../services/profile";
-import { logout } from "../services/auth";
-import { ChevronRight, LogOut, Save, X, Check, Camera, Moon, Sun, ChevronLeft } from "lucide-react";
+import { logout, deactivateAccount, requestAccountDeletion } from "../services/auth";
+import { ChevronRight, LogOut, Save, X, Check, Camera, Moon, Sun, ChevronLeft, AlertTriangle } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { Link } from "react-router-dom";
 import PasswordStrength, { checkPasswordStrength } from "../components/PasswordStrength";
 import { uploadProfilePicture } from "../services/profile";
 import FontSizeToggle from "../components/FontSizeToggle";
+import Toast from "../components/Toast";
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -20,6 +21,12 @@ const SettingsPage = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    
+    // Lifecycle state
+    const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+    const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [lifecycleLoading, setLifecycleLoading] = useState(false);
 
     const [profile, setProfile] = useState({
         firstName: "",
@@ -136,6 +143,38 @@ const SettingsPage = () => {
         navigate("/login");
     };
 
+    const handleDeactivate = async () => {
+        setLifecycleLoading(true);
+        try {
+            await deactivateAccount();
+            setToast({ show: true, message: "Account deactivated successfully.", type: "success" });
+            setTimeout(() => {
+                logout();
+                navigate("/login");
+            }, 2000);
+        } catch (error) {
+            setToast({ show: true, message: error.message, type: "error" });
+            setLifecycleLoading(false);
+            setShowDeactivateModal(false);
+        }
+    };
+
+    const handleRequestDeletion = async () => {
+        setLifecycleLoading(true);
+        try {
+            await requestAccountDeletion();
+            setToast({ show: true, message: "Account deletion requested successfully.", type: "success" });
+            setTimeout(() => {
+                logout();
+                navigate("/login");
+            }, 2000);
+        } catch (error) {
+            setToast({ show: true, message: error.message, type: "error" });
+            setLifecycleLoading(false);
+            setShowDeleteModal(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
@@ -195,6 +234,13 @@ const SettingsPage = () => {
                 <ChevronLeft className="mr-2 w-5 h-5" />
                 Back to Dashboard
             </Link>
+
+            {/* Toast Notification */}
+            {toast.show && (
+                <div className="fixed top-4 right-4 z-50">
+                    <Toast message={toast.message} type={toast.type} onClose={() => setToast({ ...toast, show: false })} />
+                </div>
+            )}
 
             <div className="max-w-6xl mx-auto flex gap-6">
                 {/* Left Sidebar */}
@@ -516,11 +562,128 @@ const SettingsPage = () => {
                                         </div>
                                     </form>
                                 </div>
+
+                                {/* Account Management Panel */}
+                                <div className="bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-red-200 dark:border-red-900/50 px-8 py-10 sm:px-12 mt-8">
+                                    <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-6 text-center">
+                                        Account Management
+                                    </h3>
+                                    
+                                    <div className="space-y-6">
+                                        <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-orange-50 dark:bg-gray-800 rounded-xl border border-orange-200 dark:border-gray-600">
+                                            <div className="mb-4 sm:mb-0">
+                                                <h4 className="font-semibold text-gray-800 dark:text-gray-200">Deactivate Account</h4>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">Temporarily hide your profile and pause notifications.</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowDeactivateModal(true)}
+                                                className="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                                            >
+                                                Deactivate
+                                            </button>
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-red-50 dark:bg-gray-800 rounded-xl border border-red-200 dark:border-gray-600">
+                                            <div className="mb-4 sm:mb-0">
+                                                <h4 className="font-semibold text-gray-800 dark:text-gray-200">Delete Account</h4>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">Request permanent deletion of your account and data.</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setShowDeleteModal(true)}
+                                                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                                            >
+                                                Delete Account
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Deactivate Modal */}
+            {showDeactivateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-fade-in-up">
+                        <button
+                            onClick={() => setShowDeactivateModal(false)}
+                            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        
+                        <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <AlertTriangle className="w-8 h-8 text-orange-500" />
+                        </div>
+                        
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2" style={{ fontFamily: "Brasika" }}>
+                            Deactivate Account?
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-center mb-6 leading-relaxed">
+                            Your profile will be hidden and you won't receive notifications. You can reactivate anytime by logging back in.
+                        </p>
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeactivateModal(false)}
+                                className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleDeactivate}
+                                disabled={lifecycleLoading}
+                                className="flex-1 px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-colors flex justify-center items-center"
+                            >
+                                {lifecycleLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Deactivate"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-fade-in-up border-t-4 border-red-500">
+                        <button
+                            onClick={() => setShowDeleteModal(false)}
+                            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        
+                        <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6 mx-auto">
+                            <AlertTriangle className="w-8 h-8 text-red-500" />
+                        </div>
+                        
+                        <h3 className="text-2xl font-bold text-red-600 dark:text-red-400 text-center mb-2" style={{ fontFamily: "Brasika" }}>
+                            Request Deletion?
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-center mb-6 leading-relaxed">
+                            Your account will be scheduled for permanent deletion in 30 days. You can cancel this request by logging in before the grace period ends.
+                        </p>
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleRequestDeletion}
+                                disabled={lifecycleLoading}
+                                className="flex-1 px-6 py-3 bg-red-500 text-white font-semibold rounded-xl hover:bg-red-600 transition-colors flex justify-center items-center shadow-md hover:shadow-lg"
+                            >
+                                {lifecycleLoading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Delete Account"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

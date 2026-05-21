@@ -13,10 +13,15 @@ export const getCommentsByPost = async (req, res) => {
             return res.status(404).json({ error: "Post not found" });
         }
 
-        const comments = await Comment.find({ postId })
-            .populate("userId", "firstName lastName")
-            .sort({ createdAt: 1 })
-            .lean();
+        const comments = await Comment.aggregate([
+            { $match: { postId: post._id } },
+            { $sort: { createdAt: 1 } },
+            { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "userIdDoc", pipeline: [{ $project: { firstName: 1, lastName: 1, accountStatus: 1 } }] } },
+            { $unwind: { path: "$userIdDoc", preserveNullAndEmptyArrays: true } },
+            { $match: { "userIdDoc.accountStatus": { $ne: "deactivated" } } },
+            { $set: { userId: { $cond: { if: { $eq: ["$userIdDoc", null] }, then: { _id: null, firstName: "[Deleted", lastName: "User]" }, else: "$userIdDoc" } } } },
+            { $project: { userIdDoc: 0 } }
+        ]);
 
         res.status(200).json({ comments });
     } catch (error) {

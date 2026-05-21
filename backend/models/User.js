@@ -63,6 +63,20 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
+    // Lifecycle Management Fields
+    accountStatus: {
+        type: String,
+        enum: ['active', 'deactivated', 'pending_deletion'],
+        default: 'active'
+    },
+    statusChangedAt: {
+        type: Date,
+        default: null
+    },
+    deletionGracePeriodExpiresAt: {
+        type: Date,
+        default: null
+    },
     reportCount: {
         type: Number,
         default: 0

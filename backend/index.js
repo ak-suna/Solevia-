@@ -130,6 +130,7 @@ import goalRoutes from './routes/goalRoutes.js';
 import notificationRoutes from "./routes/notificationRoutes.js";
 import { initializeSocket } from "./sockets/notificationSocket.js";
 import { startNotificationJobs, stopNotificationJobs } from "./jobs/notificationJobs.js";
+import "./jobs/accountLifecycleJobs.js"; // Import to register jobs
 
 import postRoutes from "./routes/postRoutes.js";
 import groupRoutes from "./routes/groupRoutes.js";

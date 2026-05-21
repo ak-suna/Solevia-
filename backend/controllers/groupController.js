@@ -338,10 +338,11 @@ export const getGroupPosts = async (req, res) => {
             { $sort: { isPinned: -1, createdAt: -1 } },
             { $skip: (page - 1) * limit },
             { $limit: limit * 1 },
-            { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "userIdDoc", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } },
+            { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "userIdDoc", pipeline: [{ $project: { firstName: 1, lastName: 1, accountStatus: 1 } }] } },
             { $unwind: { path: "$userIdDoc", preserveNullAndEmptyArrays: true } },
-            { $set: { userId: "$userIdDoc" } },
-            { $lookup: { from: "comments", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }, { $sort: { createdAt: 1 } }, { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "u", pipeline: [{ $project: { firstName: 1, lastName: 1 } }] } }, { $unwind: { path: "$u", preserveNullAndEmptyArrays: true } }, { $set: { userId: "$u" } }, { $project: { u: 0 } }], as: "comments" } },
+            { $match: { "userIdDoc.accountStatus": { $ne: "deactivated" } } },
+            { $set: { userId: { $cond: { if: { $eq: ["$userIdDoc", null] }, then: { _id: null, firstName: "[Deleted", lastName: "User]" }, else: "$userIdDoc" } } } },
+            { $lookup: { from: "comments", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }, { $sort: { createdAt: 1 } }, { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "u", pipeline: [{ $project: { firstName: 1, lastName: 1, accountStatus: 1 } }] } }, { $unwind: { path: "$u", preserveNullAndEmptyArrays: true } }, { $match: { "u.accountStatus": { $ne: "deactivated" } } }, { $set: { userId: { $cond: { if: { $eq: ["$u", null] }, then: { _id: null, firstName: "[Deleted", lastName: "User]" }, else: "$u" } } } }, { $project: { u: 0 } }], as: "comments" } },
             { $lookup: { from: "reactions", let: { postId: "$_id" }, pipeline: [{ $match: { $expr: { $eq: ["$postId", "$$postId"] } } }], as: "reactions" } },
             { $project: { userIdDoc: 0 } }
         ];

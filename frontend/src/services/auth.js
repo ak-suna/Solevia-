@@ -58,6 +58,13 @@ export const login = async (credentials) => {
     const data = await response.json();
 
     if (!response.ok) {
+        // Check for lifecycle hold status
+        if (data.status === "deactivated_hold" || data.status === "deletion_hold") {
+            const error = new Error(data.error);
+            error.status = data.status;
+            error.expiresAt = data.expiresAt;
+            throw error;
+        }
         throw new Error(data.error || "Login failed");
     }
 
@@ -65,7 +72,6 @@ export const login = async (credentials) => {
     localStorage.setItem("token", data.token);
     localStorage.setItem("role", data.role); // NEW
     localStorage.setItem("isVerified", data.isVerified);
-    // const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
     const decoded = jwtDecode(data.token);
     const username = `${decoded.firstName || ""} `.trim();
@@ -133,6 +139,76 @@ export const logout = () => {
     localStorage.removeItem("username");
     // Optional: redirect to login
     window.location.href = "/login";
+};
+
+// 🆕 NEW: Reactivate Account
+export const reactivateAccount = async (credentials) => {
+    const response = await fetch(`${API_URL}/reactivate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to reactivate account");
+    }
+
+    return data;
+};
+
+// 🆕 NEW: Deactivate Account
+export const deactivateAccount = async () => {
+    const response = await fetch(`${API_URL}/deactivate`, {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to deactivate account");
+    }
+    return data;
+};
+
+// 🆕 NEW: Request Account Deletion
+export const requestAccountDeletion = async () => {
+    const response = await fetch(`${API_URL}/request-deletion`, {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to request account deletion");
+    }
+    return data;
+};
+
+// 🆕 NEW: Cancel Account Deletion
+export const cancelAccountDeletion = async (credentials) => {
+    const response = await fetch(`${API_URL}/cancel-deletion`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to cancel deletion");
+    }
+
+    return data;
 };
 
 export const getToken = () => {
