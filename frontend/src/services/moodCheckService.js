@@ -1,5 +1,5 @@
 import { fetchWithAuth } from "./fetchWithAuth";
-const API_BASE_URL = "http://localhost:5000/api"; 
+const API_BASE_URL = "http://localhost:5000/api";
 
 // // Check if user needs to log mood
 export const shouldShowMoodCheck = async () => {
@@ -24,7 +24,7 @@ export const shouldShowMoodCheck = async () => {
       return { show: true, period: "morning" };
     }
     // Evening check: 5 PM - 11 PM
-    if (currentHour >= 17 && currentHour < 23 && !data.evening) {
+    if (currentHour >= 17 && currentHour < 24 && !data.evening) {
       return { show: true, period: "evening" };
     }
     return { show: false, period: null };
@@ -37,15 +37,15 @@ export const shouldShowMoodCheck = async () => {
 // Save mood to backend
 export const saveMood = async (mood, period) => {
   console.log("💾 Attempting to save mood:", { mood, period });
-  
+
   try {
     const token = localStorage.getItem("token");
     console.log("Token exists:", !!token);
-    
+
     if (!token) {
       throw new Error("No authentication token");
     }
-    
+
     const payload = {
       mood: mood.value,
       emoji: mood.emoji,
@@ -53,10 +53,10 @@ export const saveMood = async (mood, period) => {
       color: mood.color,
       period: period
     };
-    
+
     console.log("Sending payload:", payload);
     console.log("To URL:", `${API_BASE_URL}/mood`);
-    
+
     const response = await fetch(`${API_BASE_URL}/mood`, {
       method: "POST",
       headers: {
@@ -65,19 +65,19 @@ export const saveMood = async (mood, period) => {
       },
       body: JSON.stringify(payload)
     });
-    
+
     console.log("Response status:", response.status);
-    
+
     const data = await response.json();
     console.log("Response data:", data);
-    
+
     if (!response.ok) {
       throw new Error(data.message || "Failed to save mood");
     }
-    
+
     console.log("✅ Mood saved successfully!");
     return data;
-    
+
   } catch (error) {
     console.error("❌ Error saving mood:", error);
     console.error("Error details:", error.message);

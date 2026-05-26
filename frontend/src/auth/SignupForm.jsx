@@ -405,6 +405,7 @@ import React, { useState } from "react";
 import { signup } from "../services/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { signupSchema } from "../utils/validationSchemas";
+import TermsAndConditions from "../components/TermsAndConditions";
 
 const SignupForm = () => {
     const navigate = useNavigate();
@@ -426,6 +427,10 @@ const SignupForm = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    // Terms and Conditions states
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const [showTerms, setShowTerms] = useState(false);
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
         if (fieldErrors[e.target.name]) {
@@ -437,6 +442,11 @@ const SignupForm = () => {
         e.preventDefault();
         setError("");
         setFieldErrors({});
+
+        if (!termsAccepted) {
+            setError("You must accept the terms and conditions to register.");
+            return;
+        }
 
         try {
             signupSchema.parse(formData);
@@ -711,10 +721,35 @@ const SignupForm = () => {
                                     </p>
                                 )}
 
+                                {/* Terms and Conditions Checkbox */}
+                                <div className="flex items-center mt-4 mb-4">
+                                    <input
+                                        type="checkbox"
+                                        id="terms"
+                                        checked={termsAccepted}
+                                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                                        className="w-5 h-5 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer transition-all duration-200"
+                                    />
+                                    <label htmlFor="terms" className="ml-3 text-sm font-medium text-gray-700">
+                                        I accept the{" "}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowTerms(true)}
+                                            className="text-indigo-600 hover:text-indigo-800 underline focus:outline-none transition-colors"
+                                        >
+                                            Terms and Conditions
+                                        </button>
+                                    </label>
+                                </div>
+
                                 <button
                                     type="submit"
-                                    disabled={loading}
-                                    className="w-full px-10 py-4 text-xl bg-[#f096b3] text-white rounded-full font-semibold hover:bg-[#f8ba90] transition-all duration-300 hover:scale-105 shadow-xl"
+                                    disabled={loading || !termsAccepted}
+                                    className={`w-full px-10 py-4 text-xl text-white rounded-full font-semibold transition-all duration-300 shadow-xl ${
+                                        (loading || !termsAccepted)
+                                            ? "bg-gray-400 cursor-not-allowed opacity-70"
+                                            : "bg-[#f096b3] hover:bg-[#f8ba90] hover:scale-105"
+                                    }`}
                                 >
                                     {loading ? (
                                         <span className="flex items-center justify-center">
@@ -740,6 +775,8 @@ const SignupForm = () => {
                     </div>
                 </div>
             </div>
+
+            {showTerms && <TermsAndConditions onClose={() => setShowTerms(false)} />}
 
             <style jsx>{`
                 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
