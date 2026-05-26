@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, changePassword } from "../services/profile";
-import { logout, deactivateAccount, requestAccountDeletion } from "../services/auth";
+import { logout, deactivateAccount, requestAccountDeletion, getToken } from "../services/auth";
 import { ChevronRight, LogOut, Save, X, Check, Camera, Moon, Sun, ChevronLeft, AlertTriangle } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { Link } from "react-router-dom";
@@ -9,6 +9,8 @@ import PasswordStrength, { checkPasswordStrength } from "../components/PasswordS
 import { uploadProfilePicture } from "../services/profile";
 import FontSizeToggle from "../components/FontSizeToggle";
 import Toast from "../components/Toast";
+import axios from "axios";
+import { deriveKey, encryptContent, decryptContent, initializeEncryption } from "../utils/encryption";
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -127,8 +129,48 @@ const SettingsPage = () => {
         }
 
         try {
+            // 1. Fetch all journal entries
+            const token = getToken();
+            const API_URL = 'http://localhost:5000/api/journal';
+            const response = await axios.get(API_URL, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const entries = response.data;
+
+            // 2. Derive old and new keys
+            const oldKey = deriveKey(passwordData.currentPassword);
+            const newKey = deriveKey(passwordData.newPassword);
+
+            // 3. Re-encrypt entries
+            const updatePromises = entries.map(async (entry) => {
+                try {
+                    // Try decrypting with old key
+                    const decryptedText = decryptContent(entry.content, oldKey);
+                    // Encrypt with new key
+                    const newEncryptedContent = encryptContent(decryptedText, newKey);
+                    
+                    // Update the entry on the backend
+                    return axios.put(`${API_URL}/${entry._id}`, 
+                        { content: newEncryptedContent },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                } catch (err) {
+                    // If decryption fails, it might be corrupted or already encrypted with another key.
+                    // We skip it to avoid overwriting with garbage.
+                    console.warn(`Skipping re-encryption for entry ${entry._id} (Decryption failed)`);
+                    return null;
+                }
+            });
+
+            await Promise.all(updatePromises);
+
+            // 4. Update password on backend
             await changePassword(passwordData.currentPassword, passwordData.newPassword);
-            setMessage({ type: "success", text: "Password changed successfully!" });
+
+            // 5. Update session key so user can continue journaling
+            initializeEncryption(passwordData.newPassword);
+
+            setMessage({ type: "success", text: "Password changed & journals re-encrypted!" });
             setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
             setTimeout(() => setMessage({ type: "", text: "" }), 3000);
         } catch (error) {

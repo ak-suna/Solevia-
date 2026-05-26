@@ -433,14 +433,14 @@ const GroupDetailsPage = () => {
                                         <Users className="w-4 h-4" />
                                         Members
                                     </button>
-                                    <button
+                                    {/* <button
                                         onClick={() => setShowRequestsModal(true)}
                                         className="flex items-center gap-1 px-3 py-1.5 bg-white/30 hover:bg-white/40 rounded-full text-sm font-semibold text-white"
                                         title="Pending Requests"
                                     >
                                         <CheckCircle className="w-4 h-4" />
                                         Requests
-                                    </button>
+                                    </button> */}
                                 </div>
                             </div>
                             <WeeklyTaskModal
