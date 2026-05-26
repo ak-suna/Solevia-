@@ -16,11 +16,13 @@ import {
     cancelAccountDeletion
 } from "../controllers/userLifecycleController.js";
 import { authenticate } from "../middleware/authMiddleware.js";
+import { validateRequest } from "../middleware/validateRequest.js";
+import { registerSchema, loginSchema } from "../validations/schemas.js";
 
 const router = express.Router();
 
-router.post("/signup", registerUser);
-router.post("/login", loginUser);
+router.post("/signup", validateRequest(registerSchema), registerUser);
+router.post("/login", validateRequest(loginSchema), loginUser);
 router.get("/verify-email/:code", verifyEmail);
 
 // 🆕 NEW: Password reset routes
