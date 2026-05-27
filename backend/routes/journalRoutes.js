@@ -3,6 +3,7 @@ import Journal from "../models/Journal.js";
 import { User } from "../models/User.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import bcrypt from "bcryptjs";
+import { updateChallengeProgress } from "../utils/challengeUtils.js";
 
 const router = express.Router();
 
@@ -91,6 +92,10 @@ router.post('/', authenticate, async (req, res) => {
     });
 
     await entry.save();
+
+    // UPDATE CHALLENGE PROGRESS
+    const todayStr = new Date().toISOString().split("T")[0];
+    await updateChallengeProgress(userId, "journal", todayStr);
 
     res.status(201).json({
       _id: entry._id,

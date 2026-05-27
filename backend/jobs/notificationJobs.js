@@ -12,6 +12,7 @@ import { ChallengeTemplate } from "../models/ChallengeTemplate.js";
 import { ChallengeParticipant } from "../models/ChallengeParticipant.js";
 import Journal from "../models/Journal.js";
 import HabitDay from "../models/HabitDay.js";
+import { activateChallengeFromTemplate } from "../utils/challengeUtils.js";
 
 dotenv.config();
 
@@ -325,64 +326,7 @@ agenda.define("cleanup-old-notifications", async (job) => {
   }
 });
 agenda.define("activate-challenge-from-template", async (job) => {
-  console.log("[Agenda] Activating challenge from template...");
-  try {
-    const sixtyDaysAgo = new Date();
-    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-
-    const eligible = await ChallengeTemplate.find({
-      status: "active",
-      $or: [
-        { lastUsedAt: null },
-        { lastUsedAt: { $lt: sixtyDaysAgo } }
-      ]
-    });
-
-    if (eligible.length === 0) {
-      console.log("[Agenda] No eligible templates. Notifying admins.");
-      const admins = await User.find({ role: "admin" });
-      for (const admin of admins) {
-        try {
-          await notificationService.createNotification({
-            userId: admin._id,
-            type: "CHALLENGE_POOL_LOW",
-            title: "⚠️ Challenge Pool Empty",
-            message: "No eligible challenge templates available this week. All templates used within 60 days.",
-            data: { actionUrl: "/admin/challenges" }
-          });
-        } catch (err) {
-          console.error("[Agenda] Failed to notify admin:", admin._id, err.message);
-        }
-      }
-      return;
-    }
-
-    const template = eligible[Math.floor(Math.random() * eligible.length)];
-
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + template.duration);
-
-    const challenge = await Challenge.create({
-      templateId: template._id,
-      title: template.title,
-      description: template.description,
-      trackingType: template.trackingType,
-      duration: template.duration,
-      difficulty: template.difficulty,
-      status: "active",
-      startDate,
-      endDate,
-      participantCount: 0
-    });
-
-    template.lastUsedAt = new Date();
-    await template.save();
-
-    console.log(`[Agenda] Challenge created: ${challenge.title}`);
-  } catch (error) {
-    console.error("[Agenda] Error activating challenge from template:", error);
-  }
+  await activateChallengeFromTemplate();
 });
 
 agenda.define("nightly-challenge-tracking", async (job) => {
@@ -408,27 +352,13 @@ agenda.define("nightly-challenge-tracking", async (job) => {
 
         let hasActivity = false;
 
-        if (challenge.trackingType === "mood") {
-          const mood = await Mood.findOne({
-            userId: participant.userId,
-            date: { $gte: today, $lt: tomorrow }
-          });
-          hasActivity = !!mood;
-
-        } else if (challenge.trackingType === "habit") {
+        if (challenge.trackingType === "habit") {
           const habitDay = await HabitDay.findOne({
             user: participant.userId,
             date: { $gte: today, $lt: tomorrow },
-            "habits.completed": true
+            completionPercentage: 100
           });
           hasActivity = !!habitDay;
-
-        } else if (challenge.trackingType === "journal") {
-          const journal = await Journal.findOne({
-            user: participant.userId,
-            createdAt: { $gte: today, $lt: tomorrow }
-          });
-          hasActivity = !!journal;
         }
 
         if (hasActivity) {
@@ -493,6 +423,13 @@ agenda.define("expire-challenges", async (job) => {
     }
 
     console.log(`[Agenda] Expired ${expiredChallenges.length} challenges.`);
+
+    // Zero dead days logic
+    const activeCount = await Challenge.countDocuments({ status: "active" });
+    if (activeCount === 0) {
+      await activateChallengeFromTemplate();
+      console.log(`[Agenda] Automatically activated a new challenge to prevent dead days.`);
+    }
   } catch (error) {
     console.error("[Agenda] Error expiring challenges:", error);
   }

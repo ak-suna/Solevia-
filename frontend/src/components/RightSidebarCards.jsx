@@ -3,6 +3,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from '../components/NotificationBell';
 import { Users, Trophy, TrendingUp, Clock, XCircle, Settings } from 'lucide-react';
+import TrophyCard from "./TrophyCard";
 
 const RightSidebarCards = ({
     myGroups = [],
@@ -162,6 +163,9 @@ const RightSidebarCards = ({
                     </div>
                 </div>
             )}
+            
+            {/* Card 4: Trophies */}
+            <TrophyCard />
         </div>
     );
 };

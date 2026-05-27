@@ -24,6 +24,7 @@
     "@tiptap/react": "^3.13.0",
     "@tiptap/starter-kit": "^3.13.0",
     "axios": "^1.13.2",
+    "canvas-confetti": "^1.9.4",
     "chart.js": "^4.5.1",
     "crypto-js": "^4.2.0",
     "framer-motion": "^12.23.25",

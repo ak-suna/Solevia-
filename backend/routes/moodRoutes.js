@@ -2,6 +2,7 @@ import express from "express";
 import { Mood } from "../models/Mood.js";
 import { authenticate } from "../middleware/authMiddleware.js";
 import mongoose from "mongoose";
+import { updateChallengeProgress } from "../utils/challengeUtils.js";
 
 const router = express.Router();
 
@@ -39,6 +40,10 @@ router.post("/", authenticate, async (req, res) => {
         });
         
         await moodEntry.save();
+        
+        // UPDATE CHALLENGE PROGRESS
+        const todayStr = new Date().toISOString().split("T")[0];
+        await updateChallengeProgress(userId, "mood", todayStr);
         
         // UPDATE MOOD STREAK
         const User = mongoose.model('User');
