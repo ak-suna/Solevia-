@@ -1664,7 +1664,7 @@ const Journal = () => {
         >
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800" style={{ fontFamily: "Brasika" }}>My Journal</h1>
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100" style={{ fontFamily: "Brasika" }}>My Journal</h1>
             </div>
           </div>
           {!isWriting && (

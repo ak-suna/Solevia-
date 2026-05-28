@@ -39,6 +39,8 @@ import GroupModeratorRequests from "./pages/GroupModeratorRequests";
 import ChallengeDetailPage from "./pages/ChallengeDetailPage";
 import GroupSessionsPage from "./pages/GroupSessionsPage";
 import GroupChatPage from "./pages/GroupChatPage";
+import AdminSettings from "./pages/AdminSettings";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 // import { useEffect } from 'react';
 // import { initializeSocket, disconnectSocket } from './services/socketService';
@@ -123,7 +125,9 @@ function App() {
                                         path="/admin/dashboard"
                                         element={
                                             <AdminRoute>
-                                                <AdminHome />
+                                                <ThemeProvider>
+                                                    <AdminHome />
+                                                </ThemeProvider>
                                             </AdminRoute>
                                         }
                                     />
@@ -131,7 +135,9 @@ function App() {
                                         path="/admin/users"
                                         element={
                                             <AdminRoute>
-                                                <AdminUsersPage />
+                                                <ThemeProvider>
+                                                    <AdminUsersPage />
+                                                </ThemeProvider>
                                             </AdminRoute>
                                         }
                                     />
@@ -139,7 +145,9 @@ function App() {
                                         path="/admin/reports"
                                         element={
                                             <AdminRoute>
-                                                <AdminReportsPage />
+                                                <ThemeProvider>
+                                                    <AdminReportsPage />
+                                                </ThemeProvider>
                                             </AdminRoute>
                                         }
                                     />
@@ -147,7 +155,9 @@ function App() {
                                         path="/admin/challenges"
                                         element={
                                             <AdminRoute>
-                                                <AdminChallengesPage />
+                                                <ThemeProvider>
+                                                    <AdminChallengesPage />
+                                                </ThemeProvider>
                                             </AdminRoute>
                                         }
                                     />
@@ -155,7 +165,9 @@ function App() {
                                         path="/admin/groups"
                                         element={
                                             <AdminRoute>
-                                                <AdminGroupsPage />
+                                                <ThemeProvider>
+                                                    <AdminGroupsPage />
+                                                </ThemeProvider>
                                             </AdminRoute>
                                         }
                                     />
@@ -260,7 +272,10 @@ function App() {
                                         path="/admin/groups/:groupId"
                                         element={
                                             <AdminRoute>
-                                                <AdminGroupsPage />
+                                                <ThemeProvider>
+                                                    <AdminGroupsPage />
+                                                </ThemeProvider>
+
                                             </AdminRoute>
                                         }
                                     />
@@ -268,7 +283,10 @@ function App() {
                                         path="/admin/groups/:groupId/moderator/dashboard"
                                         element={
                                             <ProtectedRoute>
-                                                <GroupModeratorDashboard />
+                                                <ThemeProvider>
+                                                    <GroupModeratorDashboard />
+                                                </ThemeProvider>
+
                                             </ProtectedRoute>
                                         }
                                     />
@@ -276,7 +294,9 @@ function App() {
                                         path="/admin/groups/:groupId/moderator/members"
                                         element={
                                             <ProtectedRoute>
-                                                <GroupModeratorMembers />
+                                                <ThemeProvider>
+                                                    <GroupModeratorMembers />
+                                                </ThemeProvider>
                                             </ProtectedRoute>
                                         }
                                     />
@@ -284,7 +304,11 @@ function App() {
                                         path="/admin/groups/:groupId/moderator/reports"
                                         element={
                                             <ProtectedRoute>
-                                                <GroupModeratorReports />
+                                                <ThemeProvider>
+                                                    <GroupModeratorReports />
+                                                </ThemeProvider>
+
+
                                             </ProtectedRoute>
                                         }
                                     />
@@ -292,8 +316,22 @@ function App() {
                                         path="/admin/groups/:groupId/moderator/requests"
                                         element={
                                             <ProtectedRoute>
-                                                <GroupModeratorRequests />
+                                                <ThemeProvider>
+
+                                                    <GroupModeratorRequests />
+                                                </ThemeProvider>
                                             </ProtectedRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/admin/settings"
+                                        element={
+                                            <AdminRoute>
+                                                <ThemeProvider>
+
+                                                    <AdminSettings />
+                                                </ThemeProvider>
+                                            </AdminRoute>
                                         }
                                     />
                                 </Routes>

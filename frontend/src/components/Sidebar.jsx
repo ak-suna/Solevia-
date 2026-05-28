@@ -99,7 +99,7 @@ const Sidebar = () => {
         <img
           src={logo}
           alt="Logo"
-          className="w-full h-full rounded-full object-cover"
+          className="w-12 h-12 dark:invert dark:brightness-90"
         />
       </div>
 
@@ -113,8 +113,8 @@ const Sidebar = () => {
                 key={index}
                 onClick={() => navigate(item.path)}
                 className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative border-2 border-transparent text-[12px] font-semibold sidebar-accessible-btn ${isActive
-                    ? 'bg-[#FFA669] text-white shadow-sm border-orange-400 dark:border-orange-500'
-                    : 'text-gray-700 dark:text-gray-200 hover:text-white hover:bg-[#f8ba90] dark:hover:bg-orange-900/40 dark:hover:text-orange-200'
+                  ? 'bg-[#FFA669] text-white shadow-sm border-orange-400 dark:border-orange-500'
+                  : 'text-gray-700 dark:text-gray-200 hover:text-white hover:bg-[#f8ba90] dark:hover:bg-orange-900/40 dark:hover:text-orange-200'
                   }`}
                 title={item.label}
               >

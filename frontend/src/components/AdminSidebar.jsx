@@ -21,7 +21,7 @@ const AdminSidebar = () => {
                 className="w-20 h-20 rounded-full bg-white dark:bg-gray-800 shadow-lg dark:shadow-xl flex items-center justify-center p-2 mt-4 cursor-pointer border border-gray-100 dark:border-gray-700"
                 onClick={() => navigate('/admin/dashboard')}
             >
-                <img src={logo} alt="Logo" className="w-full h-full rounded-full object-cover" />
+                <img src={logo} alt="Logo" className="w-12 h-12 dark:invert dark:brightness-90" />
             </div>
 
             <div className="flex flex-col justify-center w-[75px] h-[600px] bg-[#f9d9e3] dark:bg-gray-800/70 backdrop-blur-sm rounded-full shadow-sm dark:shadow-md py-8 gap-6 mt-12 border border-gray-100 dark:border-gray-700">

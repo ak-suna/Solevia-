@@ -145,7 +145,7 @@ const ModeratorSidebar = () => {
                 <img src={logo} alt="Logo" className="w-full h-full rounded-full object-cover" />
             </div>
 
-            <div className="flex flex-col justify-center w-[75px] h-[600px] bg-[#f9d9e3] backdrop-blur-sm rounded-full shadow-sm py-8 gap-6 mt-12">
+            <div className="flex flex-col justify-center w-[75px] h-[600px] bg-[#f9d9e3] dark:bg-gray-900 backdrop-blur-sm rounded-full shadow-sm py-8 mt-12 border-2 border-gray-200 dark:border-gray-700 transition-all">
                 <nav className="flex flex-col justify-center gap-8 w-full items-center">
                     {navItems.map((item, index) => {
                         const isActive = location.pathname === item.path;
@@ -154,9 +154,9 @@ const ModeratorSidebar = () => {
                                 key={index}
                                 onClick={() => navigate(item.path)}
                                 title={item.label}
-                                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative ${isActive
-                                    ? 'bg-[#FFA669] text-white shadow-sm'
-                                    : 'text-gray-700 hover:text-white hover:bg-[#f8ba90]'
+                                className={`flex flex-col items-center gap-1 w-[58px] py-2 rounded-2xl transition-all duration-200 relative border-2 border-transparent text-[12px] font-semibold sidebar-accessible-btn ${isActive
+                                    ? 'bg-[#FFA669] text-white shadow-sm border-orange-400 dark:border-orange-500'
+                                    : 'text-gray-700 dark:text-gray-200 hover:text-white hover:bg-[#f8ba90] dark:hover:bg-orange-900/40 dark:hover:text-orange-200'
                                     }`}
                             >
                                 <item.icon size={26} strokeWidth={2} />

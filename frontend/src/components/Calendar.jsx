@@ -126,7 +126,7 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
                   src={dayMoods.morning.emoji}
                   alt={dayMoods.morning.label}
                   title={`Morning: ${dayMoods.morning.label}`}
-                  className="w-8 h-8 object-contain drop-shadow-md hover:scale-110 transition-transform"
+                  className="w-8 h-8 object-contain rounded-full ring-2 ring-white/60 dark:ring-gray-600 drop-shadow-lg hover:scale-110 transition-transform bg-white/20 dark:bg-gray-700/50"
                   onError={(e) => {
                     console.error('Failed to load morning emoji:', dayMoods.morning.emoji);
                     e.target.style.display = 'none';
@@ -140,7 +140,7 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
                   src={dayMoods.evening.emoji}
                   alt={dayMoods.evening.label}
                   title={`Evening: ${dayMoods.evening.label}`}
-                  className="w-8 h-8 object-contain drop-shadow-md hover:scale-110 transition-transform"
+                  className="w-8 h-8 object-contain rounded-full ring-2 ring-white/60 dark:ring-gray-600 drop-shadow-lg hover:scale-110 transition-transform bg-white/20 dark:bg-gray-700/50"
                   onError={(e) => {
                     console.error('Failed to load evening emoji:', dayMoods.evening.emoji);
                     e.target.style.display = 'none';
@@ -156,37 +156,69 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
 
   return (
     <div className="p-6 w-[600px] h-[600px] rounded-xl shadow-md overflow-auto bg-[#FCF8F5] dark:bg-gray-800">
-      <style>{`
-        .fc-daygrid-day-frame > div {
-          position: relative !important;
-        }
 
-        .fc-daygrid-day-frame {
-          min-height: 100px !important;
-          position: relative;
-          cursor: pointer;
-        }
-        
-        .fc .fc-daygrid-day-top {
-          display: block;
-        }
-        
-        .fc-daygrid-day-number {
-          padding: 4px;
-        }
-        
-        .fc-daygrid-day:hover {
-          background-color: rgba(99, 102, 241, 0.05) !important;
-        }
-        
-        .fc-day-today {
-          background-color: rgba(99, 102, 241, 0.1) !important;
-        }
-        
-        .fc-event {
-          display: none;
-        }
-      `}</style>
+      <style>{`
+  .fc-daygrid-day-frame > div {
+    position: relative !important;
+  }
+  .fc-daygrid-day-frame {
+    min-height: 100px !important;
+    position: relative;
+    cursor: pointer;
+  }
+  .fc .fc-daygrid-day-top {
+    display: block;
+  }
+  .fc-daygrid-day-number {
+    padding: 4px;
+  }
+  .fc-daygrid-day:hover {
+    background-color: rgba(99, 102, 241, 0.08) !important;
+  }
+  .fc-day-today {
+    background-color: rgba(99, 102, 241, 0.15) !important;
+  }
+  .fc-event {
+    display: none;
+  }
+
+  /* Dark mode calendar overrides */
+  .dark .fc-theme-standard td,
+  .dark .fc-theme-standard th,
+  .dark .fc-theme-standard .fc-scrollgrid {
+    border-color: #374151 !important;
+  }
+  .dark .fc-col-header-cell {
+    background-color: #1f2937 !important;
+  }
+  .dark .fc-col-header-cell-cushion {
+    color: #9ca3af !important;
+  }
+  .dark .fc-daygrid-day {
+    background-color: #111827 !important;
+  }
+  .dark .fc-day-today {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+  }
+  .dark .fc-daygrid-day:hover {
+    background-color: rgba(99, 102, 241, 0.12) !important;
+  }
+  .dark .fc-toolbar-title {
+    color: #f3f4f6 !important;
+  }
+  .dark .fc-button {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f3f4f6 !important;
+  }
+  .dark .fc-button:hover {
+    background-color: #4b5563 !important;
+  }
+  .dark .fc-day-other {
+    background-color: #0f172a !important;
+    opacity: 0.6;
+  }
+`}</style>
       <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"

@@ -417,7 +417,7 @@ function NotificationItem({ notification, onClick, onDelete }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
-            <h4 className="font-medium text-sm text-gray-800 dark:text-white">{notification.title}</h4>
+            <h4 className="font-normal text-sm text-gray-800 dark:text-white">{notification.title}</h4>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -428,8 +428,8 @@ function NotificationItem({ notification, onClick, onDelete }) {
               <Trash2 size={14} />
             </button>
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{message}</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+          <p className="text-sm font-normal text-gray-600 dark:text-gray-300 mt-1">{message}</p>
+          <p className="text-xs font-normal text-gray-400 dark:text-gray-500 mt-2">
             {formatTimestamp(notification.createdAt)}
           </p>
         </div>

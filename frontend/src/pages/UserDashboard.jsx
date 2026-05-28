@@ -184,30 +184,32 @@ const UserDashboard = () => {
   };
 
   const StreaksCard = () => (
-    <div className="bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-6 shadow-lg flex flex-col min-h-0 max-h-[340px] overflow-y-auto border-2 border-[#f4873e]/20">
+    <div className="bg-[#f8ba90] dark:bg-gray-700 rounded-[40px] p-6 shadow-lg flex flex-col min-h-0 max-h-[340px] overflow-y-auto border-2 border-[#f4873e]/20">
       <div className="mb-3">
-        <h3 className="text-[#1F3B36] text-sm uppercase tracking-wide font-bold">Check-in Streak</h3>
+        <h3 className="text-[#1F3B36] dark:text-gray-200 text-sm uppercase tracking-wide font-bold">Check-in Streak</h3>
         <div className="flex items-center justify-center mt-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-[#f4873e] to-[#ff9e5e] rounded-full flex items-center justify-center shadow-md">
               <Flame className="w-5 h-5 text-white" fill="#f4873e" />
             </div>
             <div className="flex items-center">
-              <span className="text-4xl font-bold text-white">{moodStreak.current}</span>
-              <span className="text-lg font-bold text-white/80 ml-2">days</span>
+              <span className="text-4xl font-bold text-white dark:text-orange-200">{moodStreak.current}</span>
+              <span className="text-lg font-bold text-white/80 dark:text-orange-200/80 ml-2">days</span>
             </div>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mt-auto ">
-        <div className="bg-white/60 rounded-xl p-3 backdrop-blur-sm border border-[#f4873e]/10">
-          <p className="text-[#2d6b57] text-xs mb-1">Best Streak</p>
-          <p className="text-xl font-bold text-[#8b5a2b]">{moodStreak.best}</p>
+        <div className="bg-white/80 dark:bg-gray-600/80 rounded-xl p-3 backdrop-blur-sm border border-[#f4873e]/10"
+        >
+          <p className="text-[#2d6b57] dark:text-gray-300 text-xs mb-1">Best Streak</p>
+          <p className="text-xl font-bold text-[#8b5a2b] dark:text-orange-300">{moodStreak.best}</p>
         </div>
-        <div className="bg-white/60 rounded-xl p-3 backdrop-blur-sm border border-[#f4873e]/10">
-          <p className="text-[#2d6b57] text-xs mb-1">Habit Streak</p>
-          <p className="text-xl font-bold text-[#2d6b57]">{habitStreak.current}</p>
+        <div className="bg-white/80 dark:bg-gray-600/80 rounded-xl p-3 backdrop-blur-sm border border-[#f4873e]/10"
+        >
+          <p className="text-[#2d6b57] dark:text-gray-300 text-xs mb-1">Habit Streak</p>
+          <p className="text-xl font-bold text-[#2d6b57] dark:text-green-400">{habitStreak.current}</p>
         </div>
       </div>
     </div>

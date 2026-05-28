@@ -94,7 +94,7 @@ const BrowseGroupsPage = () => {
                     className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#89beab] mb-6 transition-colors"
                 >
                     <ArrowLeft className="w-5 h-5" />
-                    <span className="font-semibold">Back to Community</span>
+                    <span className="font-semibold">Back to Group</span>
                 </button>
 
                 {/* Header */}
