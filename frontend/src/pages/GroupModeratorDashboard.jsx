@@ -4,9 +4,12 @@ import ModeratorSidebar from '../components/ModeratorSidebar';
 import { useQuery } from '@tanstack/react-query';
 import { getGroupById, getGroupJoinRequests, getGroupReports } from '../services/communityService';
 import { LayoutDashboard, Users, Inbox, AlertTriangle } from 'lucide-react';
+import { jwtDecode } from "jwt-decode";
 
 const GroupModeratorDashboard = () => {
     const { groupId } = useParams();
+    const token = localStorage.getItem("token");
+    const role = token ? jwtDecode(token)?.role : null;
 
     const { data: groupData } = useQuery({
         queryKey: ['community', 'group', groupId],
@@ -67,7 +70,9 @@ const GroupModeratorDashboard = () => {
 
                     {/* Back Button */}
                     <button
-                        onClick={() => navigate(`/community/group/${groupId}`)}
+                        onClick={() =>
+                            navigate(role === "admin" ? "/admin/groups" : `/community/group/${groupId}`)
+                        }
                         className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-semibold"
                     >
                         ← Back

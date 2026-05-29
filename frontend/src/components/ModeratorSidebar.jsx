@@ -140,7 +140,7 @@ const ModeratorSidebar = () => {
         <div className="fixed left-6 top-0 flex flex-col items-center w-24 h-screen z-50">
             <div
                 className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center p-2 mt-4 cursor-pointer"
-                onClick={() => navigate(`/groups/${groupId}/moderator/dashboard`)}
+                onClick={() => navigate(`/admin/groups/${groupId}/moderator/dashboard`)}
             >
                 <img src={logo} alt="Logo" className="w-full h-full rounded-full object-cover" />
             </div>

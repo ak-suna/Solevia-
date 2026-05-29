@@ -3,10 +3,11 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
 import RightSidebarCards from "../components/RightSidebarCards";
-import { Plus, Users, Trophy, ArrowRight } from 'lucide-react';
+import { Plus, Users, Trophy, ArrowRight, CheckCircle } from 'lucide-react';
 import { getPosts, getUserGroups, getUserChallenges } from "../services/communityService";
 import CreatePostModal from "../components/CreatePostModal";
 import CommunityFeed from "../components/CommunityFeed";
+import { getToken } from "../services/auth";
 
 const CommunityPage = () => {
     const navigate = useNavigate();
@@ -14,7 +15,6 @@ const CommunityPage = () => {
     const location = useLocation();
     const [activeTab, setActiveTab] = useState("feed"); // feed, groups, challenges
     const [categoryFilter, setCategoryFilter] = useState("all");
-    const [pendingRequests] = useState([]);
     const [showCreatePostModal, setShowCreatePostModal] = useState(false);
 
     // Focus post logic
@@ -48,9 +48,23 @@ const CommunityPage = () => {
         refetchInterval: 5000,
     });
 
+    const { data: pastChallengesData } = useQuery({
+        queryKey: ["community", "pastChallenges"],
+        queryFn: async () => {
+            const res = await fetch("http://localhost:5000/api/challenges/past", {
+                headers: { Authorization: `Bearer ${getToken()}` }
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to fetch past challenges");
+            return data;
+        },
+        refetchInterval: 5000
+    });
+
     const posts = postsData?.posts ?? [];
     const myGroups = groupsData?.groups ?? [];
     const myChallenges = challengesData?.challenges ?? [];
+    const pastChallenges = pastChallengesData?.challenges ?? [];
     const loading = activeTab === "feed" ? loadingPosts : false;
 
     const tabs = [
@@ -203,7 +217,7 @@ const CommunityPage = () => {
                             )}
 
                             {/* Empty State */}
-                            {myGroups.length === 0 && pendingRequests.length === 0 && (
+                            {myGroups.length === 0 && (
                                 <div className="text-center py-12">
                                     <Users className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                                     <p className="text-gray-600 dark:text-gray-400 mb-4">You haven't joined any groups yet</p>
@@ -234,7 +248,7 @@ const CommunityPage = () => {
 
                             {/* Show ONLY joined challenges (myChallenges) */}
                             {myChallenges.filter(c => c.isJoined !== false).length > 0 ? (
-                                <div className="grid grid-cols-1 gap-4">
+                                <div className="grid grid-cols-1 gap-4 mb-6">
                                     {myChallenges.filter(c => c.isJoined !== false).map(challenge => (
                                         <div
                                             key={challenge._id}
@@ -246,6 +260,11 @@ const CommunityPage = () => {
                                                     <span className="text-3xl">{challenge.icon || "🏆"}</span>
                                                     <div>
                                                         <h4 className="font-bold text-gray-900 dark:text-white">{challenge.title}</h4>
+                                                        {challenge.isNew && (
+                                                            <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                                                New Challenge
+                                                            </span>
+                                                        )}
                                                         <p className="text-sm text-gray-600 dark:text-gray-400">{challenge.duration} days</p>
                                                     </div>
                                                 </div>
@@ -287,6 +306,48 @@ const CommunityPage = () => {
                                     </button> */}
                                 </div>
                             )}
+
+                            <div className="mt-2">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Past Challenges</h3>
+                                {pastChallenges.length > 0 ? (
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {pastChallenges.slice(0, 5).map(challenge => (
+                                            <div
+                                                key={challenge._id}
+                                                className="bg-gray-50 dark:bg-gray-700 rounded-2xl p-4 border border-gray-200 dark:border-gray-600"
+                                            >
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 dark:text-white">{challenge.title}</p>
+                                                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                            {new Date(challenge.startDate).toLocaleDateString()} - {new Date(challenge.endDate).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                    {challenge.isCompleted && (
+                                                        <span className="flex items-center gap-1 text-xs font-bold text-green-600 dark:text-green-400">
+                                                            <CheckCircle className="w-3 h-3" /> Completed
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex justify-between text-xs mb-1">
+                                                    <span className="text-gray-600 dark:text-gray-400">Completion</span>
+                                                    <span className="font-bold text-[#f4873e]">{challenge.completionPercentage || 0}%</span>
+                                                </div>
+                                                <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                                                    <div
+                                                        className={`h-1.5 rounded-full ${challenge.isCompleted ? "bg-green-500" : "bg-gray-400"}`}
+                                                        style={{ width: `${challenge.completionPercentage || 0}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-6 bg-gray-50 dark:bg-gray-700 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">No past challenges yet.</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -296,9 +357,6 @@ const CommunityPage = () => {
             <RightSidebarCards
                 myGroups={myGroups}
                 myChallenges={myChallenges}
-                posts={posts}
-                challenges={[]}
-                pendingRequests={pendingRequests}
             />
 
             {/* Floating Action Button */}
