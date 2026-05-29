@@ -1,5 +1,6 @@
 import { Mood } from "../models/Mood.js";
 import Habit from "../models/Habit.js";
+import HabitDay from "../models/HabitDay.js";
 import Journal from "../models/Journal.js";
 import Goal from "../models/Goal.js";
 
@@ -333,34 +334,36 @@ export const getAnalyticsSummary = async (req, res) => {
 
         // ===== HABIT HEATMAP (90 DAYS) =====
         const habitHeatmap = [];
-        const habits90Days = await Habit.find({
+        
+        // Get HabitDay snapshots for the last 90 days
+        const habitDays = await HabitDay.find({
             user: userId,
-            habitDate: { $gte: start90Days },
-            isArchived: false
-        });
+            date: { $gte: start90Days }
+        }).sort({ date: 1 });
 
-        // Group habits by date
-        const habitsByDate = {};
-        habits90Days.forEach(habit => {
-            const dateKey = habit.habitDate.toISOString().split('T')[0];
-            if (!habitsByDate[dateKey]) {
-                habitsByDate[dateKey] = { total: 0, completed: 0 };
-            }
-            habitsByDate[dateKey].total++;
-            if (habit.completedToday) {
-                habitsByDate[dateKey].completed++;
-            }
+        // Create a map for quick lookup
+        const habitDayMap = {};
+        habitDays.forEach(day => {
+            const dateKey = day.date.toISOString().split('T')[0];
+            habitDayMap[dateKey] = {
+                completionPercentage: day.completionPercentage,
+                completedCount: day.completedCount,
+                totalCount: day.totalCount
+            };
         });
 
         // Create array for last 90 days
         for (let i = 89; i >= 0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
+            date.setHours(0, 0, 0, 0);
             const dateKey = date.toISOString().split('T')[0];
 
-            const dayData = habitsByDate[dateKey] || { total: 0, completed: 0 };
-            const completion = dayData.total > 0
-                ? (dayData.completed / dayData.total)
+            const dayData = habitDayMap[dateKey] || { completionPercentage: 0, completedCount: 0, totalCount: 0 };
+            
+            // Convert percentage to 0-1 range
+            const completion = dayData.totalCount > 0
+                ? (dayData.completionPercentage / 100)
                 : 0;
 
             habitHeatmap.push({
