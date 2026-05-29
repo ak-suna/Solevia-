@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trophy, ArrowLeft, CheckCircle } from 'lucide-react';
 import { getToken } from "../services/auth";
+import { API_BASE_URL } from "../config";
 import Sidebar from "../components/Sidebar";
 import { showError, confirmAction } from "../utils/uiFeedback";
 
@@ -19,7 +20,7 @@ const BrowseChallengesPage = () => {
     const fetchChallenges = async () => {
         setLoading(true);
         try {
-            const res = await fetch("http://localhost:5000/api/challenges", {
+            const res = await fetch(`${API_BASE_URL}/challenges`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             const data = await res.json();
@@ -34,7 +35,7 @@ const BrowseChallengesPage = () => {
 
     const fetchPastChallenges = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/challenges/past", {
+            const res = await fetch(`${API_BASE_URL}/challenges/past`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             const data = await res.json();
@@ -47,7 +48,7 @@ const BrowseChallengesPage = () => {
 
     const handleJoin = async (challengeId) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/challenges/${challengeId}/join`, {
+            const res = await fetch(`${API_BASE_URL}/challenges/${challengeId}/join`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
@@ -63,7 +64,7 @@ const BrowseChallengesPage = () => {
         const confirmed = await confirmAction("Leave this challenge?", { confirmText: "Leave" });
         if (!confirmed) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/challenges/${challengeId}/leave`, {
+            const res = await fetch(`${API_BASE_URL}/challenges/${challengeId}/leave`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
@@ -94,7 +95,7 @@ const BrowseChallengesPage = () => {
 
             <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
-                
+
                 <button
                     onClick={() => navigate('/community', { state: { activeTab: 'challenges' } })}
                     className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#f4873e] mb-6 transition-colors"

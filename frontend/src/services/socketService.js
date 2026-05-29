@@ -2,6 +2,7 @@
 import { io } from 'socket.io-client';
 import { getToken } from './auth';
 import { refreshToken, isTokenExpiringSoon } from './tokenService';
+import { BACKEND_URL } from "../config";
 
 let socket = null;
 let refreshInterval = null;
@@ -20,7 +21,7 @@ export const initializeSocket = () => {
     console.log('Initializing socket connection...');
     console.log('Token exists, length:', token.length);
 
-    socket = io('http://localhost:3000', {
+    socket = io(BACKEND_URL, {
         auth: { token },
         transports: ['polling', 'websocket'],
         reconnection: true,

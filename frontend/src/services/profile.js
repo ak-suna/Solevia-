@@ -1,6 +1,7 @@
 import { getToken } from "./auth";
 
-const API_URL = "http://localhost:5000/api/profile";
+import { API_BASE_URL } from "../config";
+const API_URL = `${API_BASE_URL}/profile`;
 
 // Get user profile
 export const getProfile = async () => {

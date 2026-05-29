@@ -11,6 +11,7 @@
 // import { BarChart2, Lightbulb } from 'lucide-react';
 // // import { useNavigate } from 'react-router-dom';
 
+import { API_BASE_URL } from "../config";
 // const AnalyticsPage = () => {
 //     const [analyticsData, setAnalyticsData] = useState(null);
 //     const [loading, setLoading] = useState(true);
@@ -486,7 +487,7 @@ const AnalyticsPage = () => {
     useEffect(() => {
         const fetchActiveGoals = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/goals', getAuthHeader());
+                const response = await axios.get(`${API_BASE_URL}/goals`, getAuthHeader());
                 const active = response.data.filter(g => g.status === 'active');
                 setActiveGoals(active);
             } catch (error) {

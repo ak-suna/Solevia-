@@ -22,8 +22,8 @@
 // };
 import axios from 'axios';
 import { getToken } from './auth';
-
-const API_URL = 'http://localhost:5000/api/analytics';
+import { API_BASE_URL } from "../config";
+const API_URL = `${API_BASE_URL}/analytics`;
 
 const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${getToken()}` }

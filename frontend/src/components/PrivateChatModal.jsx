@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Send, Link, Check } from "lucide-react";
 import { getPeerMessages, sendPeerMessage, savePeerMeetingLink } from "../services/communityService";
 import { io } from "socket.io-client";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+import { BACKEND_URL } from "../config";
 
 const PrivateChatModal = ({ connection, currentUserId, onClose, isPage }) => {
     const [messages, setMessages] = useState([]);
@@ -144,50 +143,50 @@ const PrivateChatModal = ({ connection, currentUserId, onClose, isPage }) => {
                     </div>
                 )}
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3" style={isPage ? { minHeight: 0 } : {}}>
-                {messages.length === 0 && (
-                    <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
-                        Say hello! This is your private chat with {otherName}.
-                    </p>
-                )}
-                {messages.map((msg, i) => {
-                    const senderId = msg.senderId?._id || msg.senderId;
-                    const isMe = senderId?.toString() === currentUserId;
-                    return (
-                        <div key={msg._id || i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                            <div className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm ${isMe
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3" style={isPage ? { minHeight: 0 } : {}}>
+                    {messages.length === 0 && (
+                        <p className="text-center text-sm text-gray-400 dark:text-gray-500 mt-8">
+                            Say hello! This is your private chat with {otherName}.
+                        </p>
+                    )}
+                    {messages.map((msg, i) => {
+                        const senderId = msg.senderId?._id || msg.senderId;
+                        const isMe = senderId?.toString() === currentUserId;
+                        return (
+                            <div key={msg._id || i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                                <div className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm ${isMe
                                     ? "bg-[#f4873e] text-white rounded-br-sm"
                                     : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm"
-                                }`}>
-                                {msg.content}
+                                    }`}>
+                                    {msg.content}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-                <div ref={bottomRef} />
-            </div>
+                        );
+                    })}
+                    <div ref={bottomRef} />
+                </div>
 
-            {/* Input */}
-            <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex gap-2" style={isPage ? { marginBottom: 0 } : {}}>
-                <input
-                    value={input}
-                    onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
-                    placeholder="Type a message..."
-                    className="flex-1 text-sm px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-[#f4873e]"
-                />
-                <button
-                    onClick={handleSend}
-                    disabled={sending || !input.trim()}
-                    className="w-9 h-9 rounded-full bg-[#f4873e] hover:bg-[#ffa669] text-white flex items-center justify-center transition disabled:opacity-50"
-                >
-                    <Send className="w-4 h-4" />
-                </button>
+                {/* Input */}
+                <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex gap-2" style={isPage ? { marginBottom: 0 } : {}}>
+                    <input
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && !e.shiftKey && handleSend()}
+                        placeholder="Type a message..."
+                        className="flex-1 text-sm px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-[#f4873e]"
+                    />
+                    <button
+                        onClick={handleSend}
+                        disabled={sending || !input.trim()}
+                        className="w-9 h-9 rounded-full bg-[#f4873e] hover:bg-[#ffa669] text-white flex items-center justify-center transition disabled:opacity-50"
+                    >
+                        <Send className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
-        </div>
-    </div >
-  );
+        </div >
+    );
 };
 
 export default PrivateChatModal;

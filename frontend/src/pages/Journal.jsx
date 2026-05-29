@@ -1125,6 +1125,7 @@ import { Color } from '@tiptap/extension-color';
 import PinLockModal from '../components/PinLockModal';
 import { encryptContent, decryptContent, getSessionKey } from '../utils/encryption';
 import { Lock, Gift } from 'lucide-react';
+import { API_BASE_URL } from "../config";
 
 // Helper function for relative time
 const getRelativeTime = (dateString) => {
@@ -1185,6 +1186,7 @@ const Journal = () => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinModalMode, setPinModalMode] = useState('set'); // 'set' or 'unlock'
   const [currentEntryForUnlock, setCurrentEntryForUnlock] = useState(null);
+
   const [wantLockEntry, setWantLockEntry] = useState(false);
   const [entryPin, setEntryPin] = useState('');
   const [lockedEntries, setLockedEntries] = useState(new Set());
@@ -1196,7 +1198,7 @@ const Journal = () => {
   const [tags, setTags] = useState('');
   const hasShownMoodToast = useRef(false);
 
-  const API_URL = 'http://localhost:5000/api/journal';
+  const API_URL = `${API_BASE_URL}/journal`;
 
   // Tiptap Editor - FIXED VERSION
   const editor = useEditor({

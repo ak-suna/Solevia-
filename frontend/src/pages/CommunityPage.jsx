@@ -9,6 +9,7 @@ import { getPosts, getUserGroups, getUserChallenges } from "../services/communit
 import CreatePostModal from "../components/CreatePostModal";
 import CommunityFeed from "../components/CommunityFeed";
 import { getToken } from "../services/auth";
+import { API_BASE_URL } from "../config";
 
 const CommunityPage = () => {
     const navigate = useNavigate();
@@ -53,7 +54,7 @@ const CommunityPage = () => {
     const { data: pastChallengesData } = useQuery({
         queryKey: ["community", "pastChallenges"],
         queryFn: async () => {
-            const res = await fetch("http://localhost:5000/api/challenges/past", {
+            const res = await fetch(`${API_BASE_URL}/challenges/past`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             const data = await res.json();

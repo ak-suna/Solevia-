@@ -6,6 +6,7 @@ import DataTable from "../components/DataTable";
 import AdminSidebar from "../components/AdminSidebar";
 import MobileMenu from "../components/MobileMenu";
 import { showError, showSuccess } from "../utils/uiFeedback";
+import { API_BASE_URL } from "../config";
 // import NotificationBell from '../components/NotificationBell';
 
 const AdminReportsPage = () => {
@@ -23,7 +24,7 @@ const AdminReportsPage = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                `http://localhost:5000/api/reports?status=${filter}`,
+                `${API_BASE_URL}/reports?status=${filter}`,
                 { headers: { Authorization: `Bearer ${getToken()}` } }
             );
             const data = await response.json();
@@ -43,7 +44,7 @@ const AdminReportsPage = () => {
     const updateReportStatus = async (reportId, status, action, notes) => {
         try {
             const response = await fetch(
-                `http://localhost:5000/api/reports/${reportId}`,
+                `${API_BASE_URL}/reports/${reportId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -369,7 +370,7 @@ const AdminReportsPage = () => {
                             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2" style={{ fontFamily: "Brasika" }}>
                                 Original Content
                             </h3>
-                            
+
                             {/* Render Post or Comment */}
                             {selectedReport.reportType === "post" && (
                                 <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-3xl border border-gray-200 dark:border-gray-600">
@@ -392,7 +393,7 @@ const AdminReportsPage = () => {
                                     )}
                                 </div>
                             )}
-                            
+
                             {selectedReport.reportType === "comment" && (
                                 <div className="bg-gray-50 dark:bg-gray-700/50 p-6 rounded-3xl border border-gray-200 dark:border-gray-600">
                                     <div className="flex items-center gap-3 mb-2">
@@ -413,7 +414,7 @@ const AdminReportsPage = () => {
                                     </div>
                                 </div>
                             )}
-                            
+
                             <button
                                 onClick={() => setViewingContent(false)}
                                 className="mt-6 w-full py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"

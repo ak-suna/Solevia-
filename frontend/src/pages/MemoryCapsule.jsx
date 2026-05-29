@@ -270,6 +270,7 @@ import CapsuleCard from '../components/MemoryCapsule/CapsuleCard';
 import CapsuleForm from '../components/MemoryCapsule/CapsuleForm';
 import axios from 'axios';
 import { getToken } from '../services/auth';
+import { API_BASE_URL } from "../config";
 
 const MemoryCapsule = () => {
     const navigate = useNavigate();
@@ -280,7 +281,7 @@ const MemoryCapsule = () => {
     const [filterTag, setFilterTag] = useState('all');
     const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'locked', 'unlocked'
 
-    const API_URL = 'http://localhost:5000/api/capsules';
+    const API_URL = `${API_BASE_URL}/capsules`;
 
     // Back button handler
     const handleBackToJournal = () => {
@@ -403,7 +404,7 @@ const MemoryCapsule = () => {
                         >
                             <ArrowLeft className="w-6 h-6 text-gray-700 dark:text-gray-300" />
                         </motion.button>
-                        
+
                         <div>
                             <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100" style={{ fontFamily: "Brasika" }}>
                                 Memory Capsules

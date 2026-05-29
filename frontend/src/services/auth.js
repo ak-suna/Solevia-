@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode"; // ✅ correct for v3+
-
-const API_URL = "http://localhost:5000/api/users";
+import { API_BASE_URL } from "../config";
+const API_URL = `${API_BASE_URL}/users`;
 export const signup = async (userData) => {
     try {
         const response = await fetch(`${API_URL}/signup`, {
@@ -162,7 +162,7 @@ export const reactivateAccount = async (credentials) => {
 export const deactivateAccount = async () => {
     const response = await fetch(`${API_URL}/deactivate`, {
         method: "POST",
-        headers: { 
+        headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${getToken()}`
         }
@@ -180,7 +180,7 @@ export const deactivateAccount = async () => {
 export const requestAccountDeletion = async () => {
     const response = await fetch(`${API_URL}/request-deletion`, {
         method: "POST",
-        headers: { 
+        headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${getToken()}`
         }

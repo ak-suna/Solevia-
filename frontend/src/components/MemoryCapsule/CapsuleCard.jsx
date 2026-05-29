@@ -248,6 +248,7 @@ import axios from 'axios';
 import { getToken } from '../../services/auth';
 import toast from 'react-hot-toast';
 import { getSessionKey, decryptContent } from '../../utils/encryption';
+import { API_BASE_URL } from '../../config';
 
 const CapsuleCard = ({ capsule, index, onDelete, onRefresh }) => {
     const [showPinModal, setShowPinModal] = useState(false);
@@ -263,7 +264,7 @@ const CapsuleCard = ({ capsule, index, onDelete, onRefresh }) => {
         try {
             const token = getToken();
             const response = await axios.post(
-                `http://localhost:5000/api/capsules/${capsule._id}/unlock`,
+                `${API_BASE_URL}/capsules/${capsule._id}/unlock`,
                 { pin },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -349,7 +350,7 @@ const CapsuleCard = ({ capsule, index, onDelete, onRefresh }) => {
                                 try {
                                     const token = getToken();
                                     const response = await axios.post(
-                                        `http://localhost:5000/api/capsules/${capsule._id}/unlock-with-password`,
+                                        `${API_BASE_URL}/capsules/${capsule._id}/unlock-with-password`,
                                         { password },
                                         { headers: { Authorization: `Bearer ${token}` } }
                                     );

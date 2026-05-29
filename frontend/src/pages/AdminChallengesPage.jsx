@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "../config";
 import React, { useState, useEffect } from "react";
 import { getToken } from "../services/auth";
 import { Trophy, Plus, Edit2, Trash2, X, AlertTriangle, Users, Calendar, Menu } from 'lucide-react';
@@ -31,7 +32,7 @@ const AdminChallengesPage = () => {
     const fetchTemplates = async () => {
         setLoading(true);
         try {
-            const res = await fetch("http://localhost:5000/api/challenges/admin/templates", {
+            const res = await fetch(`${API_BASE_URL}/challenges/admin/templates`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             const data = await res.json();
@@ -47,7 +48,7 @@ const AdminChallengesPage = () => {
 
     const fetchLiveChallenges = async () => {
         try {
-            const res = await fetch("http://localhost:5000/api/challenges", {
+            const res = await fetch(`${API_BASE_URL}/challenges`, {
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
             const data = await res.json();
@@ -86,8 +87,8 @@ const AdminChallengesPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const url = editingTemplate
-            ? `http://localhost:5000/api/challenges/admin/templates/${editingTemplate._id}`
-            : "http://localhost:5000/api/challenges/admin/templates";
+            ? `${API_BASE_URL}/challenges/admin/templates/${editingTemplate._id}`
+            : `${API_BASE_URL}/challenges/admin/templates`;
         const method = editingTemplate ? "PATCH" : "POST";
 
         try {
@@ -114,7 +115,7 @@ const AdminChallengesPage = () => {
         const confirmed = await confirmAction("Delete this template?", { confirmText: "Delete" });
         if (!confirmed) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/challenges/admin/templates/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/challenges/admin/templates/${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${getToken()}` }
             });
@@ -212,8 +213,8 @@ const AdminChallengesPage = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`px-6 py-3 rounded-full font-bold transition-all ${activeTab === tab.id
-                                    ? "bg-gradient-to-r from-[#f4873e] to-[#ff9e5e] text-white shadow-lg scale-105"
-                                    : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:scale-102 hover:shadow-md"
+                                ? "bg-gradient-to-r from-[#f4873e] to-[#ff9e5e] text-white shadow-lg scale-105"
+                                : "bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:scale-102 hover:shadow-md"
                                 }`}
                         >
                             {tab.label}

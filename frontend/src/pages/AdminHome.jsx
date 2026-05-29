@@ -495,7 +495,7 @@ import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend
 } from "recharts";
-
+import { API_BASE_URL } from "../config";
 const ADMIN_FILTERED_NOTIFICATION_TYPES = [
     "MOOD_REMINDER_MORNING",
     "MOOD_REMINDER_EVENING",
@@ -503,7 +503,9 @@ const ADMIN_FILTERED_NOTIFICATION_TYPES = [
     "HABIT_REMINDER",
 ];
 
-const API = "http://localhost:5000/api";
+
+
+const API = API_BASE_URL;
 
 const authHeaders = () => ({
     "Content-Type": "application/json",
@@ -667,7 +669,7 @@ const AdminHome = () => {
     return (
         <div
             className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative"
-            // onClick={() => showSettings && setShowSettings(false)}
+        // onClick={() => showSettings && setShowSettings(false)}
         >
             <AdminSidebar />
 

@@ -334,7 +334,7 @@ export const getAnalyticsSummary = async (req, res) => {
 
         // ===== HABIT HEATMAP (90 DAYS) =====
         const habitHeatmap = [];
-        
+
         // Get HabitDay snapshots for the last 90 days
         const habitDays = await HabitDay.find({
             user: userId,
@@ -360,7 +360,7 @@ export const getAnalyticsSummary = async (req, res) => {
             const dateKey = date.toISOString().split('T')[0];
 
             const dayData = habitDayMap[dateKey] || { completionPercentage: 0, completedCount: 0, totalCount: 0 };
-            
+
             // Convert percentage to 0-1 range
             const completion = dayData.totalCount > 0
                 ? (dayData.completionPercentage / 100)
@@ -496,7 +496,8 @@ export const getAnalyticsSummary = async (req, res) => {
         const allGoalsCompleted = await Goal.find({ user: userId, status: 'completed' });
 
         // Calculate streaks from backend service
-        const streaksResponse = await fetch(`http://localhost:5000/api/mood/streaks`, {
+        const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+        const streaksResponse = await fetch(`${baseUrl}/api/mood/streaks`, {
             headers: { Authorization: req.headers.authorization }
         });
         const streaks = await streaksResponse.json();

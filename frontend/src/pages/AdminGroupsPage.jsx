@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/auth";
+import { API_BASE_URL } from "../config";
 import { UserPlus, Plus, Users, Calendar, Trash2, Edit, X, Trophy, Inbox, LayoutDashboard, Menu } from 'lucide-react';
 import ModeratorCandidatesModal from "../components/ModeratorCandidatesModal";
 import JoinRequestsModal from "../components/JoinRequestsModal";
@@ -35,7 +36,7 @@ const AdminGroupsPage = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                "http://localhost:5000/api/groups?limit=100",
+                `${API_BASE_URL}/groups?limit=100`,
                 { headers: { Authorization: `Bearer ${getToken()}` } }
             );
             const data = await response.json();
@@ -52,7 +53,7 @@ const AdminGroupsPage = () => {
         e.preventDefault();
 
         try {
-            const response = await fetch("http://localhost:5000/api/groups", {
+            const response = await fetch(`${API_BASE_URL}/groups`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -78,7 +79,7 @@ const AdminGroupsPage = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:5000/api/groups/${groupId}`,
+                `${API_BASE_URL}/groups/${groupId}`,
                 {
                     method: "PUT",
                     headers: {
@@ -108,7 +109,7 @@ const AdminGroupsPage = () => {
 
         try {
             const response = await fetch(
-                `http://localhost:5000/api/groups/${groupId}`,
+                `${API_BASE_URL}/groups/${groupId}`,
                 {
                     method: "DELETE",
                     headers: { Authorization: `Bearer ${getToken()}` }

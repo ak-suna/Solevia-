@@ -3,8 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { io } from "socket.io-client";
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+import { BACKEND_URL } from "../config";
 
 
 let socket = null;
@@ -48,16 +47,16 @@ export function useNotifications() {
     // Notification handlers
     socket.on("notification", (notification) => {
       console.log("📬 New notification received:", notification);
-      
+
       // Add to notifications list
       setNotifications((prev) => [notification, ...prev]);
-      
+
       // Increment unread count
       setUnreadCount((prev) => prev + 1);
-      
+
       // Show browser notification (if permitted)
       showBrowserNotification(notification);
-      
+
       // Show toast notification (implement your own toast)
       // toast.success(notification.title);
     });

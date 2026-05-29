@@ -13,6 +13,7 @@ import FontSizeToggle from "../components/FontSizeToggle";
 import Toast from "../components/Toast";
 import axios from "axios";
 import { deriveKey, encryptContent, decryptContent, initializeEncryption } from "../utils/encryption";
+import { BACKEND_URL, API_BASE_URL } from "../config";
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -26,7 +27,7 @@ const SettingsPage = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
-    
+
     // Lifecycle state
     const [toast, setToast] = useState({ show: false, message: "", type: "success" });
     const [showDeactivateModal, setShowDeactivateModal] = useState(false);
@@ -134,7 +135,7 @@ const SettingsPage = () => {
         try {
             // 1. Fetch all journal entries
             const token = getToken();
-            const API_URL = 'http://localhost:5000/api/journal';
+            const API_URL = `${API_BASE_URL}/journal`;
             const response = await axios.get(API_URL, {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -151,9 +152,9 @@ const SettingsPage = () => {
                     const decryptedText = decryptContent(entry.content, oldKey);
                     // Encrypt with new key
                     const newEncryptedContent = encryptContent(decryptedText, newKey);
-                    
+
                     // Update the entry on the backend
-                    return axios.put(`${API_URL}/${entry._id}`, 
+                    return axios.put(`${API_URL}/${entry._id}`,
                         { content: newEncryptedContent },
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
@@ -623,7 +624,7 @@ const SettingsPage = () => {
                                     <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-6 text-center">
                                         Account Management
                                     </h3>
-                                    
+
                                     <div className="space-y-6">
                                         <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-orange-50 dark:bg-gray-800 rounded-xl border border-orange-200 dark:border-gray-600">
                                             <div className="mb-4 sm:mb-0">
@@ -668,18 +669,18 @@ const SettingsPage = () => {
                         >
                             <X className="w-5 h-5" />
                         </button>
-                        
+
                         <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mb-6 mx-auto">
                             <AlertTriangle className="w-8 h-8 text-orange-500" />
                         </div>
-                        
+
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2" style={{ fontFamily: "Brasika" }}>
                             Deactivate Account?
                         </h3>
                         <p className="text-gray-600 dark:text-gray-300 text-center mb-6 leading-relaxed">
                             Your profile will be hidden and you won't receive notifications. You can reactivate anytime by logging back in.
                         </p>
-                        
+
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowDeactivateModal(false)}
@@ -709,18 +710,18 @@ const SettingsPage = () => {
                         >
                             <X className="w-5 h-5" />
                         </button>
-                        
+
                         <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-6 mx-auto">
                             <AlertTriangle className="w-8 h-8 text-red-500" />
                         </div>
-                        
+
                         <h3 className="text-2xl font-bold text-red-600 dark:text-red-400 text-center mb-2" style={{ fontFamily: "Brasika" }}>
                             Request Deletion?
                         </h3>
                         <p className="text-gray-600 dark:text-gray-300 text-center mb-6 leading-relaxed">
                             Your account will be scheduled for permanent deletion in 30 days. You can cancel this request by logging in before the grace period ends.
                         </p>
-                        
+
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
@@ -743,8 +744,10 @@ const SettingsPage = () => {
     );
 };
 
+
+
 function NotificationSettingsContent() {
-    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
 
     const [preferences, setPreferences] = useState({
         habits: { inApp: true, email: true },
