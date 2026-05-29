@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ModeratorSidebar from '../components/ModeratorSidebar';
+import MobileMenu from '../components/MobileMenu';
 import { useQuery } from '@tanstack/react-query';
 import { getGroupById, getGroupJoinRequests, getGroupReports } from '../services/communityService';
-import { LayoutDashboard, Users, Inbox, AlertTriangle } from 'lucide-react';
+import { LayoutDashboard, Users, Inbox, AlertTriangle, Menu } from 'lucide-react';
 import { jwtDecode } from "jwt-decode";
 
 const GroupModeratorDashboard = () => {
     const { groupId } = useParams();
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const token = localStorage.getItem("token");
     const role = token ? jwtDecode(token)?.role : null;
 
@@ -60,10 +62,19 @@ const GroupModeratorDashboard = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
-            <ModeratorSidebar />
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
 
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+            <ModeratorSidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="moderator" groupId={groupId} />
+
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
 
                 {/* Header */}
                 <div className="mb-8 flex items-center gap-4">
@@ -93,13 +104,13 @@ const GroupModeratorDashboard = () => {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 mb-8">
                     {stats.map((stat, i) => {
                         const Icon = stat.icon;
                         return (
                             <div
                                 key={i}
-                                className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 flex flex-col items-center gap-3"
+                                className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-4 lg:p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 flex flex-col items-center gap-3"
                             >
                                 <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-md`}>
                                     <Icon className="w-7 h-7 text-white" />
@@ -117,7 +128,7 @@ const GroupModeratorDashboard = () => {
 
                 {/* Group Info Card */}
                 {group && (
-                    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600">
+                    <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-4 lg:p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600">
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4" style={{ fontFamily: 'Brasika' }}>
                             Group Info
                         </h3>

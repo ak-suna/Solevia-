@@ -2,9 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProfile, updateProfile, changePassword } from "../services/profile";
 import { logout, deactivateAccount, requestAccountDeletion, getToken } from "../services/auth";
-import { ChevronRight, LogOut, Save, X, Check, Camera, Moon, Sun, ChevronLeft, AlertTriangle } from "lucide-react";
+import { ChevronRight, LogOut, Save, X, Check, Camera, Moon, Sun, ChevronLeft, AlertTriangle, Menu } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { Link } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import MobileMenu from "../components/MobileMenu";
 import PasswordStrength, { checkPasswordStrength } from "../components/PasswordStrength";
 import { uploadProfilePicture } from "../services/profile";
 import FontSizeToggle from "../components/FontSizeToggle";
@@ -23,6 +25,7 @@ const SettingsPage = () => {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     
     // Lifecycle state
     const [toast, setToast] = useState({ show: false, message: "", type: "success" });
@@ -268,10 +271,20 @@ const SettingsPage = () => {
     );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
+
+            <Sidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="user" />
             <Link
                 to="/dashboard"
-                className="flex items-center mb-6 text-gray-700 dark:text-gray-300 hover:text-[#f4873e] dark:hover:text-orange-400 transition font-medium"
+                className="flex items-center mb-4 lg:mb-6 text-gray-700 dark:text-gray-300 hover:text-[#f4873e] dark:hover:text-orange-400 transition font-medium"
             >
                 <ChevronLeft className="mr-2 w-5 h-5" />
                 Back to Dashboard
@@ -284,9 +297,9 @@ const SettingsPage = () => {
                 </div>
             )}
 
-            <div className="max-w-6xl mx-auto flex gap-6">
+            <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-4 lg:gap-6">
                 {/* Left Sidebar */}
-                <div className="w-72 bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-6 shadow-lg h-fit border-2 border-[#f4873e]/20 dark:border-gray-700">
+                <div className="w-full lg:w-72 bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-4 lg:p-6 shadow-lg h-fit border-2 border-[#f4873e]/20 dark:border-gray-700">
                     <h2 className="text-2xl font-bold text-[#1F3B36] dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Settings</h2>
                     <div className="space-y-2">
                         <button

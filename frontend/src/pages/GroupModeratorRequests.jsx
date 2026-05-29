@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import ModeratorSidebar from '../components/ModeratorSidebar';
+import MobileMenu from '../components/MobileMenu';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getGroupJoinRequests, approveJoinRequest, rejectJoinRequest } from '../services/communityService';
-import { UserPlus, CheckCircle, XCircle } from 'lucide-react';
+import { UserPlus, CheckCircle, XCircle, Menu } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const GroupModeratorRequests = () => {
     const { groupId } = useParams();
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     // const navigate = useNavigate();
     const queryClient = useQueryClient();
 
@@ -41,9 +43,9 @@ const GroupModeratorRequests = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
                 <ModeratorSidebar />
-                <div className="flex-1 ml-28 flex justify-center items-center">
+                <div className="flex-1 lg:ml-28 flex justify-center items-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#89beab]"></div>
                 </div>
             </div>
@@ -51,11 +53,20 @@ const GroupModeratorRequests = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
+
             <ModeratorSidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="moderator" groupId={groupId} />
             
 
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
                 {/* <button
                     onClick={() => navigate(`/admin/groups/${groupId}/moderator/dashboard`)}
                     className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-semibold"
@@ -78,7 +89,7 @@ const GroupModeratorRequests = () => {
                         {requests.map((r) => (
                             <div
                                 key={r._id}
-                                className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all"
+                                className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-4 lg:p-6 border-2 border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all"
                             >
                                 <div className="flex items-center justify-between gap-4 flex-wrap">
                                     <div className="flex items-center gap-4 flex-1 min-w-0">

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Calendar, Users, Trash2, Check } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, Users, Trash2, Check, Menu } from "lucide-react";
 import ModeratorSidebar from "../components/ModeratorSidebar";
+import MobileMenu from "../components/MobileMenu";
 import { getGroupById } from "../services/communityService";
 import {
     createGroupSession,
@@ -17,6 +18,7 @@ const GroupSessionsPage = () => {
     const { groupId } = useParams();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     const token = localStorage.getItem("token");
     const currentUserId = token ? jwtDecode(token).id : null;
@@ -99,10 +101,19 @@ const GroupSessionsPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
-            <ModeratorSidebar />
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
 
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
+            <ModeratorSidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="moderator" groupId={groupId} />
+
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 <div className="flex items-center gap-4 mb-8">
                     {/* <button
@@ -127,7 +138,7 @@ const GroupSessionsPage = () => {
 
                 {/* Create form */}
                 {showForm && isModerator && (
-                    <form onSubmit={handleCreate} className="mb-8 bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/20 dark:to-gray-800 rounded-3xl p-6 border-2 border-orange-200 dark:border-orange-800 space-y-4">
+                    <form onSubmit={handleCreate} className="mb-8 bg-gradient-to-br from-orange-50 to-white dark:from-orange-900/20 dark:to-gray-800 rounded-3xl p-4 lg:p-6 border-2 border-orange-200 dark:border-orange-800 space-y-4">
                         <h3 className="font-bold text-gray-900 dark:text-white">Schedule a New Session</h3>
                         <input
                             required
@@ -158,7 +169,7 @@ const GroupSessionsPage = () => {
                             placeholder="Meeting link (Zoom/Google Meet/Teams) - optional"
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-[#f4873e] text-sm"
                         />
-                        <div className="flex gap-3 justify-end">
+                        <div className="flex gap-3 justify-end flex-col sm:flex-row">
                             <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-semibold">Cancel</button>
                             <button type="submit" className="px-5 py-2 rounded-full bg-[#f4873e] hover:bg-[#ffa669] text-white text-sm font-semibold transition">Create Session</button>
                         </div>

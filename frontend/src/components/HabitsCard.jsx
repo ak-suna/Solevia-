@@ -24,7 +24,7 @@ const HabitsCard = () => {
   };
 
   return (
-    <div className="bg-[#89beab] dark:bg-gray-800 p-10 rounded-[40px] w-full flex flex-col min-h-0 overflow-hidden max-h-[340px]">
+    <div className="bg-[#89beab] dark:bg-gray-800 p-6 lg:p-10 rounded-[40px] w-full flex flex-col min-h-0 overflow-hidden max-h-[340px]">
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-sm font-bold text-[#1F3B36] dark:text-white uppercase tracking-wide opacity-80">
           Today's Habits

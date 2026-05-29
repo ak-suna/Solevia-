@@ -7,8 +7,9 @@ import { shouldShowMoodCheck, saveMood, getMoodHistory, getStreaks } from "../se
 import Sidebar from "../components/Sidebar";
 import HabitsCard from "../components/HabitsCard";
 import GoalsCard from "../components/GoalsCard";
-import { Settings, Flame, Plus } from 'lucide-react';
+import { Settings, Flame, Plus, Menu } from 'lucide-react';
 import NotificationBell from '../components/NotificationBell';
+import MobileMenu from '../components/MobileMenu';
 import { getJournals } from "../services/journalService";
 import { getHabitHistory } from "../services/habitService";
 import { Book, CheckCircle2 } from 'lucide-react';
@@ -21,6 +22,7 @@ const UserDashboard = () => {
   const username = getUsername();
   const [selectedDate, setSelectedDate] = useState(null);
   const [moodHistory, setMoodHistory] = useState([]);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const [showMoodPopup, setShowMoodPopup] = useState(false);
   const [moodPeriod, setMoodPeriod] = useState(null);
@@ -256,10 +258,20 @@ const UserDashboard = () => {
         />
       )}
 
-      <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+      <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setShowMobileMenu(true)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+        >
+          <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+        </button>
+
         <Sidebar />
 
-        <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+        <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="user" />
+
+        <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
           <div className="flex justify-between items-start mb-6"
             style={{ fontFamily: "Brasika" }}>
             <h1 className="text-3xl font-bold">
@@ -268,8 +280,8 @@ const UserDashboard = () => {
             </h1>
           </div>
 
-          <div className="flex gap-6 overflow-x-auto">
-            <div className="flex-shrink-0">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-x-auto">
+            <div className="flex-shrink-0 w-full lg:w-auto">
               <Calendar
                 onDateSelect={handleDateSelect}
                 moodData={moodHistory}
@@ -279,7 +291,7 @@ const UserDashboard = () => {
               />
             </div>
 
-            <div className="flex-shrink-0 w-[480px] h-[600px] bg-[#f4f2f0] dark:bg-gray-700 rounded-2xl p-6 shadow-inner overflow-y-auto">
+            <div className="flex-shrink-0 w-full lg:w-[480px] h-[600px] bg-[#f4f2f0] dark:bg-gray-700 rounded-2xl p-4 lg:p-6 shadow-inner overflow-y-auto">
               {selectedDate ? (
                 <div>
                   <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
@@ -420,7 +432,7 @@ const UserDashboard = () => {
           </button>
         </div>
 
-        <div className="absolute top-6 right-6 flex items-center gap-6">
+        <div className="absolute top-4 lg:top-6 right-4 lg:right-6 flex items-center gap-4 lg:gap-6">
           <NotificationBell />
 
           <button
@@ -431,7 +443,7 @@ const UserDashboard = () => {
           </button>
         </div>
 
-        <div className="w-80 flex flex-col gap-5 pt-20">
+        <div className="w-full lg:w-80 flex flex-col gap-4 lg:gap-5 pt-4 lg:pt-20">
           <StreaksCard />
           <HabitsCard />
           <GoalsCard />

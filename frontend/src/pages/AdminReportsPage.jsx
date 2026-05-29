@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/auth";
-import { AlertTriangle, Eye, X, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Eye, X, CheckCircle, Menu } from 'lucide-react';
 import DataTable from "../components/DataTable";
 import AdminSidebar from "../components/AdminSidebar";
+import MobileMenu from "../components/MobileMenu";
 import { showError, showSuccess } from "../utils/uiFeedback";
 // import NotificationBell from '../components/NotificationBell';
 
@@ -14,6 +15,7 @@ const AdminReportsPage = () => {
     const [filter, setFilter] = useState("pending");
     const [selectedReport, setSelectedReport] = useState(null);
     const [viewingContent, setViewingContent] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
 
 
@@ -162,12 +164,21 @@ const AdminReportsPage = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
+
             {/* LEFT SIDEBAR */}
             <AdminSidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="admin" />
 
             {/* MAIN CENTER PANEL */}
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
@@ -183,7 +194,7 @@ const AdminReportsPage = () => {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex gap-3 mb-6 flex-wrap">
+                <div className="flex gap-3 mb-6 flex-wrap overflow-x-auto">
                     {["pending", "under-review", "resolved", "dismissed", "all"].map(status => (
                         <button
                             key={status}

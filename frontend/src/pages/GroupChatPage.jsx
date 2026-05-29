@@ -196,7 +196,7 @@ const GroupChatPage = () => {
   const activeConnIdx = connections.findIndex((c) => c._id === activeId);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+    <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
       {/* Your existing sidebar */}
       <Sidebar />
 
@@ -212,7 +212,7 @@ const GroupChatPage = () => {
       </div> */}
 
       {/* Main card — matches dashboard exactly */}
-      <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] overflow-hidden flex"
+      <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] overflow-hidden flex"
         style={{ height: "calc(100vh - 48px)" }}>
 
         {loading ? (
@@ -411,7 +411,7 @@ const GroupChatPage = () => {
                 </div>
 
                 {/* Input bar — matches dashboard's rounded aesthetic */}
-                <div className="px-5 py-4 border-t-2 border-gray-100 dark:border-gray-700 flex gap-3 items-center flex-shrink-0 bg-white dark:bg-gray-800">
+                <div className="px-4 lg:px-5 py-4 border-t-2 border-gray-100 dark:border-gray-700 flex gap-3 items-center flex-shrink-0 bg-white dark:bg-gray-800">
                   <input
                     value={input}
                     onChange={(e) => setInput(e.target.value)}

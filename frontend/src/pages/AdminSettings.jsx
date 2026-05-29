@@ -198,7 +198,7 @@ const AdminSettings = () => {
     );
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
             <AdminSidebar />
 
             {toast.show && (
@@ -207,7 +207,7 @@ const AdminSettings = () => {
                 </div>
             )}
 
-            <div className="flex-1 ml-28">
+            <div className="flex-1 lg:ml-28">
                 {/* Back button */}
                 {/* <button
                     onClick={() => navigate("/admin/dashboard")}
@@ -217,9 +217,9 @@ const AdminSettings = () => {
                     Back to Dashboard
                 </button> */}
 
-                <div className="flex gap-6">
+                <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
                     {/* Left Sidebar */}
-                    <div className="w-72 bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-6 shadow-lg h-fit border-2 border-[#f4873e]/20 dark:border-gray-700 flex-shrink-0">
+                    <div className="w-full lg:w-72 bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-4 lg:p-6 shadow-lg h-fit border-2 border-[#f4873e]/20 dark:border-gray-700 flex-shrink-0">
                         {/* Admin badge */}
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-8 h-8 rounded-full bg-[#f4873e] flex items-center justify-center">
@@ -330,7 +330,7 @@ const AdminSettings = () => {
                                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6" style={{ fontFamily: "Brasika" }}>Appearance</h2>
                                 <div className="space-y-6">
                                     {/* Theme toggle */}
-                                    <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600">
+                                    <div className="flex items-center justify-between p-4 lg:p-6 bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600">
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-1">Theme</h3>
                                             <p className="text-sm text-gray-600 dark:text-gray-400">Switch between light and dark mode</p>
@@ -345,7 +345,7 @@ const AdminSettings = () => {
                                         </button>
                                     </div>
                                     {/* Font size */}
-                                    <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600">
+                                    <div className="flex items-center justify-between p-4 lg:p-6 bg-white dark:bg-gray-700 rounded-2xl shadow-md border-2 border-[#f4873e]/10 dark:border-gray-600">
                                         <FontSizeToggle />
                                     </div>
                                 </div>

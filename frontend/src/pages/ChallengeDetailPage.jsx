@@ -178,9 +178,9 @@ const ChallengeDetailPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <Sidebar />
-                <div className="flex-1 ml-28 flex justify-center items-center">
+                <div className="flex-1 lg:ml-28 flex justify-center items-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f4873e]" />
                 </div>
             </div>
@@ -189,9 +189,9 @@ const ChallengeDetailPage = () => {
 
     if (!challenge) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
                 <Sidebar />
-                <div className="flex-1 ml-28 flex justify-center items-center">
+                <div className="flex-1 lg:ml-28 flex justify-center items-center">
                     <p className="text-gray-500 dark:text-gray-400">Challenge not found.</p>
                 </div>
             </div>
@@ -199,7 +199,7 @@ const ChallengeDetailPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
             {showCompletedPopup && (
                 <div
                     className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4"
@@ -229,7 +229,7 @@ const ChallengeDetailPage = () => {
 
             <Sidebar />
 
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 {/* Back */}
                 <button
@@ -242,7 +242,7 @@ const ChallengeDetailPage = () => {
 
                 {/* Challenge Header */}
                 <div className="mb-6">
-                    <div className="flex gap-2 mb-3 flex-wrap">
+                    <div className="flex gap-2 mb-3 flex-wrap overflow-x-auto">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${trackingTypeColors[challenge.trackingType]}`}>
                             {challenge.trackingType}
                         </span>
@@ -283,7 +283,7 @@ const ChallengeDetailPage = () => {
 
                 {/* Progress Section */}
                 {isJoined && (
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-3xl p-6 mb-6">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-3xl p-4 lg:p-6 mb-6">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-bold text-gray-900 dark:text-white">
                                 Your Progress
@@ -374,7 +374,7 @@ const ChallengeDetailPage = () => {
                         </h2>
 
                         {/* Post input */}
-                        <div className="flex gap-3 mb-6">
+                        <div className="flex gap-3 mb-6 flex-col sm:flex-row">
                             <input
                                 type="text"
                                 value={postContent}
@@ -419,7 +419,7 @@ const ChallengeDetailPage = () => {
                                         <p className="text-gray-800 dark:text-gray-200 text-sm mb-3">
                                             {post.content}
                                         </p>
-                                        <div className="flex gap-2 flex-wrap">
+                                        <div className="flex gap-2 flex-wrap overflow-x-auto">
                                             {["❤️", "😆", "😢", "🤩", "😡"].map(emoji => {
                                                 const reaction = post.reactions?.find(r => r.emoji === emoji);
                                                 return (

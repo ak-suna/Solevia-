@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Circle, Plus, Trash2, Calendar, X, Repeat, Target } from 'lucide-react';
+import { CheckCircle2, Circle, Plus, Trash2, Calendar, X, Repeat, Target, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar';
+import MobileMenu from '../components/MobileMenu';
 import { useHabits } from '../contexts/HabitsContext';
 import { useGoals } from '../contexts/GoalsContext';
 import { getHabitHistory, getLinkedGoals, getPastHabits } from '../services/habitService';
@@ -11,6 +12,7 @@ const HabitsPage = () => {
   const { habits, addHabit, toggleHabit, deleteHabit, globalStreak } = useHabits();
   const { goals } = useGoals();
   const { showToast, ToastContainer } = useToast();
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
@@ -226,11 +228,20 @@ const HabitsPage = () => {
     : goals;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+    <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setShowMobileMenu(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+      >
+        <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+      </button>
+
       <Sidebar />
+      <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="user" />
       <ToastContainer />
 
-      <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+      <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
 
         {/* Header */}
         <motion.div
@@ -551,7 +562,7 @@ const HabitsPage = () => {
         </div>
 
         {/* Statistics */}
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Current Streak</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -588,7 +599,7 @@ const HabitsPage = () => {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="fixed inset-0 m-auto ml-[10rem] w-[calc(100%-15rem)] h-[775px] bg-white dark:bg-gray-800 rounded-[50px] shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] z-50 overflow-hidden"
+                className="fixed inset-0 m-auto lg:ml-[10rem] w-full lg:w-[calc(100%-15rem)] h-[775px] bg-white dark:bg-gray-800 rounded-[50px] shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] z-50 overflow-hidden"
               >
                 <div className="bg-gray-50 dark:bg-gray-700 p-6 border-b border-gray-200 dark:border-gray-600">
                   <div className="flex justify-between items-center">

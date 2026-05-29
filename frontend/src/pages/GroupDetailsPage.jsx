@@ -354,12 +354,12 @@ const GroupDetailsPage = () => {
                 />
             )}
 
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
                 {/* LEFT SIDEBAR */}
                 <Sidebar />
 
                 {/* MAIN CENTER PANEL */}
-                <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+                <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
 
                     {/* Back Button */}
                     <button
@@ -371,7 +371,7 @@ const GroupDetailsPage = () => {
                     </button>
 
                     {/* Group Header with Members/Requests buttons */}
-                    <div className={`bg-gradient-to-r ${gradientColor} rounded-3xl p-6 mb-6 text-white shadow-lg`}>
+                    <div className={`bg-gradient-to-r ${gradientColor} rounded-3xl p-4 lg:p-6 mb-6 text-white shadow-lg`}>
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-4">
                                 <div className="text-5xl">{group.icon || "📝"}</div>
@@ -424,7 +424,7 @@ const GroupDetailsPage = () => {
                                     </button>
                                 )}
                                 {/* Members & Requests buttons */}
-                                <div className="flex gap-2 mt-2">
+                                <div className="flex gap-2 mt-2 flex-wrap">
                                     <button
                                         onClick={() => setShowMembersModal(true)}
                                         className="flex items-center gap-1 px-3 py-1.5 bg-white/30 hover:bg-white/40 rounded-full text-sm font-semibold text-white"
@@ -454,7 +454,7 @@ const GroupDetailsPage = () => {
 
                     {/* Weekly Task */}
                     {group.weeklyTask?.task && (
-                        <div className="bg-gradient-to-br from-[#f8ba90] to-[#f4873e]/50 rounded-2xl p-6 mb-6 shadow-md">
+                        <div className="bg-gradient-to-br from-[#f8ba90] to-[#f4873e]/50 rounded-2xl p-4 lg:p-6 mb-6 shadow-md">
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
@@ -500,7 +500,7 @@ const GroupDetailsPage = () => {
                             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
                                 Your connections in this group
                             </h2>
-                            <div className="flex flex-wrap gap-6 justify-center py-2">
+                            <div className="flex flex-wrap gap-4 lg:gap-6 justify-center py-2">
                                 {myConnections.filter(c => c.status === "accepted").map((conn, idx) => {
                                     const other = conn.requesterId?._id === currentUserId || conn.requesterId === currentUserId
                                         ? conn.recipientId
@@ -554,7 +554,7 @@ const GroupDetailsPage = () => {
                 </div>
 
                 {/* Top Right Navigation Buttons */}
-                <div className="absolute top-6 right-6 flex items-center gap-6">
+                <div className="absolute top-4 lg:top-6 right-4 lg:right-6 flex items-center gap-4 lg:gap-6">
                     <NotificationBell />
                     <button
                         onClick={() => navigate('/settings')}
@@ -681,7 +681,7 @@ const GroupDetailsPage = () => {
                 onClose={() => setShowConnectionsModal(false)}
                 title="Your Connections in this Group"
             >
-                <div className="flex flex-wrap gap-6 justify-center py-4">
+                <div className="flex flex-wrap gap-4 lg:gap-6 justify-center py-4">
                     {myConnections.filter(c => c.status === "accepted").map((conn, idx) => {
                         const other = conn.requesterId?._id === currentUserId || conn.requesterId === currentUserId
                             ? conn.recipientId

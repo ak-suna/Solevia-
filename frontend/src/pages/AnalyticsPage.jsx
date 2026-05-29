@@ -518,9 +518,9 @@ const AnalyticsPage = () => {
 
     if (loading || !mainDashboardData) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
                 <Sidebar />
-                <div className="flex-1 ml-28 flex items-center justify-center">
+                <div className="flex-1 lg:ml-28 flex items-center justify-center">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#89beab] mx-auto mb-4"></div>
                         <p className="text-gray-600 dark:text-gray-400">Loading your analytics...</p>
@@ -557,7 +557,7 @@ const AnalyticsPage = () => {
         <div className="min-h-screen bg-white dark:bg-gray-900">
             <Sidebar />
 
-            <div className="ml-28 p-6">
+            <div className="ml-0 lg:ml-28 p-4 lg:p-6">
                 <div className="bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)]">
 
                     {/* Simplified Layout Header - Global controls removed */}

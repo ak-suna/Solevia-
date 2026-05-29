@@ -80,12 +80,12 @@ const BrowseGroupsPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* LEFT SIDEBAR */}
             <Sidebar />
 
             {/* MAIN CENTER PANEL - Matches dashboard width */}
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 {/* Back Button */}
 
@@ -113,7 +113,7 @@ const BrowseGroupsPage = () => {
                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                         Category
                     </label>
-                    <div className="flex gap-3 flex-wrap">
+                    <div className="flex gap-3 flex-wrap overflow-x-auto">
                         {["all", "journaling", "gratitude", "mindfulness", "fitness", "habits", "goals", "wellness", "other"].map(category => (
                             <button
                                 key={category}
@@ -145,7 +145,7 @@ const BrowseGroupsPage = () => {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         {groups.map(group => {
                             const isMember = myGroups.some(g => g._id === group._id);
                             const isFull = group.members?.length >= group.maxMembers;
@@ -153,7 +153,7 @@ const BrowseGroupsPage = () => {
                             return (
                                 <div
                                     key={group._id}
-                                    className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl hover:border-[#89beab] dark:hover:border-teal-500 transition-all cursor-pointer"
+                                    className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-4 lg:p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl hover:border-[#89beab] dark:hover:border-teal-500 transition-all cursor-pointer"
                                     onClick={() => navigate(`/community/group/${group._id}`)}
                                 >
                                     <div className="flex items-center gap-3 mb-4">

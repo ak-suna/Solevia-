@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Sidebar from "../components/Sidebar";
+import MobileMenu from "../components/MobileMenu";
 import RightSidebarCards from "../components/RightSidebarCards";
-import { Plus, Users, Trophy, ArrowRight, CheckCircle } from 'lucide-react';
+import { Plus, Users, Trophy, ArrowRight, CheckCircle, Menu } from 'lucide-react';
 import { getPosts, getUserGroups, getUserChallenges } from "../services/communityService";
 import CreatePostModal from "../components/CreatePostModal";
 import CommunityFeed from "../components/CommunityFeed";
@@ -16,6 +17,7 @@ const CommunityPage = () => {
     const [activeTab, setActiveTab] = useState("feed"); // feed, groups, challenges
     const [categoryFilter, setCategoryFilter] = useState("all");
     const [showCreatePostModal, setShowCreatePostModal] = useState(false);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     // Focus post logic
     const searchParams = new URLSearchParams(location.search);
@@ -98,12 +100,21 @@ const CommunityPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
+
             {/* LEFT SIDEBAR */}
             <Sidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="user" />
 
             {/* MAIN CONTENT AREA - Matches dashboard width */}
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 {/* Header */}
                 <div className="mb-6 text-left">
@@ -115,7 +126,7 @@ const CommunityPage = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-6 mb-6 border-b-2 border-gray-200 dark:border-gray-700">
+                <div className="flex gap-4 lg:gap-6 mb-6 border-b-2 border-gray-200 dark:border-gray-700 overflow-x-auto">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
@@ -354,10 +365,12 @@ const CommunityPage = () => {
             </div>
 
             {/* RIGHT SIDEBAR CARDS - Reusable Component */}
-            <RightSidebarCards
-                myGroups={myGroups}
-                myChallenges={myChallenges}
-            />
+            <div className="hidden lg:block">
+                <RightSidebarCards
+                    myGroups={myGroups}
+                    myChallenges={myChallenges}
+                />
+            </div>
 
             {/* Floating Action Button */}
             <button

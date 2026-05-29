@@ -45,7 +45,7 @@ const TrophyCard = () => {
     }, []);
 
     return (
-        <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-600 dark:to-yellow-800 rounded-[40px] p-6 shadow-lg flex flex-col min-h-[160px] border-2 border-yellow-200/50">
+        <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 dark:from-yellow-600 dark:to-yellow-800 rounded-[40px] p-4 lg:p-6 shadow-lg flex flex-col min-h-[160px] border-2 border-yellow-200/50">
             <div className="mb-3 flex justify-between items-center">
                 <h3 className="text-yellow-900 dark:text-yellow-100 text-sm uppercase tracking-wide font-bold">
                     Trophies

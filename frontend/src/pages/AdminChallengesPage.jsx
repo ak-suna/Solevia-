@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { getToken } from "../services/auth";
-import { Trophy, Plus, Edit2, Trash2, X, AlertTriangle, Users, Calendar } from 'lucide-react';
+import { Trophy, Plus, Edit2, Trash2, X, AlertTriangle, Users, Calendar, Menu } from 'lucide-react';
 import AdminSidebar from "../components/AdminSidebar";
+import MobileMenu from "../components/MobileMenu";
 import { showError, showSuccess, confirmAction } from "../utils/uiFeedback";
 
 const AdminChallengesPage = () => {
@@ -12,6 +13,7 @@ const AdminChallengesPage = () => {
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState(null);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
@@ -147,9 +149,9 @@ const AdminChallengesPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
                 <AdminSidebar />
-                <div className="flex-1 ml-28 flex justify-center items-center">
+                <div className="flex-1 lg:ml-28 flex justify-center items-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f4873e]"></div>
                 </div>
             </div>
@@ -157,12 +159,21 @@ const AdminChallengesPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
+
             {/* LEFT SIDEBAR */}
             <AdminSidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="admin" />
 
             {/* MAIN CENTER PANEL */}
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
 
                 {/* Low pool warning */}
                 {eligibleCount <= 2 && (
@@ -192,7 +203,7 @@ const AdminChallengesPage = () => {
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-3 mb-6">
+                <div className="flex gap-3 mb-6 overflow-x-auto">
                     {[
                         { id: "templates", label: "Templates" },
                         { id: "live", label: "Live Challenges" }
@@ -218,9 +229,9 @@ const AdminChallengesPage = () => {
                             <p className="text-gray-500 dark:text-gray-400">No templates yet. Create your first one.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                             {templates.map(template => (
-                                <div key={template._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all">
+                                <div key={template._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-4 lg:p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all">
 
                                     {/* Icon + badges row */}
                                     <div className="flex items-center gap-3 mb-4">
@@ -306,9 +317,9 @@ const AdminChallengesPage = () => {
                             <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">Agenda will create one next Sunday at 8am.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                             {liveChallenges.map(challenge => (
-                                <div key={challenge._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all">
+                                <div key={challenge._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-4 lg:p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all">
 
                                     <div className="flex items-center gap-3 mb-4">
                                         <span className="text-4xl">{trackingTypeIcons[challenge.trackingType]}</span>

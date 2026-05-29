@@ -155,7 +155,7 @@ export default function Calendar({ onDateSelect, moodData, journals = [], habitH
   };
 
   return (
-    <div className="p-6 w-[600px] h-[600px] rounded-xl shadow-md overflow-auto bg-[#FCF8F5] dark:bg-gray-800">
+    <div className="p-4 lg:p-6 w-full lg:w-[600px] h-[500px] lg:h-[600px] rounded-xl shadow-md overflow-auto bg-[#FCF8F5] dark:bg-gray-800">
 
       <style>{`
   .fc-daygrid-day-frame > div {

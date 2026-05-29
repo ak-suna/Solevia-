@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/auth";
-import { UserPlus, Plus, Users, Calendar, Trash2, Edit, X, Trophy, Inbox, LayoutDashboard } from 'lucide-react';
+import { UserPlus, Plus, Users, Calendar, Trash2, Edit, X, Trophy, Inbox, LayoutDashboard, Menu } from 'lucide-react';
 import ModeratorCandidatesModal from "../components/ModeratorCandidatesModal";
 import JoinRequestsModal from "../components/JoinRequestsModal";
 import AdminSidebar from "../components/AdminSidebar";
+import MobileMenu from "../components/MobileMenu";
 import { showError, showSuccess, confirmAction } from "../utils/uiFeedback";
 // import NotificationBell from '../components/NotificationBell';
 
@@ -15,6 +16,7 @@ const AdminGroupsPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showCandidatesModal, setShowCandidatesModal] = useState(null);
     const [showRequestsModal, setShowRequestsModal] = useState(null);
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -156,9 +158,9 @@ const AdminGroupsPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
                 <AdminSidebar />
-                <div className="flex-1 ml-28 flex justify-center items-center">
+                <div className="flex-1 lg:ml-28 flex justify-center items-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#89beab]"></div>
                 </div>
             </div>
@@ -166,12 +168,21 @@ const AdminGroupsPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
+
             {/* LEFT SIDEBAR */}
             <AdminSidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="admin" />
 
             {/* MAIN CENTER PANEL */}
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
@@ -189,9 +200,9 @@ const AdminGroupsPage = () => {
                 </div>
 
                 {/* Groups Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                     {groups.map(group => (
-                        <div key={group._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all">
+                        <div key={group._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-3xl p-4 lg:p-6 shadow-lg border-2 border-gray-200 dark:border-gray-600 hover:shadow-xl transition-all">
                             <div className="flex items-center gap-3 mb-4">
                                 <span className="text-4xl">{group.icon || categoryIcons[group.category]}</span>
                                 <div className="flex-1">

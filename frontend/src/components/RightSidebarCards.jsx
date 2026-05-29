@@ -12,9 +12,9 @@ const RightSidebarCards = ({
     const navigate = useNavigate();
 
     return (
-        <div className="w-80 flex flex-col gap-5 pt-20">
+        <div className="w-full lg:w-80 flex flex-col gap-4 lg:gap-5 pt-4 lg:pt-20">
             {/* Top Navigation */}
-            <div className="absolute top-6 right-6 flex items-center gap-4">
+            <div className="absolute top-4 lg:top-6 right-4 lg:right-6 flex items-center gap-4">
                 <NotificationBell />
                 <button
                     onClick={() => navigate('/settings')}
@@ -28,7 +28,7 @@ const RightSidebarCards = ({
             <TrophyCard />
 
             {/* Card 2: My Groups */}
-            <div className="bg-[#89beab] dark:bg-gray-800 rounded-[40px] p-6 border-2 border-[#89beab] dark:border-teal-800 shadow-lg">
+            <div className="bg-[#89beab] dark:bg-gray-800 rounded-[40px] p-4 lg:p-6 border-2 border-[#89beab] dark:border-teal-800 shadow-lg">
                 <div className="flex items-center gap-2 mb-4">
                     <Users className="w-6 h-6 text-white" />
                     <h3 className="font-bold text-gray-800 dark:text-white" style={{ fontFamily: "Brasika" }}>
@@ -72,7 +72,7 @@ const RightSidebarCards = ({
 
             {/* Card 3: Active Challenge */}
             {myChallenges.length > 0 && (
-                <div className="bg-[#f9d9e3] dark:bg-gray-800 rounded-[40px] p-6 border-2 border-[#f9d9e3] dark:border-orange-800 shadow-lg">
+                <div className="bg-[#f9d9e3] dark:bg-gray-800 rounded-[40px] p-4 lg:p-6 border-2 border-[#f9d9e3] dark:border-orange-800 shadow-lg">
                     <div className="flex items-center gap-2 mb-4">
                         <Trophy className="w-6 h-6 text-[#f4873e]" />
                         <h3 className="font-bold text-gray-700 dark:text-white" style={{ fontFamily: "Brasika" }}>

@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import DataTable from '../components/DataTable';
 import { useParams } from 'react-router-dom';
 import ModeratorSidebar from '../components/ModeratorSidebar';
+import MobileMenu from '../components/MobileMenu';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getGroupById, disableGroupMember } from '../services/communityService';
-import { Users } from 'lucide-react';
+import { Users, Menu } from 'lucide-react';
 import { showInfo } from "../utils/uiFeedback";
 
 const GroupModeratorMembers = () => {
     const { groupId } = useParams();
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
     const queryClient = useQueryClient();
 
     const { data: groupData, isLoading } = useQuery({
@@ -118,9 +120,9 @@ const GroupModeratorMembers = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
+            <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
                 <ModeratorSidebar />
-                <div className="flex-1 ml-28 flex justify-center items-center">
+                <div className="flex-1 lg:ml-28 flex justify-center items-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#f4873e]"></div>
                 </div>
             </div>
@@ -128,10 +130,19 @@ const GroupModeratorMembers = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6 relative">
-            <ModeratorSidebar />
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6 relative">
+            {/* Mobile Menu Button */}
+            <button
+                onClick={() => setShowMobileMenu(true)}
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border-2 border-gray-200 dark:border-gray-700"
+            >
+                <Menu className="w-6 h-6 text-gray-700 dark:text-gray-300" />
+            </button>
 
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
+            <ModeratorSidebar />
+            <MobileMenu isOpen={showMobileMenu} onClose={() => setShowMobileMenu(false)} type="moderator" groupId={groupId} />
+
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] relative max-h-[775px] overflow-y-auto">
 
                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white flex items-center gap-3" style={{ fontFamily: 'Brasika' }}>
                     <Users className="w-7 h-7 text-[#89beab]" />

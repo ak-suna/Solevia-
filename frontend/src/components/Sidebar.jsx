@@ -90,7 +90,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="fixed left-6 top-0 flex flex-col items-center w-24 text-base h-screen z-50 transition-all sidebar-accessible">
+    <div className="hidden lg:flex fixed left-6 top-0 flex-col items-center w-24 text-base h-screen z-50 transition-all sidebar-accessible">
       {/* Logo at the top */}
       <div
         className="w-20 h-20 rounded-full bg-white dark:bg-gray-900 shadow-lg flex items-center justify-center p-2 mt-4 cursor-pointer border-2 border-gray-200 dark:border-gray-700 transition-all"

@@ -2,15 +2,35 @@ import React from 'react';
 import { Calendar } from 'lucide-react';
 
 const CalendarHeatmap = ({ data }) => {
+    // Handle case where data is undefined, null, or empty
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        return (
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 h-full flex flex-col">
+                <div className="flex items-center gap-2 mb-4">
+                    <Calendar className="w-5 h-5 text-[#89beab] dark:text-teal-400" />
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white" style={{ fontFamily: "Brasika" }}>
+                        Habit Heatmap
+                    </h3>
+                </div>
+                <div className="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                    No habit data available
+                </div>
+            </div>
+        );
+    }
+
     const last90Days = data.slice(-90);
 
     const getColor = (completion) => {
-        if (completion === 0 || completion === undefined || completion === null)
-            return 'bg-gray-200 dark:bg-gray-600';
-        if (completion < 0.25) return 'bg-green-200 dark:bg-green-900';
-        if (completion < 0.5) return 'bg-green-300 dark:bg-green-800';
-        if (completion < 0.75) return 'bg-green-400 dark:bg-green-700';
-        return 'bg-green-500 dark:bg-green-600';
+        // Handle string completion values (convert to number)
+        const numCompletion = typeof completion === 'string' ? parseFloat(completion) : completion;
+        
+        if (numCompletion === 0 || numCompletion === undefined || numCompletion === null || isNaN(numCompletion))
+            return 'bg-gray-300 dark:bg-gray-600 border border-gray-400 dark:border-gray-500';
+        if (numCompletion < 0.25) return 'bg-green-200 dark:bg-green-900 border border-green-300 dark:border-green-800';
+        if (numCompletion < 0.5) return 'bg-green-300 dark:bg-green-800 border border-green-400 dark:border-green-700';
+        if (numCompletion < 0.75) return 'bg-green-400 dark:bg-green-700 border border-green-500 dark:border-green-600';
+        return 'bg-green-500 dark:bg-green-600 border border-green-600 dark:border-green-500';
     };
 
     // Group into weeks of 7

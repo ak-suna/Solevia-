@@ -92,7 +92,7 @@ const ChallengesPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+        <div className="min-h-screen bg-white dark:bg-gray-900 p-4 lg:p-6 flex flex-col lg:flex-row gap-4 lg:gap-6">
             {celebrationChallenge && (
                 <div
                     className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4"
@@ -126,7 +126,7 @@ const ChallengesPage = () => {
 
             <Sidebar />
 
-            <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
+            <div className="flex-1 lg:ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-4 lg:p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
@@ -177,7 +177,7 @@ const ChallengesPage = () => {
                                         <div
                                             key={challenge._id}
                                             onClick={() => navigate(`/challenges/${challenge._id}`)}
-                                            className="bg-gray-50 dark:bg-gray-700 rounded-3xl p-6 border-2 border-gray-200 dark:border-gray-600 hover:border-[#f4873e] dark:hover:border-orange-500 transition-all cursor-pointer"
+                                            className="bg-gray-50 dark:bg-gray-700 rounded-3xl p-4 lg:p-6 border-2 border-gray-200 dark:border-gray-600 hover:border-[#f4873e] dark:hover:border-orange-500 transition-all cursor-pointer"
                                         >
                                             {/* Top row */}
                                             <div className="flex justify-between items-start mb-3">
