@@ -4,6 +4,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const getFrontendUrl = () => {
+    return (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
+};
+
 // Helper function to create transporter
 const getTransporter = () => {
     return nodemailer.createTransport({
@@ -19,7 +23,7 @@ export const sendVerificationEmail = async (user) => {
     try {
         const transporter = getTransporter();
 
-        const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${user.verificationCode}`;
+        const verificationUrl = `${getFrontendUrl()}/verify-email/${user.verificationCode}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -56,7 +60,7 @@ export const sendPasswordResetEmail = async (user, resetToken) => {
     try {
         const transporter = getTransporter();
 
-        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        const resetUrl = `${getFrontendUrl()}/reset-password/${resetToken}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -103,7 +107,7 @@ export const sendNotificationEmail = async (user, notification) => {
         let actionButton = "";
         if (notification.data?.actionUrl) {
             actionButton = `
-                <a href="${process.env.FRONTEND_URL}${notification.data.actionUrl}" 
+                <a href="${getFrontendUrl()}${notification.data.actionUrl}" 
                    style="display: inline-block; padding: 12px 24px; margin: 20px 0; 
                           background-color: ${color}; color: white; text-decoration: none; 
                           border-radius: 4px;">
@@ -129,7 +133,7 @@ export const sendNotificationEmail = async (user, notification) => {
                         <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
                         <p style="color: #999; font-size: 12px;">
                             You can manage your notification preferences in your 
-                            <a href="${process.env.FRONTEND_URL}/settings">account settings</a>.
+                            <a href="${getFrontendUrl()}/settings">account settings</a>.
                         </p>
                     </div>
                 </div>

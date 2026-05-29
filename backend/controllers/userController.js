@@ -66,8 +66,9 @@ export const registerUser = async (req, res) => {
         console.log(registeredUser);
 
         // Send verification email
-        await sendVerificationEmail(registeredUser);
-
+void sendVerificationEmail(registeredUser).catch((emailError) => {
+            console.error("❌ Verification email could not be sent:", emailError);
+        });
         const token = generateToken({
             id: registeredUser._id,
             email: registeredUser.email,
@@ -76,9 +77,10 @@ export const registerUser = async (req, res) => {
             role: registeredUser.role,
             isVerified: registeredUser.isVerified
         });
-        res.status(200).json({
-            message: "Registration Successfull. Please check your email to verify your account.",
+        res.status(201).json({
+            message: "Registration successful. Please check your email to verify your account.",
             token: token,
+            verificationEmailQueued: true
         });
     } catch (err) {
         let status = 400;
