@@ -2,15 +2,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import NotificationBell from '../components/NotificationBell';
-import { Users, Trophy, TrendingUp, Clock, XCircle, Settings } from 'lucide-react';
+import { Users, Trophy, Settings } from 'lucide-react';
 import TrophyCard from "./TrophyCard";
 
 const RightSidebarCards = ({
     myGroups = [],
-    myChallenges = [],
-    posts = [],
-    challenges = [],
-    pendingRequests = []
+    myChallenges = []
 }) => {
     const navigate = useNavigate();
 
@@ -27,59 +24,8 @@ const RightSidebarCards = ({
                 </button>
             </div>
 
-            {/* Card 1: Stats & Requests */}
-            <div className="bg-[#f8ba90] dark:bg-gray-800 rounded-[40px] p-6 border-2 border-[#f8ba90] dark:border-blue-800 shadow-lg">
-                <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    <h3 className="font-bold text-gray-700 dark:text-white" style={{ fontFamily: "Brasika" }}>
-                        Quick Stats
-                    </h3>
-                </div>
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 text-center">
-                        <p className="text-2xl font-bold text-[#89beab]">{myGroups.length}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">Groups</p>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 text-center">
-                        <p className="text-2xl font-bold text-[#f4873e]">{myChallenges.length}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">Challenges</p>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 text-center">
-                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{posts.length}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400">Posts</p>
-                    </div>
-                </div>
-                {pendingRequests.length > 0 && (
-                    <div className="space-y-2">
-                        <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Requests</p>
-                        {pendingRequests.map(request => (
-                            <div
-                                key={request.groupId}
-                                className={`p-3 rounded-2xl ${request.status === 'pending'
-                                    ? 'bg-yellow-100 dark:bg-yellow-900/30'
-                                    : 'bg-red-100 dark:bg-red-900/30'
-                                    }`}
-                            >
-                                <div className="flex items-start gap-2">
-                                    {request.status === 'pending' ? (
-                                        <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                                    ) : (
-                                        <XCircle className="w-4 h-4 text-red-600 dark:text-red-400 mt-0.5" />
-                                    )}
-                                    <div className="flex-1">
-                                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{request.groupName}</p>
-                                        {request.status === 'pending' ? (
-                                            <p className="text-xs text-gray-600 dark:text-gray-400">Sent {request.requestedAt}</p>
-                                        ) : (
-                                            <p className="text-xs text-red-600 dark:text-red-400">{request.reason}</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
+            {/* Card 1: Trophy Summary */}
+            <TrophyCard />
 
             {/* Card 2: My Groups */}
             <div className="bg-[#89beab] dark:bg-gray-800 rounded-[40px] p-6 border-2 border-[#89beab] dark:border-teal-800 shadow-lg">
@@ -164,8 +110,6 @@ const RightSidebarCards = ({
                 </div>
             )}
             
-            {/* Card 4: Trophies */}
-            <TrophyCard />
         </div>
     );
 };
