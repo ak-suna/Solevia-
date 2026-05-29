@@ -256,11 +256,17 @@ export default function NotificationBell({ filterTypes = [] }) {
 
   // Recalculate unread count based on visible notifications only
   const visibleUnreadCount = visibleNotifications.filter(n => !n.read).length;
+  const NON_CLICKABLE_TYPES = new Set([
+    "MOOD_REMINDER_MORNING",
+    "MOOD_REMINDER_EVENING",
+    "STREAK_ACHIEVED",
+    "STREAK_AT_RISK"
+  ]);
 
   // Enhanced click handler
   const handleNotificationClick = (notification) => {
     // Morning/Evening check-in notifications are not clickable
-    if (["MOOD_REMINDER_MORNING", "MOOD_REMINDER_EVENING"].includes(notification.type)) return;
+    if (NON_CLICKABLE_TYPES.has(notification.type)) return;
 
     if (!notification.read) {
       markAsRead(notification._id);
@@ -292,7 +298,12 @@ export default function NotificationBell({ filterTypes = [] }) {
     }
     // Fallback: use actionUrl if present
     if (notification.data?.actionUrl) {
-      window.location.href = notification.data.actionUrl;
+      const actionUrl = notification.data.actionUrl;
+      if (typeof actionUrl === "string" && actionUrl.startsWith("/")) {
+        navigate(actionUrl);
+      } else if (typeof actionUrl === "string" && /^https?:\/\//.test(actionUrl)) {
+        window.location.href = actionUrl;
+      }
       setIsOpen(false);
     }
   };
@@ -385,7 +396,12 @@ function NotificationItem({ notification, onClick, onDelete }) {
   };
 
   // Check-in notifications are not clickable
-  const isCheckin = ["MOOD_REMINDER_MORNING", "MOOD_REMINDER_EVENING"].includes(notification.type);
+  const isCheckin = [
+    "MOOD_REMINDER_MORNING",
+    "MOOD_REMINDER_EVENING",
+    "STREAK_ACHIEVED",
+    "STREAK_AT_RISK"
+  ].includes(notification.type);
 
   // Likes/comments: show user name and preview
   let message = notification.message;
