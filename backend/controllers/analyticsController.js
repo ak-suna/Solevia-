@@ -3,6 +3,7 @@ import Habit from "../models/Habit.js";
 import HabitDay from "../models/HabitDay.js";
 import Journal from "../models/Journal.js";
 import Goal from "../models/Goal.js";
+import User from "../models/User.js";
 
 // Helper function to get date range
 const getDateRange = (days) => {
@@ -495,12 +496,12 @@ export const getAnalyticsSummary = async (req, res) => {
         const allJournals = await Journal.find({ user: userId });
         const allGoalsCompleted = await Goal.find({ user: userId, status: 'completed' });
 
-        // Calculate streaks from backend service
-        const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
-        const streaksResponse = await fetch(`${baseUrl}/api/mood/streaks`, {
-            headers: { Authorization: req.headers.authorization }
-        });
-        const streaks = await streaksResponse.json();
+        // Read streaks directly from the user document to avoid a fragile self-fetch.
+        const user = await User.findById(userId).select('moodStreak habitStreak');
+        const streaks = {
+            moodStreak: user?.moodStreak || { current: 0, best: 0 },
+            habitStreak: user?.habitStreak || { current: 0, best: 0 }
+        };
 
         const achievements = [
             {
