@@ -173,6 +173,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trophy, Calendar, MessageSquare, AlertCircle, CheckCircle } from 'lucide-react';
 import { getModeratorCandidates, assignModerator } from '../services/communityService';
+import { showError, showSuccess, confirmAction } from "../utils/uiFeedback";
 
 
 const ModeratorCandidatesModal = ({ groupId, groupName, onClose, onSuccess }) => {
@@ -190,22 +191,23 @@ const ModeratorCandidatesModal = ({ groupId, groupName, onClose, onSuccess }) =>
             const data = await getModeratorCandidates(groupId);
             setCandidates(data.candidates || []);
         } catch (error) {
-            alert(error.message);
+            showError(error.message || "Failed to fetch candidates");
         } finally {
             setLoading(false);
         }
     };
 
     const handlePromote = async (userId, firstName, lastName) => {
-        if (!window.confirm(`Promote ${firstName} ${lastName} to moderator?`)) return;
+        const confirmed = await confirmAction(`Promote ${firstName} ${lastName} to moderator?`, { confirmText: "Promote" });
+        if (!confirmed) return;
         setPromoting(userId);
         try {
             await assignModerator(groupId, userId);
-            alert(`${firstName} ${lastName} is now the group moderator!`);
+            showSuccess(`${firstName} ${lastName} is now the group moderator!`);
             onSuccess && onSuccess();
             onClose();
         } catch (error) {
-            alert(error.message);
+            showError(error.message || "Failed to promote moderator");
         } finally {
             setPromoting(null);
         }
@@ -293,6 +295,14 @@ const ModeratorCandidatesModal = ({ groupId, groupName, onClose, onSuccess }) =>
                                             {candidate.user.firstName} {candidate.user.lastName}
                                         </h3>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">{candidate.user.email}</p>
+                                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${getPointsColor(candidate.points || 0, candidate.requiredPoints || 20)} text-white`}>
+                                                Points: {candidate.points || 0} / {candidate.requiredPoints || 20}
+                                            </span>
+                                            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                                Days in group: {candidate.metrics?.daysInGroup || 0}
+                                            </span>
+                                        </div>
                                         <span className={`
                                             inline-block px-3 py-1 rounded-full text-xs font-bold mt-2
                                             ${candidate.eligible

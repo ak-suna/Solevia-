@@ -11,6 +11,7 @@ import {
     deleteGroupSession
 } from "../services/communityService";
 import { jwtDecode } from "jwt-decode";
+import { confirmAction } from "../utils/uiFeedback";
 
 const GroupSessionsPage = () => {
     const { groupId } = useParams();
@@ -23,6 +24,16 @@ const GroupSessionsPage = () => {
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState({ topic: "", description: "", scheduledAt: "", calendlyLink: "" });
     const [toast, setToast] = useState(null);
+
+    const getLocalDateTimeMin = () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
 
     const { data: groupData } = useQuery({
         queryKey: ["community", "group", groupId],
@@ -39,6 +50,8 @@ const GroupSessionsPage = () => {
 
     const group = groupData?.group;
     const sessions = sessionsData?.sessions ?? [];
+    const mainSessions = sessions.filter(session => session.status === "upcoming" || session.status === "active");
+    const pastSessions = sessions.filter(session => session.status === "inactive" || session.status === "completed");
 
     const member = group?.members?.find(m =>
         m.userId === currentUserId || m.userId?._id === currentUserId
@@ -54,7 +67,7 @@ const GroupSessionsPage = () => {
         e.preventDefault();
         try {
             await createGroupSession(groupId, form);
-            setForm({ topic: "", description: "", scheduledAt: "" });
+            setForm({ topic: "", description: "", scheduledAt: "", calendlyLink: "" });
             setShowForm(false);
             refetch();
             showToast("Session created and members notified!");
@@ -74,7 +87,8 @@ const GroupSessionsPage = () => {
     };
 
     const handleDelete = async (sessionId) => {
-        if (!window.confirm("Delete this session?")) return;
+        const confirmed = await confirmAction("Delete this session?", { confirmText: "Delete" });
+        if (!confirmed) return;
         try {
             await deleteGroupSession(sessionId);
             refetch();
@@ -132,6 +146,7 @@ const GroupSessionsPage = () => {
                         <input
                             required
                             type="datetime-local"
+                            min={getLocalDateTimeMin()}
                             value={form.scheduledAt}
                             onChange={e => setForm(f => ({ ...f, scheduledAt: e.target.value }))}
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-[#f4873e] text-sm"
@@ -140,7 +155,7 @@ const GroupSessionsPage = () => {
                             type="url"
                             value={form.calendlyLink}
                             onChange={e => setForm(f => ({ ...f, calendlyLink: e.target.value }))}
-                            placeholder="Calendly meeting link (optional)"
+                            placeholder="Meeting link (Zoom/Google Meet/Teams) - optional"
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-[#f4873e] text-sm"
                         />
                         <div className="flex gap-3 justify-end">
@@ -150,16 +165,16 @@ const GroupSessionsPage = () => {
                     </form>
                 )}
 
-                {/* Sessions list */}
-                {sessions.length === 0 ? (
+                {/* Upcoming and active sessions */}
+                {mainSessions.length === 0 ? (
                     <div className="text-center py-16">
                         <Calendar className="w-14 h-14 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                        <p className="text-gray-500 dark:text-gray-400">No sessions scheduled yet.</p>
+                        <p className="text-gray-500 dark:text-gray-400">No upcoming or active sessions.</p>
                         {isModerator && <p className="text-sm text-gray-400 mt-1">Click "New Session" to schedule one.</p>}
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {sessions.map(session => (
+                        {mainSessions.map(session => (
                             <div key={session._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-2xl p-5 border-2 border-gray-200 dark:border-gray-600">
                                 <div className="flex items-start justify-between mb-2">
                                     <div>
@@ -169,6 +184,7 @@ const GroupSessionsPage = () => {
                                     <div className="flex items-center gap-2">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${session.status === "active" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" :
                                             session.status === "completed" ? "bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300" :
+                                                session.status === "inactive" ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400" :
                                                 "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                                             }`}>
                                             {session.status}
@@ -197,7 +213,7 @@ const GroupSessionsPage = () => {
                                             rel="noopener noreferrer"
                                             className="ml-2 px-3 py-1 bg-blue-600 text-white rounded-full text-xs font-semibold hover:bg-blue-700 transition"
                                         >
-                                            Join via Calendly
+                                            Join Meeting
                                         </a>
                                     )}
                                 </div>
@@ -215,6 +231,45 @@ const GroupSessionsPage = () => {
                         ))}
                     </div>
                 )}
+
+                {/* Past sessions */}
+                <div className="mt-10">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Past Sessions</h3>
+
+                    {pastSessions.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">No past sessions yet.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {pastSessions.map(session => (
+                                <div key={session._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 rounded-2xl p-5 border-2 border-gray-200 dark:border-gray-600 opacity-90">
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 dark:text-white text-base">{session.topic}</h4>
+                                            {session.description && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{session.description}</p>}
+                                        </div>
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${session.status === "inactive"
+                                            ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                                            : "bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300"
+                                            }`}>
+                                            {session.status}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="w-4 h-4" />
+                                            {new Date(session.scheduledAt).toLocaleDateString()} at {new Date(session.scheduledAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Users className="w-4 h-4" />
+                                            {session.rsvpCount} RSVPed
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {toast && (

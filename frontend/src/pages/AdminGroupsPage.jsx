@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getToken } from "../services/auth";
-import { UserPlus, Plus, Users, Calendar, Trash2, Edit, X, Trophy, Inbox } from 'lucide-react';
+import { UserPlus, Plus, Users, Calendar, Trash2, Edit, X, Trophy, Inbox, LayoutDashboard } from 'lucide-react';
 import ModeratorCandidatesModal from "../components/ModeratorCandidatesModal";
 import JoinRequestsModal from "../components/JoinRequestsModal";
 import AdminSidebar from "../components/AdminSidebar";
+import { showError, showSuccess, confirmAction } from "../utils/uiFeedback";
 // import NotificationBell from '../components/NotificationBell';
 
 const AdminGroupsPage = () => {
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -39,7 +40,7 @@ const AdminGroupsPage = () => {
             if (!response.ok) throw new Error(data.error);
             setGroups(data.groups || []);
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to load groups");
         } finally {
             setLoading(false);
         }
@@ -60,12 +61,12 @@ const AdminGroupsPage = () => {
 
             if (!response.ok) throw new Error("Failed to create group");
 
-            alert("Group created successfully!");
+            showSuccess("Group created successfully!");
             setShowCreateModal(false);
             resetForm();
             fetchGroups();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to create group");
         }
     };
 
@@ -92,15 +93,16 @@ const AdminGroupsPage = () => {
             );
 
             if (!response.ok) throw new Error("Failed to update task");
-            alert("Weekly task updated!");
+            showSuccess("Weekly task updated!");
             fetchGroups();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to update task");
         }
     };
 
     const deleteGroup = async (groupId) => {
-        if (!window.confirm("Are you sure you want to delete this group?")) return;
+        const confirmed = await confirmAction("Are you sure you want to delete this group?", { confirmText: "Delete" });
+        if (!confirmed) return;
 
         try {
             const response = await fetch(
@@ -112,10 +114,10 @@ const AdminGroupsPage = () => {
             );
 
             if (!response.ok) throw new Error("Failed to delete group");
-            alert("Group deleted successfully");
+            showSuccess("Group deleted successfully");
             fetchGroups();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to delete group");
         }
     };
 
@@ -260,7 +262,7 @@ const AdminGroupsPage = () => {
                                 </div>
                             )}
 
-                            <div className="grid grid-cols-2 gap-2 mb-3">
+                            <div className="grid grid-cols-3 gap-2 mb-3">
                                 <button
                                     onClick={() => setShowCandidatesModal({ groupId: group._id, groupName: group.name })}
                                     className="flex items-center justify-center gap-2 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-full font-bold text-sm hover:shadow-md transition-all"
@@ -280,6 +282,14 @@ const AdminGroupsPage = () => {
                                             {group.pendingRequestCount}
                                         </span>
                                     )}
+                                </button>
+                                <button
+                                    onClick={() => navigate(`/admin/groups/${group._id}/moderator/dashboard`)}
+                                    className="flex items-center justify-center gap-2 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-full font-bold text-sm hover:shadow-md transition-all"
+                                    title="Open Moderator Dashboard"
+                                >
+                                    <LayoutDashboard className="w-4 h-4" />
+                                    Moderator
                                 </button>
                             </div>
 

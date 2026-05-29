@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getGroupReports, resolveGroupReport } from '../services/communityService';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 import ReportCard from '../components/ReportCard';
+import { confirmAction } from "../utils/uiFeedback";
 
 const GroupModeratorReports = () => {
     const { groupId } = useParams();
@@ -22,10 +23,10 @@ const GroupModeratorReports = () => {
         onSuccess: () => queryClient.invalidateQueries(['community', 'groupReports', groupId]),
     });
 
-    const handleResolve = (reportId) => {
-        if (window.confirm('Mark this report as resolved?')) {
-            resolveMutation.mutate(reportId);
-        }
+    const handleResolve = async (reportId) => {
+        const confirmed = await confirmAction("Mark this report as resolved?", { confirmText: "Resolve" });
+        if (!confirmed) return;
+        resolveMutation.mutate(reportId);
     };
 
     if (isLoading) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { getToken } from "../services/auth";
 import { Trophy, Plus, Edit2, Trash2, X, AlertTriangle, Users, Calendar } from 'lucide-react';
 import AdminSidebar from "../components/AdminSidebar";
+import { showError, showSuccess, confirmAction } from "../utils/uiFeedback";
 
 const AdminChallengesPage = () => {
     const [activeTab, setActiveTab] = useState("templates");
@@ -36,7 +37,7 @@ const AdminChallengesPage = () => {
             setTemplates(data.templates || []);
             setEligibleCount(data.eligibleCount || 0);
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to load templates");
         } finally {
             setLoading(false);
         }
@@ -98,17 +99,18 @@ const AdminChallengesPage = () => {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            alert(editingTemplate ? "Template updated!" : "Template created!");
+            showSuccess(editingTemplate ? "Template updated!" : "Template created!");
             setShowCreateModal(false);
             resetForm();
             fetchTemplates();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to save template");
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Delete this template?")) return;
+        const confirmed = await confirmAction("Delete this template?", { confirmText: "Delete" });
+        if (!confirmed) return;
         try {
             const res = await fetch(`http://localhost:5000/api/challenges/admin/templates/${id}`, {
                 method: "DELETE",
@@ -116,10 +118,10 @@ const AdminChallengesPage = () => {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            alert("Template deleted");
+            showSuccess("Template deleted");
             fetchTemplates();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to delete template");
         }
     };
 

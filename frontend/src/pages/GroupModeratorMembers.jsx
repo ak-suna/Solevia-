@@ -5,6 +5,7 @@ import ModeratorSidebar from '../components/ModeratorSidebar';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getGroupById, disableGroupMember } from '../services/communityService';
 import { Users } from 'lucide-react';
+import { showInfo } from "../utils/uiFeedback";
 
 const GroupModeratorMembers = () => {
     const { groupId } = useParams();
@@ -28,7 +29,7 @@ const GroupModeratorMembers = () => {
         if (!disabled) {
             const reason = window.prompt('Please provide a reason for disabling this member (required):');
             if (!reason || reason.trim() === '') {
-                alert('A reason is required to disable a member.');
+                showInfo('A reason is required to disable a member.');
                 return;
             }
             disableMutation.mutate({ userId, disabled: true, reason });

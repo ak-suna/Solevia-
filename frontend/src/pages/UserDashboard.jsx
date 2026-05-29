@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getUsername } from "../services/auth";
 import Calendar from "../components/Calendar";
 import MoodCheckPopup from "../components/MoodCheckPopup";
@@ -13,9 +13,11 @@ import { getJournals } from "../services/journalService";
 import { getHabitHistory } from "../services/habitService";
 import { Book, CheckCircle2 } from 'lucide-react';
 import { getUserGroups, getGroupSessionsList, rsvpGroupSession } from "../services/communityService";
+import { showError } from "../utils/uiFeedback";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const username = getUsername();
   const [selectedDate, setSelectedDate] = useState(null);
   const [moodHistory, setMoodHistory] = useState([]);
@@ -44,6 +46,17 @@ const UserDashboard = () => {
     fetchAllData();
     fetchAllGroupSessions();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const dateParam = params.get("date");
+    if (!dateParam) return;
+
+    const parsed = new Date(`${dateParam}T00:00:00`);
+    if (!Number.isNaN(parsed.getTime())) {
+      setSelectedDate(parsed);
+    }
+  }, [location.search]);
 
   // Fetch all user groups and their sessions
   const fetchAllGroupSessions = async () => {
@@ -175,7 +188,7 @@ const UserDashboard = () => {
       });
     } catch (error) {
       console.error("Error saving mood:", error);
-      alert("Failed to save mood. Please try again.");
+      showError("Failed to save mood. Please try again.");
     }
   };
 
@@ -356,7 +369,7 @@ const UserDashboard = () => {
                                 await rsvpGroupSession(session._id);
                                 fetchAllGroupSessions();
                               } catch (err) {
-                                alert("Failed to RSVP: " + (err.message || "Unknown error"));
+                                showError("Failed to RSVP: " + (err.message || "Unknown error"));
                               }
                             }}
                           >

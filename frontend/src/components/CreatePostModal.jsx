@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { X, Image as ImageIcon, Trash2 } from 'lucide-react';
 import { createPost } from "../services/communityService";
+import { showError } from "../utils/uiFeedback";
 
 const CreatePostModal = ({ onClose, onPostCreated, groupId = null }) => {
     const queryClient = useQueryClient();
@@ -37,13 +38,13 @@ const CreatePostModal = ({ onClose, onPostCreated, groupId = null }) => {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please select an image file!');
+            showError('Please select an image file!');
             return;
         }
 
         // Validate file size (5MB max)
         if (file.size > 5 * 1024 * 1024) {
-            alert('Image size must be less than 5MB!');
+            showError('Image size must be less than 5MB!');
             return;
         }
 
@@ -82,7 +83,7 @@ const CreatePostModal = ({ onClose, onPostCreated, groupId = null }) => {
             onPostCreated(result.post);
             onClose(); // Close modal on success
         } catch (error) {
-            alert("Failed to create post. Check console for details.");
+            showError("Failed to create post. Check console for details.");
         } finally {
             setSubmitting(false);
         }

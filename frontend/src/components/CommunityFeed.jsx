@@ -5,6 +5,7 @@ import { addComment, addReaction, deleteComment } from "../services/communitySer
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useRef } from "react";
 import ReportModal from "./ReportModal";
+import { showError, confirmAction } from "../utils/uiFeedback";
 const REACTION_EMOJIS = ["❤️", "😆", "😢", "🤩", "😡"];
 
 
@@ -50,12 +51,14 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
     };
 
     const handleDeleteComment = async (postId, commentId) => {
-        if (!window.confirm("Are you sure you want to delete this comment?")) return;
+        const confirmed = await confirmAction("Are you sure you want to delete this comment?", { confirmText: "Delete" });
+        if (!confirmed) return;
         try {
             await deleteComment(postId, commentId);
             queryClient.invalidateQueries({ queryKey: ["community"] });
         } catch (error) {
             console.error("Error deleting comment:", error);
+            showError("Failed to delete comment");
         }
     };
 
@@ -83,6 +86,102 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
         if (hours < 24) return `${hours}h ago`;
         if (days < 7) return `${days}d ago`;
         return date.toLocaleDateString();
+    };
+
+    const isUrl = (value) => /^https?:\/\/[^\s]+$/i.test(value || "");
+    const normalizeStructuredSessionContent = (content = "") => {
+        if (!content.includes("# Group Session Is Live")) return content;
+        return content.replace(/\s+##\s+/g, "\n## ").replace(/^\s*#\s+/, "# ");
+    };
+    const renderLineWithLinks = (line) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const parts = line.split(urlRegex);
+        return parts.map((part, index) => {
+            if (isUrl(part)) {
+                return (
+                    <a
+                        key={`${part}-${index}`}
+                        href={part}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 underline break-all"
+                    >
+                        {part}
+                    </a>
+                );
+            }
+            return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+        });
+    };
+    const renderPostContent = (content = "") => {
+        const lines = normalizeStructuredSessionContent(content).split("\n");
+        const rendered = [];
+    
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const nextLine = lines[i + 1] || "";
+    
+            if (line.startsWith("# ")) {
+                rendered.push(
+                    <h3 key={`main-${i}`} className="text-lg font-bold text-gray-900 dark:text-white mt-2 mb-1">
+                        {renderLineWithLinks(line.slice(2))}
+                    </h3>
+                );
+                continue;
+            }
+    
+            if (line.startsWith("## ")) {
+                rendered.push(
+                    <h4 key={`sub-${i}`} className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-2 mb-1 uppercase tracking-wide">
+                        {renderLineWithLinks(line.slice(3))}
+                    </h4>
+                );
+    
+                const heading = line.slice(3).trim().toLowerCase();
+                if (heading === "meeting link" && isUrl(nextLine.trim())) {
+                    const url = nextLine.trim();
+                    rendered.push(
+                        <a
+                            key={`join-${i}`}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition mb-1"
+                        >
+                            Join Meeting
+                        </a>
+                    );
+                    rendered.push(
+                        <div key={`link-container-${i}`} className="mt-1">
+                            <a
+                                key={`url-${i}`}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 dark:text-blue-400 underline break-all text-sm"
+                            >
+                                {url}
+                            </a>
+                        </div>
+                    );
+                    i += 1;
+                }
+                continue;
+            }
+    
+            if (!line.trim()) {
+                rendered.push(<div key={`space-${i}`} className="h-2" />);
+                continue;
+            }
+    
+            rendered.push(
+                <p key={`line-${i}`} className="text-gray-700 dark:text-gray-300 text-left">
+                    {renderLineWithLinks(line)}
+                </p>
+            );
+        }
+    
+        return rendered;
     };
 
     // Ref for focusing post
@@ -161,14 +260,14 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
                                     {String(post.userId?._id) === String(currentUserId) ? (
                                         <button
                                             onClick={async () => {
-                                                if (window.confirm("Are you sure you want to delete this post?")) {
-                                                    try {
-                                                        const { deletePost } = await import("../services/communityService");
-                                                        await deletePost(post._id);
-                                                        queryClient.invalidateQueries({ queryKey: ["community"] });
-                                                    } catch (err) {
-                                                        alert("Failed to delete post");
-                                                    }
+                                                const confirmed = await confirmAction("Are you sure you want to delete this post?", { confirmText: "Delete" });
+                                                if (!confirmed) return;
+                                                try {
+                                                    const { deletePost } = await import("../services/communityService");
+                                                    await deletePost(post._id);
+                                                    queryClient.invalidateQueries({ queryKey: ["community"] });
+                                                } catch (err) {
+                                                    showError("Failed to delete post");
                                                 }
                                             }}
                                             className="ml-auto p-1.5 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
@@ -211,9 +310,9 @@ const CommunityFeed = ({ posts, getCategoryColor, highlightCommentId, commentRef
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-gray-700 dark:text-gray-300 mb-4 text-left mt-1">
-                                    {post.content}
-                                </p>
+                                <div className="mb-4 text-left mt-1 whitespace-pre-wrap">
+                                    {renderPostContent(post.content)}
+                                </div>
                             </div>
                         </div>
 

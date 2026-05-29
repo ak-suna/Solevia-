@@ -4,6 +4,7 @@ import { getToken } from "../services/auth";
 import { AlertTriangle, Eye, X, CheckCircle } from 'lucide-react';
 import DataTable from "../components/DataTable";
 import AdminSidebar from "../components/AdminSidebar";
+import { showError, showSuccess } from "../utils/uiFeedback";
 // import NotificationBell from '../components/NotificationBell';
 
 const AdminReportsPage = () => {
@@ -27,7 +28,7 @@ const AdminReportsPage = () => {
             if (!response.ok) throw new Error(data.error);
             setReports(data.reports || []);
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to load reports");
         } finally {
             setLoading(false);
         }
@@ -53,11 +54,11 @@ const AdminReportsPage = () => {
 
             if (!response.ok) throw new Error("Failed to update report");
 
-            alert("Report updated successfully");
+            showSuccess("Report updated successfully");
             setSelectedReport(null);
             fetchReports();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to update report");
         }
     };
 

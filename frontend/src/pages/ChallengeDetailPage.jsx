@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Send, Trophy } from "lucide-react";
 import { getToken } from "../services/auth";
 import Sidebar from "../components/Sidebar";
+import confetti from "canvas-confetti";
+import { showError, confirmAction } from "../utils/uiFeedback";
 
 const ChallengeDetailPage = () => {
     const { id } = useParams();
@@ -18,6 +20,7 @@ const ChallengeDetailPage = () => {
     const [loading, setLoading] = useState(true);
     const [markingDone, setMarkingDone] = useState(false);
     const [posting, setPosting] = useState(false);
+    const [showCompletedPopup, setShowCompletedPopup] = useState(false);
 
     const todayStr = new Date().toISOString().split("T")[0];
 
@@ -70,12 +73,13 @@ const ChallengeDetailPage = () => {
             if (!res.ok) throw new Error(data.error);
             fetchChallenge();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to join challenge");
         }
     };
 
     const handleLeave = async () => {
-        if (!window.confirm("Leave this challenge?")) return;
+        const confirmed = await confirmAction("Leave this challenge?", { confirmText: "Leave" });
+        if (!confirmed) return;
         try {
             const res = await fetch(`http://localhost:5000/api/challenges/${id}/leave`, {
                 method: "POST",
@@ -85,7 +89,7 @@ const ChallengeDetailPage = () => {
             if (!res.ok) throw new Error(data.error);
             fetchChallenge();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to leave challenge");
         }
     };
 
@@ -98,9 +102,20 @@ const ChallengeDetailPage = () => {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
+
+            if (data.newlyCompleted || data.isCompleted) {
+                setShowCompletedPopup(true);
+                confetti({
+                    particleCount: 180,
+                    spread: 85,
+                    origin: { y: 0.55 },
+                    colors: ["#f4873e", "#89beab", "#ff9e5e", "#46c294", "#ffd700"]
+                });
+                window.dispatchEvent(new Event("challenge-trophies-updated"));
+            }
             fetchChallenge();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to mark day complete");
         } finally {
             setMarkingDone(false);
         }
@@ -123,7 +138,7 @@ const ChallengeDetailPage = () => {
             setPostContent("");
             fetchFeed();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to post update");
         } finally {
             setPosting(false);
         }
@@ -185,6 +200,33 @@ const ChallengeDetailPage = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+            {showCompletedPopup && (
+                <div
+                    className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4"
+                    onClick={() => setShowCompletedPopup(false)}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white dark:bg-gray-800 rounded-[30px] p-8 w-full max-w-md shadow-2xl border-2 border-orange-200 dark:border-orange-800 text-center"
+                    >
+                        <div className="text-5xl mb-3">🏆</div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-[#89beab] font-bold mb-1">Challenge Completed</p>
+                        <h2 className="text-2xl text-gray-900 dark:text-white mb-2" style={{ fontFamily: "Brasika" }}>
+                            Wow! {challenge?.title}
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-5">
+                            Great job - your challenge completion has been recorded.
+                        </p>
+                        <button
+                            onClick={() => setShowCompletedPopup(false)}
+                            className="px-6 py-2 bg-gradient-to-r from-[#f4873e] to-[#ff9e5e] text-white rounded-full font-bold"
+                        >
+                            Nice!
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <Sidebar />
 
             <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
@@ -214,6 +256,11 @@ const ChallengeDetailPage = () => {
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2" style={{ fontFamily: "Brasika" }}>
                         {challenge.title}
                     </h1>
+                    {((new Date() - new Date(challenge.startDate)) <= (6 * 60 * 60 * 1000)) && (
+                        <span className="inline-block mb-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                            New Challenge
+                        </span>
+                    )}
                     <p className="text-gray-600 dark:text-gray-400">{challenge.description}</p>
                 </div>
 

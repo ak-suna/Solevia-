@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Trophy, ArrowLeft, CheckCircle } from 'lucide-react';
 import { getToken } from "../services/auth";
 import Sidebar from "../components/Sidebar";
+import { showError, confirmAction } from "../utils/uiFeedback";
 
 const BrowseChallengesPage = () => {
     const navigate = useNavigate();
@@ -54,12 +55,13 @@ const BrowseChallengesPage = () => {
             if (!res.ok) throw new Error(data.error);
             fetchChallenges();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to join challenge");
         }
     };
 
     const handleLeave = async (challengeId) => {
-        if (!window.confirm("Leave this challenge?")) return;
+        const confirmed = await confirmAction("Leave this challenge?", { confirmText: "Leave" });
+        if (!confirmed) return;
         try {
             const res = await fetch(`http://localhost:5000/api/challenges/${challengeId}/leave`, {
                 method: "POST",
@@ -69,7 +71,7 @@ const BrowseChallengesPage = () => {
             if (!res.ok) throw new Error(data.error);
             fetchChallenges();
         } catch (err) {
-            alert(err.message);
+            showError(err.message || "Failed to leave challenge");
         }
     };
 

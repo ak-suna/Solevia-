@@ -1274,6 +1274,7 @@ import Sidebar from '../components/Sidebar';
 import { useGoals } from '../contexts/GoalsContext';
 import { useHabits } from '../contexts/HabitsContext';
 import { linkHabitsToGoal, getLinkedHabits, getPastGoals } from '../services/goalService';
+import { showError, showInfo } from "../utils/uiFeedback";
 
 // ─── Confetti helpers ─────────────────────────────────────────────────────────
 const fireCompletionConfetti = () => {
@@ -1445,6 +1446,13 @@ const GoalsPage = () => {
   const [newGoal, setNewGoal] = useState({
     name: '', target: '', unit: '', deadline: '', category: 'Other'
   });
+  const getTodayDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
   // ─── Category filter ────────────────────────────────────────────────────────
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -1567,11 +1575,22 @@ const GoalsPage = () => {
 
   // ─── Add goal ───────────────────────────────────────────────────────────────
   const handleAddGoal = () => {
-    if (!newGoal.name.trim() || !newGoal.target) return;
+    if (!newGoal.name.trim()) {
+      showInfo('Please enter a goal name.');
+      return;
+    }
+    if (!newGoal.target) {
+      showInfo('Please fill the target value before creating a goal.');
+      return;
+    }
+    if (!newGoal.unit.trim()) {
+      showInfo('Please fill the unit before creating a goal.');
+      return;
+    }
     addGoal({
       name: newGoal.name,
       target: parseFloat(newGoal.target),
-      unit: newGoal.unit || 'units',
+      unit: newGoal.unit.trim(),
       deadline: newGoal.deadline || null,
       category: newGoal.category || 'Other'
     });
@@ -1620,7 +1639,7 @@ const GoalsPage = () => {
       closeLinkModal();
     } catch (error) {
       console.error('Error linking habits:', error);
-      alert('Failed to link habits. Please try again.');
+      showError('Failed to link habits. Please try again.');
     }
   };
 
@@ -1729,6 +1748,7 @@ const GoalsPage = () => {
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <input
                   type="date"
+                  min={getTodayDateString()}
                   value={newGoal.deadline}
                   onChange={(e) => setNewGoal({ ...newGoal, deadline: e.target.value })}
                   className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-[#f4873e] outline-none"

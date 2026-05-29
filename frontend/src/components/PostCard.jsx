@@ -5,6 +5,7 @@ import { addReaction, addComment, deletePost, deleteComment } from "../services/
 import { jwtDecode } from "jwt-decode";
 import ReportModal from "./ReportModal";
 import { useNavigate } from 'react-router-dom';
+import { showError, confirmAction } from "../utils/uiFeedback";
 
 const PostCard = ({ post, onUpdate, onDelete }) => {
     console.log("POST DATA RECEIVED:", post);
@@ -74,26 +75,28 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
     };
 
     const handleDeletePost = async () => {
-        if (window.confirm("Are you sure you want to delete this post?")) {
-            try {
-                await deletePost(post._id);
-                onDelete(post._id);
-            } catch (error) {
-                console.error("Error deleting post:", error);
-            }
+        const confirmed = await confirmAction("Are you sure you want to delete this post?", { confirmText: "Delete" });
+        if (!confirmed) return;
+        try {
+            await deletePost(post._id);
+            onDelete(post._id);
+        } catch (error) {
+            console.error("Error deleting post:", error);
+            showError("Failed to delete post");
         }
     };
 
     const handleDeleteComment = async (commentId) => {
-        if (window.confirm("Are you sure you want to delete this comment?")) {
-            try {
-                await deleteComment(post._id, commentId);
-                const updatedPost = { ...post };
-                updatedPost.comments = updatedPost.comments.filter(c => c._id !== commentId);
-                onUpdate(updatedPost);
-            } catch (error) {
-                console.error("Error deleting comment:", error);
-            }
+        const confirmed = await confirmAction("Are you sure you want to delete this comment?", { confirmText: "Delete" });
+        if (!confirmed) return;
+        try {
+            await deleteComment(post._id, commentId);
+            const updatedPost = { ...post };
+            updatedPost.comments = updatedPost.comments.filter(c => c._id !== commentId);
+            onUpdate(updatedPost);
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            showError("Failed to delete comment");
         }
     };
 
@@ -116,6 +119,109 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
         if (hours < 24) return `${hours}h ago`;
         if (days < 7) return `${days}d ago`;
         return date.toLocaleDateString();
+    };
+
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const isUrl = (value) => /^https?:\/\/[^\s]+$/.test(value);
+    const renderLineWithLinks = (line) => {
+        const parts = line.split(urlRegex);
+        return parts.map((part, index) => {
+            if (isUrl(part)) {
+                return (
+                    <a
+                        key={`${part}-${index}`}
+                        href={part}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 underline break-all"
+                    >
+                        {part}
+                    </a>
+                );
+            }
+            return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+        });
+    };
+
+    const normalizeStructuredSessionContent = (content = "") => {
+        if (!content.includes("# Group Session Is Live")) return content;
+
+        // Fallback: older/flattened posts may store all headings in one line.
+        // Convert inline heading markers into real line breaks for proper rendering.
+        return content
+            .replace(/\s+##\s+/g, "\n## ")
+            .replace(/^\s*#\s+/g, "# ");
+    };
+
+    const renderPostContent = (content = "") => {
+        const normalizedContent = normalizeStructuredSessionContent(content);
+        const lines = normalizedContent.split("\n");
+        const rendered = [];
+
+        for (let index = 0; index < lines.length; index++) {
+            const line = lines[index];
+            const nextLine = lines[index + 1] || "";
+
+            if (line.startsWith("# ")) {
+                rendered.push(
+                    <h3 key={`line-${index}`} className="text-lg font-bold text-gray-900 dark:text-white mt-2 mb-1">
+                        {renderLineWithLinks(line.slice(2))}
+                    </h3>
+                );
+                continue;
+            }
+
+            if (line.startsWith("## ")) {
+                rendered.push(
+                    <h4 key={`line-${index}`} className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-3 mb-1 uppercase tracking-wide">
+                        {renderLineWithLinks(line.slice(3))}
+                    </h4>
+                );
+
+                const heading = line.slice(3).trim().toLowerCase();
+                if (heading === "meeting link" && isUrl(nextLine.trim())) {
+                    const url = nextLine.trim();
+                    rendered.push(
+                        <div key={`join-${index}`} className="mb-1">
+                            <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition"
+                            >
+                                Join Meeting
+                            </a>
+                        </div>
+                    );
+                    rendered.push(
+                        <a
+                            key={`url-${index}`}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 underline break-all text-sm"
+                        >
+                            {url}
+                        </a>
+                    );
+                    index += 1;
+                }
+                continue;
+            }
+
+            if (!line.trim()) {
+                rendered.push(<div key={`line-${index}`} className="h-2" />);
+                continue;
+            }
+
+            rendered.push(
+                <p key={`line-${index}`} className="text-gray-800 dark:text-gray-200 text-left">
+                    {renderLineWithLinks(line)}
+                </p>
+            );
+        }
+
+        return rendered;
     };
 
     return (
@@ -186,9 +292,9 @@ const PostCard = ({ post, onUpdate, onDelete }) => {
                 </div>
 
                 {/* Text Content */}
-                <p className="text-gray-800 dark:text-gray-200 mb-4 whitespace-pre-wrap text-left">
-                    {post.content}
-                </p>
+                <div className="mb-4 whitespace-pre-wrap text-left">
+                    {renderPostContent(post.content)}
+                </div>
 
                 {/* Post Image Render */}
                 {post.image && (
