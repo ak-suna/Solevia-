@@ -87,7 +87,7 @@ agenda.define("send-habit-reminders", async (job) => {
           message: `Don't forget to complete: ${habitNames}`,
           data: {
             habitCount: habits.length,
-            actionUrl: "/habits"
+            actionUrl: "/tasks"
           }
         });
       }
@@ -302,7 +302,7 @@ agenda.define("check-streaks-at-risk", async (job) => {
               streakType: "habit",
               streakCount: user.habitStreak.current,
               incompleteCount: incompleteHabits,
-              actionUrl: "/habits"
+              actionUrl: "/tasks"
             }
           });
         }
@@ -413,7 +413,8 @@ agenda.define("expire-challenges", async (job) => {
               type: "CHALLENGE_COMPLETED",
               title: "🏆 Challenge Complete!",
               message: `You completed the "${challenge.title}" challenge! Badge awarded.`,
-              data: { challengeId: challenge._id, actionUrl: "/challenges" }
+              data: { challengeId: challenge._id, actionUrl: `/challenges/${challenge._id}` },
+              channels: { inApp: true, email: false }
             });
           } catch (err) {
             console.error("[Agenda] Failed to notify participant:", participant.userId, err.message);
@@ -476,17 +477,22 @@ agenda.define("auto-group-session-post", async (job) => {
   try {
     const { GroupSession } = await import("../models/GroupSession.js");
     const session = await GroupSession.findById(sessionId);
-    if (!session || session.status === "completed") return;
+    if (!session || session.status === "completed" || session.status === "inactive") return;
 
     const existing = await Post.findOne({ tags: `session-${sessionId}` });
     if (existing) return;
 
     const userId = session.createdBy;
     const rsvpCount = session.rsvps.length;
+    const sessionDate = new Date(session.scheduledAt);
+    const formattedDate = sessionDate.toLocaleDateString();
+    const formattedTime = sessionDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const linkLine = session.calendlyLink ? `## Meeting Link\n${session.calendlyLink}\n` : "## Meeting Link\nNo link provided\n";
+
 
     await Post.create({
       userId,
-      content: `📅 Group Session: "${session.topic}" is starting now!\n${session.description ? session.description + "\n" : ""}${rsvpCount} member(s) RSVPed. Join the discussion below! 👇`,
+      content: `# Group Session Is Live\n## Title\n${session.topic}\n${session.description ? `## Description\n${session.description}\n` : ""}## Date\n${formattedDate}\n## Time\n${formattedTime}\n${linkLine}## RSVPs\n${rsvpCount} member(s) RSVPed`,
       type: "group",
       category: "other",
       groupId,
@@ -502,6 +508,22 @@ agenda.define("auto-group-session-post", async (job) => {
   }
 });
 
+agenda.define("auto-group-session-inactive", async (job) => {
+  const { sessionId } = job.attrs.data;
+  try {
+    const { GroupSession } = await import("../models/GroupSession.js");
+    const session = await GroupSession.findById(sessionId);
+    if (!session) return;
+
+    if (session.status !== "inactive" && session.status !== "completed") {
+      session.status = "inactive";
+      await session.save();
+    }
+  } catch (err) {
+    console.error("[Agenda] Error in auto-group-session-inactive:", err);
+  }
+});
+
 export async function startNotificationJobs() {
   try {
     await agenda.start();
@@ -514,11 +536,12 @@ export async function startNotificationJobs() {
     await agenda.every("0 22 * * *", "check-streak-achievements");
     await agenda.every("0 21 * * *", "check-streaks-at-risk");
     await agenda.every("0 2 * * *", "cleanup-old-notifications");
-    // await agenda.every("0 7 * * 1", "activate-challenge-from-template");
-    await agenda.every("20 16 * * *", "activate-challenge-from-template");
-    await agenda.every("0 0 * * *", "nightly-challenge-tracking");
-    await agenda.every("0 1 * * *", "expire-challenges");
-    await agenda.every("0 20 * * 0", "challenge-pool-check");
+    // Challenge rotation now happens when active challenges expire.
+    // This prevents overlaps and ensures continuous coverage without weekly dead windows.
+    await agenda.every("0 0 * * *", "nightly-challenge-tracking", {}, { timezone: "Asia/Kathmandu" });
+    // Rotate challenges at 7:00 AM Nepal time so users get the next challenge in the morning.
+    await agenda.every("0 7 * * *", "expire-challenges", {}, { timezone: "Asia/Kathmandu" });
+    await agenda.every("0 20 * * 0", "challenge-pool-check", {}, { timezone: "Asia/Kathmandu" });
 
     console.log("✅ All notification jobs scheduled");
   } catch (error) {
