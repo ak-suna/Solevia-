@@ -214,7 +214,7 @@ export const getMessages = async (req, res) => {
     }
 };
 
-// Save Calendly link to a connection
+// Save meeting link to a connection
 export const saveCalendlyLink = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -231,9 +231,9 @@ export const saveCalendlyLink = async (req, res) => {
         connection.calendlyLink = calendlyLink || null;
         await connection.save();
 
-        res.status(200).json({ message: "Calendly link saved", calendlyLink: connection.calendlyLink });
+        res.status(200).json({ message: "Meeting link saved", calendlyLink: connection.calendlyLink });
     } catch (error) {
-        console.error("Error saving Calendly link:", error);
+        console.error("Error saving meeting link:", error);
         res.status(500).json({ error: "Failed to save link" });
     }
 };

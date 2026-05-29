@@ -59,10 +59,12 @@ export const getMemberScore = async (userId, groupId) => {
     });
     metrics.reportsFiled = reportsFiledCount;
 
-    // Debug log after violations and before return
-    const memberPoints = member.points || 0;
+    // Points are awarded on the User profile in current flows (posts/reactions/comments).
+    // Fall back to member.points for backward compatibility with older group-level scoring.
+    const user = await User.findById(userId).select("points");
+    const memberPoints = (user?.points ?? member.points ?? 0);
     const requiredPoints = group.requiredPoints || 20;
-    const eligible = memberPoints >= requiredPoints && daysInGroup >= 30 && violations === 0;
+    const eligible = memberPoints >= requiredPoints && daysInGroup >= 10 && violations === 0;
     console.log('getMemberScore: eligibility check', {
         userId,
         memberPoints,
@@ -237,6 +239,7 @@ export const getModeratorCandidates = async (req, res) => {
 // ==================== PROMOTION/DEMOTION ====================
 
 // Promote user to moderator
+// Promote user to moderator
 export const promoteToModerator = async (req, res) => {
     try {
         const { userId, groupId } = req.body;
@@ -258,7 +261,7 @@ export const promoteToModerator = async (req, res) => {
         }
 
         // Check if user is a member
-        const member = group.members.find(m => m.userId.toString() === userId);
+        const member = group.members.find(m => m.userId && m.userId.toString() === userId);
         if (!member) {
             return res.status(400).json({ error: "User is not a member of this group" });
         }
@@ -268,46 +271,49 @@ export const promoteToModerator = async (req, res) => {
             return res.status(400).json({ error: "User is already a moderator" });
         }
 
-
         // Check eligibility
         const scoreData = await getMemberScore(userId, groupId);
         console.log('DEBUG promoteToModerator:', { userId, groupId, scoreData });
         if (!scoreData.eligible) {
             return res.status(400).json({
                 error: "User does not meet minimum requirements",
-                details: `Points: ${scoreData.points}/${scoreData.requiredPoints} required, Days in group: ${scoreData.metrics.daysInGroup}/30 required`,
+                details: `Points: ${scoreData.points}/${scoreData.requiredPoints} required, Days in group: ${scoreData.metrics.daysInGroup}/10 required, Violations: ${scoreData.violations}`,
                 scoreData
             });
         }
 
-
-
         // Always set admin's member role to 'admin'
-        group.members.forEach(m => {
-            if (m.userId.toString() === group.adminId.toString()) {
-                m.role = 'admin';
-            }
-        });
+        if (group.adminId) {
+            const adminIdStr = group.adminId.toString();
+            group.members.forEach(m => {
+                const memberUserId = m.userId ? m.userId.toString() : null;
+                if (memberUserId === adminIdStr) {
+                    m.role = 'admin';
+                }
+            });
+        }
 
         // Demote previous moderator (not admin) to 'member'
         if (group.moderatorId && group.moderatorId.toString() !== userId) {
-            const prevMod = group.members.find(m => m.userId.toString() === group.moderatorId.toString());
-            if (prevMod && prevMod.userId.toString() !== group.adminId.toString()) {
+            const prevMod = group.members.find(m => {
+                const memberUserId = m.userId ? m.userId.toString() : null;
+                return memberUserId === group.moderatorId.toString();
+            });
+            if (prevMod && prevMod.userId && prevMod.userId.toString() !== group.adminId?.toString()) {
                 prevMod.role = 'member';
             }
         }
 
-
-        // Promote selected user to moderator (robust ObjectId comparison)
+        // Promote selected user to moderator
         group.members.forEach(m => {
-            if (m.userId.toString() === userId.toString()) {
+            const memberUserId = m.userId ? m.userId.toString() : null;
+            if (memberUserId === userId.toString()) {
                 m.role = 'moderator';
             }
         });
         group.moderatorId = userId;
 
         await group.save();
-
 
         // Update user record: only update moderatedGroups, not global role
         if (!user.moderatedGroups.includes(groupId)) {
@@ -335,9 +341,12 @@ export const promoteToModerator = async (req, res) => {
         });
     } catch (error) {
         console.error("Error promoting moderator:", error);
-        res.status(500).json({ error: "Failed to promote moderator" });
+        res.status(500).json({
+            error: "Failed to promote moderator",
+            details: error.message
+        });
     }
-};
+}    
 
 // Remove moderator
 export const removeModerator = async (req, res) => {

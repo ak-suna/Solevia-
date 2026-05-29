@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Send, Link, Check } from "lucide-react";
-import { getPeerMessages, sendPeerMessage, savePeerCalendlyLink } from "../services/communityService";
+import { getPeerMessages, sendPeerMessage, savePeerMeetingLink } from "../services/communityService";
 import { io } from "socket.io-client";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
@@ -8,8 +8,8 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000"
 const PrivateChatModal = ({ connection, currentUserId, onClose, isPage }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
-    const [calendlyInput, setCalendlyInput] = useState(connection.calendlyLink || "");
-    const [showCalendly, setShowCalendly] = useState(false);
+    const [meetingLinkInput, setMeetingLinkInput] = useState(connection.calendlyLink || "");
+    const [showMeetingLink, setShowMeetingLink] = useState(false);
     const [linkSaved, setLinkSaved] = useState(false);
     const [sending, setSending] = useState(false);
     const bottomRef = useRef(null);
@@ -61,9 +61,9 @@ const PrivateChatModal = ({ connection, currentUserId, onClose, isPage }) => {
         }
     };
 
-    const handleSaveCalendly = async () => {
+    const handleSaveMeetingLink = async () => {
         try {
-            await savePeerCalendlyLink(connection._id, calendlyInput);
+            await savePeerMeetingLink(connection._id, meetingLinkInput);
             setLinkSaved(true);
             setTimeout(() => setLinkSaved(false), 2000);
         } catch (e) {
@@ -100,7 +100,7 @@ const PrivateChatModal = ({ connection, currentUserId, onClose, isPage }) => {
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={() => setShowCalendly(v => !v)}
+                            onClick={() => setShowMeetingLink(v => !v)}
                             className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition"
                             title="Schedule a meeting"
                         >
@@ -112,17 +112,17 @@ const PrivateChatModal = ({ connection, currentUserId, onClose, isPage }) => {
                     </div>
                 </div>
 
-                {/* Calendly link section */}
-                {showCalendly && (
+                {/* Meeting link section */}
+                {showMeetingLink && (
                     <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700 flex gap-2">
                         <input
-                            value={calendlyInput}
-                            onChange={e => setCalendlyInput(e.target.value)}
-                            placeholder="Paste your Calendly link..."
+                            value={meetingLinkInput}
+                            onChange={e => setMeetingLinkInput(e.target.value)}
+                            placeholder="Paste meeting link (Zoom/Meet/Teams)..."
                             className="flex-1 text-sm px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-[#89beab]"
                         />
                         <button
-                            onClick={handleSaveCalendly}
+                            onClick={handleSaveMeetingLink}
                             className="px-3 py-2 rounded-xl bg-[#89beab] hover:bg-[#6fa893] text-white text-sm font-semibold transition flex items-center gap-1"
                         >
                             {linkSaved ? <Check className="w-4 h-4" /> : "Save"}
@@ -130,18 +130,19 @@ const PrivateChatModal = ({ connection, currentUserId, onClose, isPage }) => {
                     </div>
                 )}
 
-                {/* Show existing Calendly link if set */}
-                {connection.calendlyLink && !showCalendly && (
+                {/* Show existing meeting link if set */}
+                {connection.calendlyLink && !showMeetingLink && (
                     <div className="px-5 py-2 border-b border-gray-200 dark:border-gray-700">
-
-                        href={connection.calendlyLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-[#89beab] hover:underline flex items-center gap-1"
-                        <Link className="w-3 h-3" /> Schedule a real meeting
-                    
-          </div>
-        )}
+                        <a
+                            href={connection.calendlyLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-[#89beab] hover:underline flex items-center gap-1"
+                        >
+                            <Link className="w-3 h-3" /> Open meeting link
+                        </a>
+                    </div>
+                )}
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3" style={isPage ? { minHeight: 0 } : {}}>

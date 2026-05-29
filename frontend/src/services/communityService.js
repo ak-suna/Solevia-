@@ -595,14 +595,14 @@ export const getModeratorCandidates = async (groupId) => {
 
 export const assignModerator = async (groupId, userId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/groups/${groupId}/assign-moderator`, {
+        const response = await fetch(`${API_BASE_URL}/moderators/promote`, {
             method: "POST",
             headers: getAuthHeaders(),
-            body: JSON.stringify({ userId })
+            body: JSON.stringify({ userId, groupId })
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || "Failed to assign moderator");
+            throw new Error(error.details || error.error || "Failed to assign moderator");
         }
         return await response.json();
     } catch (error) {
@@ -720,6 +720,11 @@ export const savePeerCalendlyLink = async (connectionId, calendlyLink) => {
     });
     if (!response.ok) throw new Error("Failed to save link");
     return await response.json();
+};
+
+// Backward-compatible alias with generic naming.
+export const savePeerMeetingLink = async (connectionId, meetingLink) => {
+    return savePeerCalendlyLink(connectionId, meetingLink);
 };
 
 // ==================== GROUP SESSIONS ====================
