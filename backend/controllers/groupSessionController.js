@@ -47,13 +47,23 @@ export const createSession = async (req, res) => {
             type: "GROUP_SESSION_CREATED",
             title: `New Session: ${topic}`,
             message: `A new group session has been scheduled for ${scheduledDate.toLocaleDateString()} at ${scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
-            data: { sessionId: session._id, groupId, topic }
+            data: {
+                sessionId: session._id,
+                groupId,
+                topic,
+                sessionDate: scheduledDate.toISOString().split("T")[0],
+                actionUrl: `/user/dashboard?date=${scheduledDate.toISOString().split("T")[0]}`
+            }
         });
 
         // Schedule auto-post at session time using existing Agenda instance
         await agenda.schedule(scheduledDate, "auto-group-session-post", {
             sessionId: session._id.toString(),
             groupId: groupId.toString()
+        });
+        const inactiveAt = new Date(scheduledDate.getTime() + (3 * 60 * 60 * 1000));
+        await agenda.schedule(inactiveAt, "auto-group-session-inactive", {
+            sessionId: session._id.toString()
         });
 
         res.status(201).json({ message: "Session created", session });
@@ -68,12 +78,24 @@ export const getGroupSessions = async (req, res) => {
     try {
         const { groupId } = req.params;
         const userId = req.user.id;
+        const now = new Date();
+        const inactiveCutoff = new Date(now.getTime() - (3 * 60 * 60 * 1000));
 
         const group = await SupportGroup.findById(groupId);
         if (!group) return res.status(404).json({ error: "Group not found" });
 
         const isMember = group.members.some(m => m.userId.toString() === userId && !m.disabled);
         if (!isMember) return res.status(403).json({ error: "Members only" });
+
+        // Fallback safety: if a scheduled job was missed, mark old sessions inactive during read.
+        await GroupSession.updateMany(
+            {
+                groupId,
+                status: { $in: ["upcoming", "active"] },
+                scheduledAt: { $lte: inactiveCutoff }
+            },
+            { $set: { status: "inactive" } }
+        );
 
         const sessions = await GroupSession.find({ groupId })
             .populate("createdBy", "firstName lastName")

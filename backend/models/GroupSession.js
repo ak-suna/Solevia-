@@ -14,7 +14,7 @@ const groupSessionSchema = new mongoose.Schema({
     }],
     status: {
         type: String,
-        enum: ["upcoming", "active", "completed"],
+        enum: ["upcoming", "active", "completed", "inactive"],
         default: "upcoming"
     }
 }, { timestamps: true });
