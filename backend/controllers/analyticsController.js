@@ -3,8 +3,7 @@ import Habit from "../models/Habit.js";
 import HabitDay from "../models/HabitDay.js";
 import Journal from "../models/Journal.js";
 import Goal from "../models/Goal.js";
-import User from "../models/User.js";
-
+import { User } from "../models/User.js";
 // Helper function to get date range
 const getDateRange = (days) => {
     const endDate = new Date();
