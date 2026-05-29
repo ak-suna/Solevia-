@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TrendingUp, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useGoals } from '../contexts/GoalsContext';
+import { showInfo } from "../utils/uiFeedback";
 
 const GoalsCard = () => {
   const navigate = useNavigate();
@@ -20,15 +21,26 @@ const GoalsCard = () => {
       : 0;
 
   const handleAddGoal = () => {
-    if (newGoal.name.trim() && newGoal.target) {
-      addGoal({
-        name: newGoal.name,
-        target: parseFloat(newGoal.target),
-        unit: newGoal.unit || 'units',
-      });
-      setNewGoal({ name: '', target: '', unit: '' });
-      setShowAddForm(false);
+    if (!newGoal.name.trim()) {
+      showInfo('Please enter a goal name.');
+      return;
     }
+    if (!newGoal.target) {
+      showInfo('Please fill the target value before creating a goal.');
+      return;
+    }
+    if (!newGoal.unit.trim()) {
+      showInfo('Please fill the unit before creating a goal.');
+      return;
+    }
+
+    addGoal({
+      name: newGoal.name,
+      target: parseFloat(newGoal.target),
+      unit: newGoal.unit.trim(),
+    });
+    setNewGoal({ name: '', target: '', unit: '' });
+    setShowAddForm(false);
   };
 
   const formatDate = (dateString) => {

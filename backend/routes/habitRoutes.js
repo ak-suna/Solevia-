@@ -4,6 +4,7 @@ import Habit from '../models/Habit.js';
 import HabitDay from '../models/HabitDay.js';
 import { User } from '../models/User.js';
 import { authenticate } from '../middleware/authMiddleware.js';
+import { updateChallengeProgress } from '../utils/challengeUtils.js';
 
 const router = express.Router();
 
@@ -206,6 +207,20 @@ router.patch('/:id/toggle', authenticate, async (req, res) => {
     // Save real-time snapshot for today so history is always up to date
     try {
       await saveTodaySnapshot(req.user.id);
+
+      const todaySnapshot = await HabitDay.findOne({
+        user: req.user.id,
+        date: {
+          $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          $lt: new Date(new Date().setHours(23, 59, 59, 999))
+        }
+      }).lean();
+
+      // Auto-track habit challenges as soon as user completes all habits for the day.
+      if (todaySnapshot && todaySnapshot.totalCount > 0 && todaySnapshot.completionPercentage === 100) {
+        const todayStr = new Date().toISOString().split("T")[0];
+        await updateChallengeProgress(req.user.id, "habit", todayStr);
+      }
     } catch (snapErr) {
       console.error('Snapshot save error (non-fatal):', snapErr.message);
     }
