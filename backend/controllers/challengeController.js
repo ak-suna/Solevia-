@@ -111,11 +111,13 @@ export const getAllChallenges = async (req, res) => {
 
         const result = challenges.map(c => {
             const participation = participationMap[c._id.toString()];
+            const isNew = (new Date() - new Date(c.startDate)) <= (6 * 60 * 60 * 1000);
             return {
                 ...c,
                 isJoined: !!participation,
                 completionPercentage: participation ? participation.completionPercentage : 0,
-                daysRemaining: Math.max(0, Math.ceil((new Date(c.endDate) - new Date()) / (1000 * 60 * 60 * 24)))
+                daysRemaining: Math.max(0, Math.ceil((new Date(c.endDate) - new Date()) / (1000 * 60 * 60 * 24))),
+                isNew
             };
         });
 
@@ -154,7 +156,8 @@ export const getChallengeById = async (req, res) => {
             completionPercentage: participation ? participation.completionPercentage : 0,
             isCompleted: participation ? participation.isCompleted : false,
             completedTodayCount,
-            totalParticipants
+            totalParticipants,
+            isNew: (new Date() - new Date(challenge.startDate)) <= (6 * 60 * 60 * 1000)
         });
     } catch (error) {
         console.error("Error fetching challenge:", error);
@@ -244,9 +247,37 @@ export const completeToday = async (req, res) => {
         dayEntry.completed = true;
         const completedCount = participant.days.filter(d => d.completed).length;
         participant.completionPercentage = Math.round((completedCount / participant.days.length) * 100);
+
+        let newlyCompleted = false;
+        if (!participant.isCompleted && participant.completionPercentage >= 80) {
+            participant.isCompleted = true;
+            participant.badgeAwarded = true;
+            newlyCompleted = true;
+        }
+
         await participant.save();
 
-        res.status(200).json({ message: "Marked as complete for today", completionPercentage: participant.completionPercentage });
+        if (newlyCompleted) {
+            try {
+                await notificationService.createNotification({
+                    userId,
+                    type: "CHALLENGE_COMPLETED",
+                    title: "🏆 Challenge Complete!",
+                    message: `You completed the "${challenge.title}" challenge! Badge awarded.`,
+                    data: { challengeId: challenge._id, actionUrl: `/challenges/${challenge._id}` },
+                    channels: { inApp: true, email: false }
+                });
+            } catch (err) {
+                console.error("[challengeController] Failed to notify challenge completion:", err.message);
+            }
+        }
+
+        res.status(200).json({
+            message: "Marked as complete for today",
+            completionPercentage: participant.completionPercentage,
+            isCompleted: participant.isCompleted,
+            newlyCompleted
+        });
     } catch (error) {
         console.error("Error completing today:", error);
         res.status(500).json({ error: "Failed to mark complete" });
@@ -260,12 +291,12 @@ export const getPastChallenges = async (req, res) => {
         const participations = await ChallengeParticipant.find({ userId }).lean();
         const challengeIds = participations.map(p => p.challengeId);
 
-        const expiredChallenges = await Challenge.find({
-            _id: { $in: challengeIds },
-            status: "expired"
+        const relevantChallenges = await Challenge.find({
+            _id: { $in: challengeIds }
         }).lean();
 
-        const result = expiredChallenges.map(c => {
+        const result = relevantChallenges
+            .map(c => {
             const p = participations.find(p => p.challengeId.toString() === c._id.toString());
             return {
                 ...c,
@@ -273,7 +304,9 @@ export const getPastChallenges = async (req, res) => {
                 isCompleted: p ? p.isCompleted : false,
                 badgeAwarded: p ? p.badgeAwarded : false
             };
-        });
+            })
+            .filter(c => c.status === "expired" || c.isCompleted)
+            .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
 
         res.status(200).json({ challenges: result });
     } catch (error) {

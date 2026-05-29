@@ -40,7 +40,8 @@ export const updateChallengeProgress = async (userId, trackingType, dateStr) => 
                         type: "CHALLENGE_COMPLETED",
                         title: "🏆 Challenge Complete!",
                         message: `You completed the "${challenge.title}" challenge! Badge awarded.`,
-                        data: { challengeId: challenge._id, actionUrl: "/challenges" }
+                        data: { challengeId: challenge._id, actionUrl: `/challenges/${challenge._id}` },
+                        channels: { inApp: true, email: false }
                     });
                 } catch (err) {
                     console.error("[challengeUtils] Failed to notify participant:", participant.userId, err.message);
@@ -58,6 +59,12 @@ export const updateChallengeProgress = async (userId, trackingType, dateStr) => 
 export const activateChallengeFromTemplate = async () => {
     console.log("[challengeUtils] Activating challenge from template...");
     try {
+        const existingActive = await Challenge.findOne({ status: "active" }).lean();
+        if (existingActive) {
+            console.log("[challengeUtils] Active challenge already exists. Skipping activation.");
+            return null;
+        }
+
         const sixtyDaysAgo = new Date();
         sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
@@ -90,16 +97,23 @@ export const activateChallengeFromTemplate = async () => {
 
         const template = eligible[Math.floor(Math.random() * eligible.length)];
 
+        const safeDuration = Math.max(1, Number(template.duration) || 1);
+
+        // Use day-based windows so challenge lifecycle matches "N days" calendar logic.
+        // Example: 3-day challenge starts today and ends at end-of-day on day 3.
         const startDate = new Date();
-        const endDate = new Date();
-        endDate.setDate(endDate.getDate() + template.duration);
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + safeDuration - 1);
+        endDate.setHours(23, 59, 59, 999);
 
         const challenge = await Challenge.create({
             templateId: template._id,
             title: template.title,
             description: template.description,
             trackingType: template.trackingType,
-            duration: template.duration,
+            duration: safeDuration,
             difficulty: template.difficulty,
             status: "active",
             startDate,

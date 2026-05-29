@@ -10,6 +10,7 @@ const ChallengesPage = () => {
     const [joinedChallenges, setJoinedChallenges] = useState([]);
     const [pastChallenges, setPastChallenges] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [celebrationChallenge, setCelebrationChallenge] = useState(null);
 
     useEffect(() => {
         fetchJoinedChallenges();
@@ -40,7 +41,11 @@ const ChallengesPage = () => {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            setPastChallenges(data.challenges || []);
+            const challenges = data.challenges || [];
+            setPastChallenges(challenges);
+
+            const completedCount = challenges.filter(c => c.isCompleted).length;
+            window.dispatchEvent(new CustomEvent("challenge-trophies-updated", { detail: { completedCount } }));
         } catch (err) {
             console.error("Error fetching past challenges:", err);
         }
@@ -62,6 +67,7 @@ const ChallengesPage = () => {
 
             if (shouldCelebrate) {
                 localStorage.setItem('celebratedChallenges', JSON.stringify(celebratedIds));
+                setCelebrationChallenge(newlyCompleted[newlyCompleted.length - 1]);
                 confetti({
                     particleCount: 150,
                     spread: 70,
@@ -87,6 +93,37 @@ const ChallengesPage = () => {
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900 p-6 flex gap-6">
+            {celebrationChallenge && (
+                <div
+                    className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center px-4"
+                    onClick={() => setCelebrationChallenge(null)}
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white dark:bg-gray-800 rounded-[32px] p-8 w-full max-w-md shadow-2xl border-2 border-orange-200 dark:border-orange-800 text-center"
+                    >
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-r from-[#89beab] to-[#6fa893] text-white mx-auto flex items-center justify-center mb-4">
+                            <CheckCircle className="w-10 h-10" />
+                        </div>
+                        <p className="text-xs tracking-[0.2em] uppercase text-[#89beab] font-bold mb-1">
+                            Challenge Completed
+                        </p>
+                        <h2 className="text-2xl text-gray-900 dark:text-white mb-2" style={{ fontFamily: "Brasika" }}>
+                            Wow! {celebrationChallenge.title}
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            {celebrationChallenge.completionPercentage}% completed - amazing consistency!
+                        </p>
+                        <button
+                            onClick={() => setCelebrationChallenge(null)}
+                            className="px-6 py-2 bg-gradient-to-r from-[#f4873e] to-[#ff9e5e] text-white rounded-full font-bold"
+                        >
+                            Awesome
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <Sidebar />
 
             <div className="flex-1 ml-28 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-[50px] p-8 shadow-[0_10px_25px_rgba(248,186,144,0.25)] dark:shadow-[0_10px_25px_rgba(0,0,0,0.3)] max-h-[775px] overflow-y-auto">
@@ -160,6 +197,11 @@ const ChallengesPage = () => {
                                             <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1">
                                                 {challenge.title}
                                             </h3>
+                                            {challenge.isNew && (
+                                                <span className="inline-block mb-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+                                                    New Challenge
+                                                </span>
+                                            )}
                                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                                                 {challenge.description}
                                             </p>
@@ -229,6 +271,9 @@ const ChallengesPage = () => {
                                                     </span>
                                                 )}
                                             </div>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                                Milestone: {challenge.isCompleted ? "Challenge fully completed (80%+ target reached)" : "Challenge participated"}
+                                            </p>
                                             <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
                                                 <div
                                                     className={`h-1.5 rounded-full ${challenge.isCompleted ? "bg-green-500" : "bg-gray-400"}`}

@@ -25,6 +25,23 @@ const TrophyCard = () => {
         };
 
         fetchPastChallenges();
+
+        const handleTrophyUpdate = (event) => {
+            if (typeof event?.detail?.completedCount === "number") {
+                setCompletedCount(event.detail.completedCount);
+                setLoading(false);
+                return;
+            }
+            fetchPastChallenges();
+        };
+
+        window.addEventListener("challenge-trophies-updated", handleTrophyUpdate);
+        const intervalId = setInterval(fetchPastChallenges, 15000);
+
+        return () => {
+            window.removeEventListener("challenge-trophies-updated", handleTrophyUpdate);
+            clearInterval(intervalId);
+        };
     }, []);
 
     return (
