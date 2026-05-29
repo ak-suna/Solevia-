@@ -13,7 +13,7 @@ import FontSizeToggle from "../components/FontSizeToggle";
 import Toast from "../components/Toast";
 import axios from "axios";
 import { deriveKey, encryptContent, decryptContent, initializeEncryption } from "../utils/encryption";
-import { BACKEND_URL, API_BASE_URL } from "../config";
+import { API_BASE_URL } from "../config";
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -772,7 +772,7 @@ function NotificationSettingsContent() {
     const fetchPreferences = async () => {
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`${BACKEND_URL}/api/notifications/preferences`, {
+            const response = await fetch(`${API_BASE_URL}/notifications/preferences`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -805,7 +805,7 @@ function NotificationSettingsContent() {
 
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`${BACKEND_URL}/api/notifications/preferences`, {
+            const response = await fetch(`${API_BASE_URL}/notifications/preferences`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

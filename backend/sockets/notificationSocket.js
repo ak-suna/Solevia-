@@ -113,13 +113,14 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { User } from "../models/User.js";
+import { getFrontendUrl } from "../config/appUrls.js";
 
 let io;
 
 export function initializeSocket(server) {
   io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      origin: getFrontendUrl(),
       methods: ["GET", "POST"],
       credentials: true
     },
